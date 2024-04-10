@@ -5,13 +5,13 @@
 //!
 //! It exports a single function:
 //!
-//! ```rust
+//! ```rust,ignore
 //! stable_mir_driver(args: &Vec<String>, callback_fn: fn (TyCtxt) -> () )
 //! ```
 //!
 //! Calling this function is essentially equivalent to the following macro call:
 //!
-//! ```rust
+//! ```rust,ignore
 //! rustc_internal::run_with_tcx!( args, callback_fn );
 //! ```
 //!
