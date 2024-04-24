@@ -3,9 +3,9 @@ use std::env;
 pub mod driver;
 pub mod printer;
 use driver::stable_mir_driver;
-use printer::print_all_items;
+use printer::print_all_items_verbose;
 
 fn main() {
     let args: Vec<_> = env::args().collect();
-    stable_mir_driver(&args, print_all_items)
+    stable_mir_driver(&args, print_all_items_verbose)
 }
