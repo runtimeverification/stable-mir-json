@@ -16,7 +16,13 @@ pub fn print_generics_chain(tcx: TyCtxt<'_>, opt_id: Option<DefId>) -> String {
      let preds  = tcx.predicates_of(id);
      if params.parent != preds.parent { panic!("Generics and predicates parent ids are distinct"); }
      let parent_chain = print_generics_chain(tcx, params.parent);
-     return format!("\nParams: {:#?}\nPreds: {:#?}\n{parent_chain}", params, preds);
+     // skip printing empty predicate structs
+     let preds_string = if preds.predicates.len() == 0 {
+       "".into()
+     } else {
+       format!("\nPreds: {:#?}", preds.predicates)
+     };
+     return format!("\nParams: {:#?}{preds_string}{parent_chain}", params);
   } else {
     return "".into()
   }
