@@ -4,8 +4,8 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_smir;
 extern crate stable_mir;
-use rustc_hir::definitions::{DefPath};
-use rustc_middle::ty::TyCtxt;
+use rustc_hir::{def::DefKind, definitions::DefPath};
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericArgs, TypeFoldable};
 use rustc_span::def_id::DefId;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateDef,Symbol};
@@ -38,21 +38,46 @@ pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::S
   }
 }
 
+// unwrap early binder in a default manner; panic on error
+fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<T>) -> T
+  where T: TypeFoldable<TyCtxt<'tcx>>
+{
+  tcx.instantiate_and_normalize_erasing_regions(GenericArgs::identity_for_item(tcx, id), tcx.param_env(id), v)
+}
+
+pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>) -> String {
+  // lookup type kind in order to perform case analysis
+  let kind: &TyKind = ty.skip_binder().kind();
+  if let TyKind::FnDef(fun_id, args) = kind {
+    // since FnDef doesn't contain signature, lookup actual function type
+    // via getting fn signature with parameters and resolving those parameters
+    let sig0 = tcx.fn_sig(fun_id);
+    let sig1 = tcx.instantiate_and_normalize_erasing_regions(args, tcx.param_env(fun_id), sig0);
+    let sig2: FnSig<'_> = tcx.instantiate_bound_regions_with_erased(sig1);
+    format!("\nTyKind(FnDef): {:#?}", sig2)
+  } else {
+    let kind = default_unwrap_early_binder(tcx, id, ty);
+    format!("\nTyKind: {:#?}", kind)
+  }
+}
+
 pub fn print_item_details(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem) {
   // Internal Details
   //
   // get DefId for internal API use
   let id: DefId = rustc_internal::internal(tcx,item);
+  // get DefKind for item
+  let internal_kind: DefKind = tcx.def_kind(id);
   // get DefPath for item
   let path: DefPath = tcx.def_path(id);
   // get string version of DefPath
   let path_str: String = tcx.def_path_str(id);
   // get type, generic parameters, required predicates, layout
-  let ty = tcx.type_of(id);
+  let ty_str = print_type(tcx, id, tcx.type_of(id));
   let generics_chain = print_generics_chain(tcx, Some(id));
   // let layout = tcx.layout_of(id);
-  println!("===Internal===\nDefId: {:#?}\nDefPath: {:#?}\nDefPathStr: {}\nTy: {:#?}{generics_chain}",
-           id, path, path_str, ty);
+  println!("===Internal===\nDefId: {:#?}\nDefKind: {:#?}\nDefPath: {:#?}\nDefPathStr: {}{ty_str}{generics_chain}",
+           id, internal_kind, path, path_str);
 
   // Stable Details
   //
