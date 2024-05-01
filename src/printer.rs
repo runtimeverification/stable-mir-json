@@ -6,7 +6,7 @@ extern crate rustc_smir;
 extern crate stable_mir;
 use rustc_hir::{def::DefKind, definitions::DefPath};
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericArgs, TypeFoldable};
-use rustc_span::def_id::DefId;
+use rustc_span::{def_id::DefId, symbol::sym};
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateDef,Symbol};
 
@@ -30,11 +30,11 @@ pub fn print_generics_chain(tcx: TyCtxt<'_>, opt_id: Option<DefId>) -> String {
 
 pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::Stdout) {
   let _ = item.emit_mir(out);
-  println!("{:?}", item.body());
+  println!("{:#?}", item.body());
   for (idx, promoted) in tcx.promoted_mir(rustc_internal::internal(tcx,item.def_id())).into_iter().enumerate() {
     let promoted_body = rustc_internal::stable(promoted);
     let _ = promoted_body.dump(out, format!("promoted[{}:{}]", item.name(), idx).as_str());
-    println!("{:?}", promoted_body);
+    println!("{:#?}", promoted_body);
   }
 }
 
@@ -61,11 +61,9 @@ pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>)
   }
 }
 
-pub fn print_item_details(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem) {
+pub fn print_item_details(tcx: TyCtxt<'_>, id: DefId, item: &stable_mir::CrateItem) {
   // Internal Details
   //
-  // get DefId for internal API use
-  let id: DefId = rustc_internal::internal(tcx,item);
   // get DefKind for item
   let internal_kind: DefKind = tcx.def_kind(id);
   // get DefPath for item
@@ -96,10 +94,16 @@ pub fn print_all_items(tcx: TyCtxt<'_>) {
   }
 }
 
+pub fn has_attr(item: &stable_mir::CrateItem, attr: Symbol) {
+   tcx.has_attr(rustc_internal::internal(tcx,item), sym::test)
+}
+
 pub fn print_all_items_verbose(tcx: TyCtxt<'_>) {
   let mut out = io::stdout();
-  for item in stable_mir::all_local_items().iter() {
-      print_item_details(tcx, item);
-      print_item(tcx, item, &mut out);
+  // find entrypoints and constants
+  for item in stable_mir::all_local_items().iter().filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))  {
+        print_item_details(tcx, id, item);
+        print_item(tcx, item, &mut out);
+      //}
   }
 }
