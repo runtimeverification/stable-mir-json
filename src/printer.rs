@@ -90,20 +90,20 @@ pub fn print_item_details(tcx: TyCtxt<'_>, id: DefId, item: &stable_mir::CrateIt
 pub fn print_all_items(tcx: TyCtxt<'_>) {
   let mut out = io::stdout();
   for item in stable_mir::all_local_items().iter() {
-      print_item(tcx, item, &mut out);
+    print_item(tcx, item, &mut out);
   }
 }
 
-pub fn has_attr(item: &stable_mir::CrateItem, attr: Symbol) {
+pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: Symbol) -> bool {
    tcx.has_attr(rustc_internal::internal(tcx,item), sym::test)
 }
 
 pub fn print_all_items_verbose(tcx: TyCtxt<'_>) {
   let mut out = io::stdout();
   // find entrypoints and constants
-  for item in stable_mir::all_local_items().iter().filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))  {
-        print_item_details(tcx, id, item);
-        print_item(tcx, item, &mut out);
-      //}
+  for item in stable_mir::all_local_items().iter() { // .filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))  {
+    let id = rustc_internal::internal(tcx, item);
+    print_item_details(tcx, id, item);
+    print_item(tcx, item, &mut out);
   }
 }
