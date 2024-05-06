@@ -2,6 +2,7 @@
 use std::env;
 pub mod driver;
 pub mod printer;
+pub mod pretty;
 use driver::stable_mir_driver;
 use printer::print_all_items_verbose;
 

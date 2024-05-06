@@ -32,19 +32,20 @@ use stable_mir::ty::{Const, Ty};
 use stable_mir::mir::{Operand, Place, Rvalue, StatementKind, UnwindAction, VarDebugInfoContents, AssertMessage, BinOp, TerminatorKind, BorrowKind, Mutability, Body};
 
 pub fn function_body<W: Write>(writer: &mut W, body: &Body, name: &str) -> io::Result<()> {
-    write!(writer, "fn {}(", name)?;
+    write!(writer, "Body({}, Args(", name)?;
+    let size = body.arg_locals().len();
     body.arg_locals()
         .iter()
         .enumerate()
-        .try_for_each(|(index, local)| write!(writer, "_{}: {:?}", index + 1, local.ty))?; // TODO: printer
+        .try_for_each(|(index, local)| write!(writer, "_{}: {:?}{} ", index + 1, local.ty, if index+1 == size {""} else {","}))?; // TODO: printer
     write!(writer, ")")?;
 
     let return_local = body.ret_local();
-    writeln!(writer, " -> {:?} {{", return_local.ty)?; // TODO: printer
+    writeln!(writer, ", {:?},", return_local.ty)?; // TODO: printer
 
     body.locals().iter().enumerate().try_for_each(|(index, local)| -> io::Result<()> {
         if index == 0 || index > body.arg_locals().len() {
-            writeln!(writer, "    let {}_{}: {:?};", pretty_mut(local.mutability), index, local.ty) // TODO: printer
+            writeln!(writer, "    Locals({}, {}, {:?})", pretty_mut(local.mutability), index, local.ty) // TODO: printer
         } else {
             Ok(())
         }
@@ -52,19 +53,20 @@ pub fn function_body<W: Write>(writer: &mut W, body: &Body, name: &str) -> io::R
 
     body.var_debug_info.iter().try_for_each(|info| {
         let content = match &info.value {
-            VarDebugInfoContents::Place(place) => {
-                format!("{place:?}")
+            VarDebugInfoContents::Place(place) => format!("Place({place:?})"),
+            VarDebugInfoContents::Const(constant) => {
+              let content = pretty_const(&constant.const_);
+              format!("Const({content})")
             }
-            VarDebugInfoContents::Const(constant) => pretty_const(&constant.const_),
         };
-        writeln!(writer, "    debug {} => {};", info.name, content)
+        writeln!(writer, "    VarDebugInfoContents({},{}),", info.name, content)
     })?;
 
     body.blocks
         .iter()
         .enumerate()
         .map(|(index, block)| -> io::Result<()> {
-            writeln!(writer, "    bb{}: {{", index)?;
+            writeln!(writer, "    BasicBlock({},", index)?;
             let _ = block
                 .statements
                 .iter()
@@ -74,11 +76,11 @@ pub fn function_body<W: Write>(writer: &mut W, body: &Body, name: &str) -> io::R
                 })
                 .collect::<Vec<_>>();
             pretty_terminator(writer, &block.terminator.kind)?;
-            writeln!(writer, "    }}").unwrap();
+            writeln!(writer, "    )").unwrap();
             Ok(())
         })
         .collect::<Result<Vec<_>, _>>()?;
-    writeln!(writer, "}}")?;
+    writeln!(writer, ")")?;
     Ok(())
 }
 
