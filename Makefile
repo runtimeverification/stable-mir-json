@@ -1,18 +1,22 @@
 RUST_DIR=${CURDIR}/deps/rust
-BUILD_DIR=${RUST_DIR}/rust/build
-INSTALL_DIR=${RUST_DIR}/rust/install
-TEMP_DIR=${RUST_DIR}/rust/temp
+RUST_SRC=${RUST_DIR}/src
+RUST_INSTALL=${RUST_DIR}/install
+TEMP_DIR=${RUST_DIR}/temp
+RUST_REPO=https://github.com/sskeirik/rust
 RUST_BRANCH=smir_serde
 TOOLCHAIN_NAME=smir_serde
 
-default: clone build set_toolchain
+default: rust_clone rust_build rust_set_toolchain build
+
+build:
+	cargo build
 
 clean:
-	rm -rf "${BUILD_DIR}" "${INSTALL_DIR}" "${TEMP_DIR}"
+	rm -rf "${RUST_SRC}" "${RUST_INSTALL}" "${TEMP_DIR}"
 
-clone:
-	git clone https://github.com/rust-lang/rust "${BUILD_DIR}"
-	cd "${BUILD_DIR}"; git checkout "${BRANCH}"
+# NOTE: a deeper clone depth is needed for the build process
+rust_clone:
+	git clone --depth 50 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}"
 
 #
 # build process for linking against custom rustc is involved
@@ -22,14 +26,14 @@ clone:
 #
 #    See implications of hack in README
 #
-build: ${BUILD_DIR}
-	cd "${BUILD_DIR}"; ./x.py install --set "install.prefix=${INSTALL_DIR}" --set "install.sysconfdir=."
-	cd "${BUILD_DIR}"; ./x.py dist rustc-dev
+rust_build: ${RUST_SRC}
+	cd "${RUST_SRC}"; ./x.py install --set "install.prefix=${RUST_INSTALL}" --set "install.sysconfdir=." compiler/rustc library/std
+	cd "${RUST_SRC}"; ./x.py dist rustc-dev
 	mkdir -p "${TEMP_DIR}"
-	cd "${BUILD_DIR}"; tar xf ./build/dist/rustc-dev*tar.gz -C "${TEMP_DIR}"
-	${TEMP_DIR}/*/install.sh --prefix="${INSTALL_DIR}" --sysconfdir="${INSTALL_DIR}"
-	cd "${INSTALL_DIR}/lib"; cp libLLVM* rustlib/*/lib/
+	cd "${RUST_SRC}"; tar xf ./build/dist/rustc-dev*tar.gz -C "${TEMP_DIR}"
+	${TEMP_DIR}/*/install.sh --prefix="${RUST_INSTALL}" --sysconfdir="${RUST_INSTALL}"
+	cd "${RUST_INSTALL}/lib"; cp libLLVM* rustlib/*/lib/
 
-set_toolchain: ${INSTALL_DIR}/lib
-	rustup toolchain link "${TOOLCHAIN_NAME}" "${INSTALL_DIR}"
-	rustup override set "${TOOLCHAIN_NAME}'
+rust_set_toolchain: ${RUST_INSTALL}/lib
+	rustup toolchain link "${TOOLCHAIN_NAME}" "${RUST_INSTALL}"
+	rustup override set "${TOOLCHAIN_NAME}"
