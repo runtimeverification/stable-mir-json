@@ -8,7 +8,7 @@ use rustc_hir::{def::DefKind, definitions::DefPath};
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericArgs, TypeFoldable};
 use rustc_span::{def_id::DefId, symbol::sym};
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,Symbol};
+use stable_mir::{CrateDef,Symbol,serde_json};
 use super::pretty::function_body;
 
 pub fn print_generics_chain(tcx: TyCtxt<'_>, opt_id: Option<DefId>) -> String {
@@ -32,7 +32,8 @@ pub fn print_generics_chain(tcx: TyCtxt<'_>, opt_id: Option<DefId>) -> String {
 pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::Stdout) {
   // function_body(out, &item.body(), &item.name());
   item.emit_mir(out);
-  println!("{:#?}", item.body());
+  // println!("{:#?}", item.body());
+  println!("{}",serde_json::to_string(&item.body()).unwrap());
   for (idx, promoted) in tcx.promoted_mir(rustc_internal::internal(tcx,item.def_id())).into_iter().enumerate() {
     let promoted_body = rustc_internal::stable(promoted);
     promoted_body.dump(out,format!("promoted[{}:{}]", item.name(), idx).as_str());
