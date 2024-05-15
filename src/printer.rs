@@ -29,16 +29,22 @@ pub fn print_generics_chain(tcx: TyCtxt<'_>, opt_id: Option<DefId>) -> String {
   }
 }
 
-pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::Stdout) {
+pub fn print_body(body: &stable_mir::mir::Body, name: &String, out: &mut io::Stdout) {
+  // Default SMIR Printer
+  body.dump(out, name);
+  // Custom Local Printer
   // function_body(out, &item.body(), &item.name());
-  item.emit_mir(out);
-  // println!("{:#?}", item.body());
-  println!("{}",serde_json::to_string(&item.body()).unwrap());
+  // Debug Printer
+  println!("{:#?}", body);
+  // JSON Printer
+  println!("{}",serde_json::to_string(body).unwrap());
+}
+
+pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::Stdout) {
+  print_body(&item.body(), &item.name(), out);
   for (idx, promoted) in tcx.promoted_mir(rustc_internal::internal(tcx,item.def_id())).into_iter().enumerate() {
     let promoted_body = rustc_internal::stable(promoted);
-    promoted_body.dump(out,format!("promoted[{}:{}]", item.name(), idx).as_str());
-    // function_body(out, &promoted_body, format!("promoted[{}:{}]", item.name(), idx).as_str());
-    println!("{:#?}", promoted_body);
+    print_body(&promoted_body, (&format!("promoted[{}:{}]", &item.name(), idx)).into(), out);
   }
 }
 
