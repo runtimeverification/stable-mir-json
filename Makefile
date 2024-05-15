@@ -20,11 +20,7 @@ clone:
 # 2. rustc-dev component must be installed (install does _not_ handle, must be done manually)
 # 3. HACK: we copy required libraries to the libdir
 #
-#    Installer assumes prefix /usr/local (so installed libs will be picked up by ldconfig)
-#    Since install at an uncommon prefix, we manually copy foreign runtime libs to rustlib dir,
-#    so that cargo will pick them up by default
-#
-#    Due to hack, we _must_ run tools via cargo run or, e.g., manually set up LD_LIBRARY_PATH
+#    See implications of hack in README
 #
 build: ${BUILD_DIR}
 	cd "${BUILD_DIR}"; ./x.py install --set "install.prefix=${INSTALL_DIR}" --set "install.sysconfdir=."
