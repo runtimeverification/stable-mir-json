@@ -377,7 +377,7 @@ pub fn pretty_rvalue<W: Write>(writer: &mut W, rval: &Rvalue) -> io::Result<()> 
         Rvalue::Ref(_, borrowkind, place) => {
             let kind = match borrowkind {
                 BorrowKind::Shared => "&",
-                BorrowKind::Fake => "&fake ",
+                BorrowKind::Fake(_) => "&fake ",
                 BorrowKind::Mut { .. } => "&mut ",
             };
             write!(writer, "{kind}{:?}", place)
