@@ -8,7 +8,7 @@ use rustc_hir::{def::DefKind, definitions::DefPath};
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericArgs, TypeFoldable};
 use rustc_span::{def_id::DefId, symbol::sym};
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,Symbol,serde_json};
+use stable_mir::{CrateDef,Symbol,to_json};
 use super::pretty::function_body;
 
 pub fn print_generics_chain(tcx: TyCtxt<'_>, opt_id: Option<DefId>) -> String {
@@ -37,7 +37,7 @@ pub fn print_body(body: &stable_mir::mir::Body, name: &String, out: &mut io::Std
   // Debug Printer
   println!("{:#?}", body);
   // JSON Printer
-  println!("{}",serde_json::to_string(body).unwrap());
+  println!("{}",to_json(body).unwrap());
 }
 
 pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::Stdout) {
