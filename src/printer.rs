@@ -52,7 +52,11 @@ pub fn print_item(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, out: &mut io::S
 fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<T>) -> T
   where T: TypeFoldable<TyCtxt<'tcx>>
 {
-  tcx.instantiate_and_normalize_erasing_regions(GenericArgs::identity_for_item(tcx, id), tcx.param_env(id), v)
+  let v_copy = v.clone();
+  match tcx.try_instantiate_and_normalize_erasing_regions(GenericArgs::identity_for_item(tcx, id), tcx.param_env(id), v) {
+      Ok(res) => return res,
+      Err(err) => { println!("{:?}", err); v_copy.skip_binder() }
+  }
 }
 
 pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>) -> String {
@@ -62,7 +66,11 @@ pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>)
     // since FnDef doesn't contain signature, lookup actual function type
     // via getting fn signature with parameters and resolving those parameters
     let sig0 = tcx.fn_sig(fun_id);
-    let sig1 = tcx.instantiate_and_normalize_erasing_regions(args, tcx.param_env(fun_id), sig0);
+    let sig0_copy = sig0.clone();
+    let sig1 = match tcx.try_instantiate_and_normalize_erasing_regions(args, tcx.param_env(fun_id), sig0) {
+      Ok(res) => res,
+      Err(err) => { println!("{:?}", err); sig0.skip_binder() }
+    };
     let sig2: FnSig<'_> = tcx.instantiate_bound_regions_with_erased(sig1);
     format!("\nTyKind(FnDef): {:#?}", sig2)
   } else {
