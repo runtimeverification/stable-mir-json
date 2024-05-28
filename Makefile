@@ -7,7 +7,7 @@ RUST_REPO=https://github.com/sskeirik/rust
 RUST_BRANCH=smir_serde
 TOOLCHAIN_NAME=smir_serde
 
-default_build: rust_build rust_set_toolchain build
+build: rust_build rust_set_toolchain cargo_build
 
 setup:
 	rust_clone
@@ -15,7 +15,7 @@ setup:
 update: ${RUST_SRC}
 	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
 
-build:
+cargo_build:
 	cargo build
 
 clean:
