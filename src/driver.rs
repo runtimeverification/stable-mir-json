@@ -50,5 +50,5 @@ impl rustc_driver::Callbacks for StableMirCallbacks {
 
 pub fn stable_mir_driver(args_outer: &Vec<String>, callback_fn: fn (TyCtxt) -> ()) {
     let mut callbacks = StableMirCallbacks { callback_fn };
-    rustc_driver::RunCompiler::new(args_outer, &mut callbacks).run().unwrap()
+    rustc_driver::RunCompiler::new(args_outer, &mut callbacks).run();
 }
