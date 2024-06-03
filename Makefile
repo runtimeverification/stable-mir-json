@@ -40,8 +40,8 @@ rust_clone:
 # 4. finally, use rustup to create custom toolchain
 
 rust_build: ${RUST_SRC} prebuild_clean
-	cd "${RUST_SRC}"; ./x.py build --stage 2 compiler/rustc library/std
-	cd "${RUST_SRC}"; ./x.py dist rustc-dev
+	cd "${RUST_SRC}"; ./x.py build --stage 2 --set rust.debug-logging=true compiler/rustc library/std
+	cd "${RUST_SRC}"; ./x.py dist --set rust.debug-logging=true rustc-dev
 	mkdir -p "${TEMP_DIR}"
 	cd "${RUST_SRC}"; tar xf ./build/dist/rustc-dev*tar.gz -C "${TEMP_DIR}"
 	${TEMP_DIR}/rustc-dev*/install.sh --prefix="${RUST_INSTALL}" --sysconfdir="${RUST_INSTALL}" > "${RUST_DIR}"/rustc-dev-install.log 2>&1
