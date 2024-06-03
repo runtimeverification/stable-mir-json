@@ -9,8 +9,7 @@ TOOLCHAIN_NAME=smir_serde
 
 build: rust_build rust_set_toolchain cargo_build
 
-setup:
-	rust_clone
+setup: rust_clone
 
 update: ${RUST_SRC}
 	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
