@@ -3,7 +3,7 @@ RUST_SRC=${RUST_DIR}/src
 RUST_ARCH=$(shell "${PWD}"/rustc_arch.sh)
 RUST_INSTALL=${RUST_SRC}/build/${RUST_ARCH}/stage2
 TEMP_DIR=${RUST_DIR}/temp
-RUST_REPO=https://github.com/sskeirik/rust
+RUST_REPO=https://github.com/runtimeverification/rust
 RUST_BRANCH=smir_serde
 TOOLCHAIN_NAME=smir_serde
 
