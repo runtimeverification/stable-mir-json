@@ -45,7 +45,8 @@ impl rustc_driver::Callbacks for StableMirCallbacks {
             .enter(|tcx| {
                 let _ = rustc_internal::run(tcx, || (self.callback_fn)(tcx));
             });
-        Compilation::Stop
+
+        Compilation::Continue
     }
 }
 

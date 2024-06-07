@@ -1,14 +1,17 @@
+use std::fs::File;
 use std::io;
 use std::iter::Iterator;
 use std::vec::Vec;
 use std::str;
 extern crate rustc_hir;
 extern crate rustc_middle;
+extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_smir;
 extern crate stable_mir;
 use rustc_hir::{def::DefKind, definitions::DefPath};
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericArgs, TypeFoldable, Generics, GenericPredicates};
+use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol::sym};
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateDef,ItemKind,Symbol,to_json,mir::Body};
@@ -139,5 +142,19 @@ pub fn print_all_items(tcx: TyCtxt<'_>) {
       details: get_item_details(tcx, id),
     }
   }).collect();
-  println!("{}", to_json(items).expect("serde_json failed"));
+
+  writer.write_all(to_json(items).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
+}
+
+pub fn emit_smir(tcx: TyCtxt<'_>) {
+  match tcx.output_filenames(()).path(OutputType::Mir) {
+    OutFileName::Stdout => {
+        let mut f = io::stdout();
+        emit_smir_internal(tcx, &mut f);
+    }
+    OutFileName::Real(path) => {
+        let mut f = io::BufWriter::new(File::create(&path.with_extension("smir.json")).expect("Failed to create SMIR output file"));
+        emit_smir_internal(tcx, &mut f);
+    }
+  }
 }
