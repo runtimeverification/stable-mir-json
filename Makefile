@@ -4,7 +4,7 @@ RUST_ARCH=$(shell "${PWD}"/rustc_arch.sh)
 RUST_BUILD_DIR=${RUST_SRC}/build/${RUST_ARCH}
 RUST_INSTALL=${RUST_BUILD_DIR}/stage2
 RUST_DEP_DIR=${RUST_BUILD_DIR}/stage1-rustc/${RUST_ARCH}/release/deps
-TARGET=debug
+TARGET ?= debug
 TARGET_DEP_DIR=${CURDIR}/target/${TARGET}/deps
 TEMP_DIR=${RUST_DIR}/temp
 RUST_REPO=https://github.com/runtimeverification/rust
@@ -18,6 +18,17 @@ setup: rust_clone
 update: ${RUST_SRC}
 	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
 
+# HACK: we cannot wrap serde serializers built for packages inside rustc
+#       thus, we do the following:
+#       1. run cargo build as usual, but ignore errors---this builds serde and
+#          hence, gives us the path that cargo expects to find find libserde
+#       2. from (1), copy the rustc compiled libserde into our dep dir
+#       3. re-run cargo build; it will pick up the compiled libserde and continue
+#          successfully
+# NOTE: this hack may break if cross-compiling rustc or if there is some other
+#       divergence between the rustc and smir-pretty build environment, since
+#       we use build products from an early rustc build stage which may not
+#       match our current arch or build environemnt
 cargo_build:
 	-cargo build
 	cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta
