@@ -1,7 +1,11 @@
 RUST_DIR=${CURDIR}/deps/rust
 RUST_SRC=${RUST_DIR}/src
 RUST_ARCH=$(shell "${PWD}"/rustc_arch.sh)
-RUST_INSTALL=${RUST_SRC}/build/${RUST_ARCH}/stage2
+RUST_BUILD_DIR=${RUST_SRC}/build/${RUST_ARCH}
+RUST_INSTALL=${RUST_BUILD_DIR}/stage2
+RUST_DEP_DIR=${RUST_BUILD_DIR}/stage1-rustc/${RUST_ARCH}/release/deps
+TARGET=debug
+TARGET_DEP_DIR=${CURDIR}/target/${TARGET}/deps
 TEMP_DIR=${RUST_DIR}/temp
 RUST_REPO=https://github.com/runtimeverification/rust
 RUST_BRANCH=smir_serde
@@ -15,6 +19,9 @@ update: ${RUST_SRC}
 	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
 
 cargo_build:
+	-cargo build
+	cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta
+	cp ${RUST_DEP_DIR}/libserde-*.rlib  ${TARGET_DEP_DIR}/libserde-*.rlib
 	cargo build
 
 clean:
