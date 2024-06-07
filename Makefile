@@ -2,7 +2,8 @@ RUST_DIR=${CURDIR}/deps/rust
 RUST_SRC=${RUST_DIR}/src
 RUST_ARCH=$(shell "${PWD}"/rustc_arch.sh)
 RUST_BUILD_DIR=${RUST_SRC}/build/${RUST_ARCH}
-RUST_INSTALL=${RUST_BUILD_DIR}/stage2
+RUST_INSTALL_DIR=${RUST_BUILD_DIR}/stage2
+RUST_LIB_DIR=${RUST_INSTALL_DIR}/lib
 RUST_DEP_DIR=${RUST_BUILD_DIR}/stage1-rustc/${RUST_ARCH}/release/deps
 TARGET ?= debug
 TARGET_DEP_DIR=${CURDIR}/target/${TARGET}/deps
@@ -15,7 +16,7 @@ ifeq (${TARGET}, release)
 RELEASE_FLAG=--release
 endif
 
-build: rust_build rust_set_toolchain cargo_build
+build_all: rust_build rust_set_toolchain build
 
 setup: rust_clone
 
@@ -33,7 +34,7 @@ update: ${RUST_SRC}
 #       divergence between the rustc and smir-pretty build environment, since
 #       we use build products from an early rustc build stage which may not
 #       match our current arch or build environemnt
-cargo_build:
+build:
 	if ! cargo build ${RELEASE_FLAG}; then                                    \
 	  cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta; \
 	  cp ${RUST_DEP_DIR}/libserde-*.rlib  ${TARGET_DEP_DIR}/libserde-*.rlib;  \
@@ -66,11 +67,11 @@ rust_build: ${RUST_SRC} prebuild_clean
 	cd "${RUST_SRC}"; ./x.py dist --set rust.debug-logging=true rustc-dev
 	mkdir -p "${TEMP_DIR}"
 	cd "${RUST_SRC}"; tar xf ./build/dist/rustc-dev*tar.gz -C "${TEMP_DIR}"
-	${TEMP_DIR}/rustc-dev*/install.sh --prefix="${RUST_INSTALL}" --sysconfdir="${RUST_INSTALL}" > "${RUST_DIR}"/rustc-dev-install.log 2>&1
+	${TEMP_DIR}/rustc-dev*/install.sh --prefix="${RUST_INSTALL_DIR}" --sysconfdir="${RUST_INSTALL_DIR}" > "${RUST_DIR}"/rustc-dev-install.log 2>&1
 
 rust_lib_copy:
-	cd "${RUST_INSTALL}/lib"; cp libLLVM* rustlib/*/lib/
+	cd "${RUST_INSTALL_DIR}/lib"; cp libLLVM* rustlib/*/lib/
 
-rust_set_toolchain: ${RUST_INSTALL}/lib
-	rustup toolchain link "${TOOLCHAIN_NAME}" "${RUST_INSTALL}"
+rust_set_toolchain: ${RUST_INSTALL_DIR}/lib
+	rustup toolchain link "${TOOLCHAIN_NAME}" "${RUST_INSTALL_DIR}"
 	rustup override set "${TOOLCHAIN_NAME}"

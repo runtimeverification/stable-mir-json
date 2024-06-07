@@ -9,11 +9,31 @@ This package provides:
 
 It is designed so that anyone can use this library crate as a jumping off point for their own tools which might use stable MIR APIs.
 
+## Building
+
+For first-time builds, run:
+
+```shell
+make setup build_all
+```
+
+If the underlying `rustc` branch is updated and this crate needs to be rebuilt on top of it, run:
+
+```shell
+make update build_all
+```
+
+If the source code changes locally for this crate only and it needs to be rebuilt, run:
+
+```shell
+make build
+```
+
 ## Usage
 
 ### Running the Tool
 
-TLDR: Run the binary using `cargo run`.
+TLDR: Run the binary using the wrapper script `run.sh`.
 
 We use an uncommon build process where we link against a patched rustc installed in this repo.
 In these cases (when rustc is installed to a non-standard path), the compiler may spuriously becuase required runtime libraries are not found
