@@ -54,5 +54,5 @@ pub fn stable_mir_driver(args_outer: &Vec<String>, callback_fn: fn (TyCtxt) -> (
     let mut callbacks = StableMirCallbacks { callback_fn };
     let early_dcx = rustc_session::EarlyDiagCtxt::new(rustc_session::config::ErrorOutputType::default());
     rustc_driver::init_rustc_env_logger(&early_dcx);
-    rustc_driver::RunCompiler::new(args_outer, &mut callbacks).run();
+    let _ = rustc_driver::RunCompiler::new(args_outer, &mut callbacks).run();
 }

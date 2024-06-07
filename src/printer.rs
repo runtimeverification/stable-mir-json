@@ -3,19 +3,18 @@ use std::io;
 use std::iter::Iterator;
 use std::vec::Vec;
 use std::str;
-extern crate rustc_hir;
+// extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_smir;
 extern crate stable_mir;
-use rustc_hir::{def::DefKind, definitions::DefPath};
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericArgs, TypeFoldable, Generics, GenericPredicates};
+// use rustc_hir::{def::DefKind, definitions::DefPath};
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable}; // Binder Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_span::{def_id::DefId, symbol::sym};
+use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,ItemKind,Symbol,to_json,mir::Body};
-#[macro_use]
+use stable_mir::{CrateDef,ItemKind,to_json,mir::Body}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 
@@ -45,10 +44,10 @@ struct Item {
     details: Option<ItemDetails>
 }
 
-pub fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
+fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
      let mut next_id = Some(id);
-     while let Some(curr_id) = next_id {
+     while let Some(_curr_id) = next_id {
         let params = tcx.generics_of(id);
         let preds  = tcx.predicates_of(id);
         if params.parent != preds.parent { panic!("Generics and predicates parent ids are distinct"); }
@@ -59,11 +58,11 @@ pub fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      return GenericData(v);
 }
 
-pub fn get_body_details(body: &Body, name: Option<&String>) -> Option<BodyDetails> {
+fn get_body_details(body: &Body, name: Option<&String>) -> Option<BodyDetails> {
   if enabled!(tracing::Level::DEBUG) {
     let mut v = Vec::new();
     let name = if let Some(name) = name { name } else { "<promoted>" };
-    body.dump(&mut v, name);
+    let _ = body.dump(&mut v, name);
     Some(BodyDetails {
       pp: str::from_utf8(&v).unwrap().into(),
     })
@@ -83,14 +82,13 @@ fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBi
   }
 }
 
-pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>) -> String {
+fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>) -> String {
   // lookup type kind in order to perform case analysis
   let kind: &TyKind = ty.skip_binder().kind();
   if let TyKind::FnDef(fun_id, args) = kind {
     // since FnDef doesn't contain signature, lookup actual function type
     // via getting fn signature with parameters and resolving those parameters
     let sig0 = tcx.fn_sig(fun_id);
-    let sig0_copy = sig0.clone();
     let sig1 = match tcx.try_instantiate_and_normalize_erasing_regions(args, tcx.param_env(fun_id), sig0) {
       Ok(res) => res,
       Err(err) => { println!("{:?}", err); sig0.skip_binder() }
@@ -103,7 +101,7 @@ pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>)
   }
 }
 
-pub fn get_item_details(tcx: TyCtxt<'_>, id: DefId) -> Option<ItemDetails> {
+fn get_item_details(tcx: TyCtxt<'_>, id: DefId) -> Option<ItemDetails> {
   if enabled!(tracing::Level::DEBUG) {
     Some(ItemDetails {
       internal_kind: format!("{:#?}", tcx.def_kind(id)),
@@ -117,19 +115,19 @@ pub fn get_item_details(tcx: TyCtxt<'_>, id: DefId) -> Option<ItemDetails> {
   }
 }
 
-pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: Symbol) -> bool {
-   tcx.has_attr(rustc_internal::internal(tcx,item), sym::test)
+// Possible input: sym::test
+pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Symbol) -> bool {
+   tcx.has_attr(rustc_internal::internal(tcx,item), attr)
 }
 
-fn mkMirBody(body: Body, name: Option<&String>) -> MirBody {
+fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
   let details = get_body_details(&body, name);
   MirBody(body, details)
 }
 
 // TODO: Should we filter any incoming items?
 //       Example: .filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))
-pub fn print_all_items(tcx: TyCtxt<'_>) {
-  let mut out = io::stdout();
+fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let items: Vec<Item> = stable_mir::all_local_items().iter().map(|item| {
     let name = format!("{:?}", item.name());
     let body = item.body();
@@ -137,8 +135,8 @@ pub fn print_all_items(tcx: TyCtxt<'_>) {
     Item {
       name: name.clone(),
       kind: item.kind(),
-      body: mkMirBody(body, Some(&name)),
-      promoted: tcx.promoted_mir(id).into_iter().map(|body| mkMirBody(rustc_internal::stable(body), None)).collect(),
+      body: mk_mir_body(body, Some(&name)),
+      promoted: tcx.promoted_mir(id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect(),
       details: get_item_details(tcx, id),
     }
   }).collect();
