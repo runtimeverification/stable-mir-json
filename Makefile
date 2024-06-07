@@ -10,6 +10,10 @@ TEMP_DIR=${RUST_DIR}/temp
 RUST_REPO=https://github.com/runtimeverification/rust
 RUST_BRANCH=smir_serde
 TOOLCHAIN_NAME=smir_serde
+RELEASE_FLAG=
+ifeq (${TARGET}, release)
+RELEASE_FLAG=--release
+endif
 
 build: rust_build rust_set_toolchain cargo_build
 
@@ -30,10 +34,10 @@ update: ${RUST_SRC}
 #       we use build products from an early rustc build stage which may not
 #       match our current arch or build environemnt
 cargo_build:
-	-cargo build
+	-cargo build ${RELEASE_FLAG}
 	cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta
 	cp ${RUST_DEP_DIR}/libserde-*.rlib  ${TARGET_DEP_DIR}/libserde-*.rlib
-	cargo build
+	cargo build ${RELEASE_FLAG}
 
 clean:
 	cd "${RUST_SRC}" && git clean -dffx
