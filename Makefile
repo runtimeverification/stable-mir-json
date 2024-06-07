@@ -34,10 +34,11 @@ update: ${RUST_SRC}
 #       we use build products from an early rustc build stage which may not
 #       match our current arch or build environemnt
 cargo_build:
-	-cargo build ${RELEASE_FLAG}
-	cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta
-	cp ${RUST_DEP_DIR}/libserde-*.rlib  ${TARGET_DEP_DIR}/libserde-*.rlib
-	cargo build ${RELEASE_FLAG}
+	if ! cargo build ${RELEASE_FLAG}; then                                    \
+	  cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta; \
+	  cp ${RUST_DEP_DIR}/libserde-*.rlib  ${TARGET_DEP_DIR}/libserde-*.rlib;  \
+	  cargo build ${RELEASE_FLAG};                                            \
+	fi
 
 clean:
 	cd "${RUST_SRC}" && git clean -dffx
