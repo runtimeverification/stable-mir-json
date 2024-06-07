@@ -12,7 +12,6 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, Binder, FnSig, GenericAr
 use rustc_span::{def_id::DefId, symbol::sym};
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateDef,ItemKind,Symbol,to_json,mir::Body};
-use super::pretty::function_body;
 #[macro_use]
 use tracing::enabled;
 use serde::Serialize;
