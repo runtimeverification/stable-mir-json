@@ -133,7 +133,7 @@ pub fn print_all_items(tcx: TyCtxt<'_>) {
     let body = item.body();
     let id = rustc_internal::internal(tcx,item.def_id());
     Item {
-      name: name,
+      name: name.clone(),
       kind: item.kind(),
       body: mkMirBody(body, Some(&name)),
       promoted: tcx.promoted_mir(id).into_iter().map(|body| mkMirBody(rustc_internal::stable(body), None)).collect(),
