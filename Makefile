@@ -81,7 +81,6 @@ rust_build: ${RUST_SRC} prebuild_clean
 	mkdir -p "${TEMP_DIR}"
 	cd "${RUST_SRC}"; tar xf ./build/dist/rustc-dev*tar.gz -C "${TEMP_DIR}"
 	${TEMP_DIR}/rustc-dev*/install.sh --prefix="${RUST_INSTALL_DIR}" --sysconfdir="${RUST_INSTALL_DIR}" > "${RUST_DIR}"/rustc-dev-install.log 2>&1
-	echo ${STAGE} > ${STAGE_FILE}
 
 rust_lib_copy:
 	cd "${RUST_LIB_DIR}"; cp libLLVM* rustlib/*/lib/
@@ -89,3 +88,4 @@ rust_lib_copy:
 rust_set_toolchain: ${RUST_LIB_DIR}
 	rustup toolchain link "${TOOLCHAIN_NAME}" "${RUST_INSTALL_DIR}"
 	rustup override set "${TOOLCHAIN_NAME}"
+	echo ${STAGE} > ${STAGE_FILE}
