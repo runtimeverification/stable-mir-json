@@ -59,7 +59,7 @@ distclean:
 
 # this clean removes old backup files which accumulate and lead to slow build times
 prebuild_clean: ${RUST_SRC}
-	-find -name '*.old' -print -delete
+	-find -name '*.old' -delete
 	-rm -r "${TEMP_DIR}"
 
 # NOTE: a deeper clone depth is needed for the build process
