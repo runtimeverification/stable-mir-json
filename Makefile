@@ -80,7 +80,7 @@ rust_build: ${RUST_SRC} prebuild_clean
 	cd "${RUST_SRC}"; ./x.py dist --set rust.debug-logging=true rustc-dev
 	mkdir -p "${TEMP_DIR}"
 	cd "${RUST_SRC}"; tar xf ./build/dist/rustc-dev*tar.gz -C "${TEMP_DIR}"
-	${TEMP_DIR}/rustc-dev*/install.sh --prefix="${RUST_INSTALL_DIR}" --sysconfdir="${RUST_INSTALL_DIR}" > "${RUST_DIR}"/rustc-dev-install.log 2>&1
+	"${TEMP_DIR}"/rustc-dev*/install.sh --prefix="${RUST_INSTALL_DIR}" --sysconfdir="${RUST_INSTALL_DIR}" > "${RUST_DIR}"/rustc-dev-install.log 2>&1
 
 rust_lib_copy:
 	cd "${RUST_LIB_DIR}"; cp libLLVM* rustlib/*/lib/
