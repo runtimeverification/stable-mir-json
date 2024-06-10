@@ -49,3 +49,39 @@ If you wish to run the tool manually, you will need to tell the program loader/d
 1.  setting `LD_LIBRARY_PATH`
 2.  setting the `rpath` attribute on the binary ELF file
 3.  manually invoking the loader (usually `/usr/lib/ld-linux.so.2`) with its specific options
+
+## Tests
+
+### Running the Tests
+
+To run the tests, do the following:
+
+```shell
+make generate_ui_tests
+```
+
+This will generate four outputs:
+
+| Path                              | Comment                                                   |
+| ---                               | ---                                                       |
+| `deps/rust/tests/ui/upstream`     | Upstream `rustc` test outputs                             |
+| `deps/rust/tests_ui_upstream.log` | Upstream test log                                         |
+| `deps/rust/tests/ui/smir`         | `smir_pretty` test outputs (including `.smir.json` files) |
+| `deps/rust/tests_ui_smir.log`     | `smir_pretty` test log                                    |
+
+### Test Rationale
+
+Since this crate is a Stable MIR serialization tool, there are two main features we are interested in:
+
+1.  the serialization facilities should be stable (i.e. not crash)
+2.  the serialized output should be correct
+
+Since this tool is currently in its early stages, it is hard to test (2).
+However, to test (1) and to make progress towards (2), we currently do the following:
+
+1.  in the rustc test suite, we gather all of the run-pass tests, i.e., tests where the compiler is able to generate a binary _and_ subsequently execute the binary such that it exits successfully
+2.  we extract the test runner invocation from the `x.py test` command
+3.  we execute the test runner with upstream `rustc` against the test inputs from (1) --- this gives us a baseline on which tests should pass/fail
+4.  we re-execute the test runner but use our wrapper binary against the test inputs from (1) --- this generates the corresponding `.smir.json` files and shows us where any regressions occur
+
+Note that points (1,4) also means that our test _outputs_ from this phase can become test _inputs_ for KMIR.
