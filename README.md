@@ -84,4 +84,6 @@ However, to test (1) and to make progress towards (2), we currently do the follo
 3.  we execute the test runner with upstream `rustc` against the test inputs from (1) --- this gives us a baseline on which tests should pass/fail
 4.  we re-execute the test runner but use our wrapper binary against the test inputs from (1) --- this generates the corresponding `.smir.json` files and shows us where any regressions occur
 
-Note that points (1,4) also means that our test _outputs_ from this phase can become test _inputs_ for KMIR.
+
+**NOTE:** In order to speed up test time, we setup the test runner, by default, such that it skips codegen and compiler-generated binary execution.  
+**NOTE:** Points (1,4) also means that our test _outputs_ from this phase can become test _inputs_ for KMIR.
