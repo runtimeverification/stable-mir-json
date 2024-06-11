@@ -92,5 +92,5 @@ rust_set_toolchain: ${RUST_LIB_DIR}
 
 generate_ui_tests:
 	cd "${RUST_SRC}"; ./get_runpass.sh tests/ui > "${RUST_DIR}"/tests_ui_sources
-	-cd "${RUST_SRC}"; ./ui_compiletest.sh "${RUST_SRC}" "${RUST_DIR}"/tests/ui/upstream "${RUST_DIR}"/ui_test_sources --pass check --force-rerun 2>&1 > "${RUST_DIR}"/tests_ui_upstream.log
-	-cd "${RUST_SRC}"; RUST_BIN="${PWD}"/run.sh ./ui_compiletest.sh "${RUST_SRC}" "${RUST_DIR}"/tests/ui/smir "${RUST_DIR}"/ui_test_sources --pass check --force-rerun 2>&1 > "${RUST_DIR}"/tests_ui_smir.log
+	-cd "${RUST_SRC}"; ./ui_compiletest.sh "${RUST_SRC}" "${RUST_DIR}"/tests/ui/upstream "${RUST_DIR}"/tests_ui_sources --pass check --force-rerun 2>&1 > "${RUST_DIR}"/tests_ui_upstream.log
+	-cd "${RUST_SRC}"; RUST_BIN="${PWD}"/run.sh ./ui_compiletest.sh "${RUST_SRC}" "${RUST_DIR}"/tests/ui/smir "${RUST_DIR}"/tests_ui_sources --pass check --force-rerun 2>&1 > "${RUST_DIR}"/tests_ui_smir.log
