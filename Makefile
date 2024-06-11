@@ -52,10 +52,14 @@ build:
 clean:
 	cd "${RUST_SRC}" && ./x.py clean
 	-rm -r "${TEMP_DIR}"
+	-rm -r "${RUST_DIR}"/tests
+	-rm -r ./target
 
 distclean:
 	cd "${RUST_SRC}" && git clean -dffx
 	-rm -r "${TEMP_DIR}"
+	-rm -r "${RUST_DIR}"/tests
+	-rm -r ./target
 
 # this clean removes old backup files which accumulate and lead to slow build times
 prebuild_clean: ${RUST_SRC}
