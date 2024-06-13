@@ -10,11 +10,11 @@ extern crate rustc_span;
 extern crate rustc_smir;
 extern crate stable_mir;
 // use rustc_hir::{def::DefKind, definitions::DefPath};
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable}; // Binder Generics, GenericPredicates, ParamEnv
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind}; // Symbol, mir::mono::Instance
+use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind, mir::mono::Instance}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 
@@ -54,11 +54,17 @@ struct ForeignModule {
     items: Vec<ForeignItem>,
 }
 #[derive(Serialize)]
+struct InstanceData {
+    internal_id: String,
+    instance: Instance,
+}
+#[derive(Serialize)]
 struct CrateData {
     name: String,
     items: Vec<Item>,
     foreign_modules: Vec<ForeignModule>,
-    upstream_monomorphizations: String // Vec<Instance>,
+    upstream_monomorphizations: String,
+    upstream_monomorphizations_resolved: Vec<InstanceData>,
 }
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
@@ -163,18 +169,27 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
         items: module_def.module().items().into_iter().map(|item| ForeignItem { name: item.name(), kind: item.kind() }).collect()
       }
   }).collect();
-  // let mono_map: Vec<Instance> = tcx.with_stable_hashing_context(|ref hcx| {
-  //    tcx.upstream_monomorphizations(()).to_sorted(hcx, false).into_iter().flat_map(|(id, monos)| {
-  //     monos.to_sorted(hcx, false).into_iter().map(|(args, _crate_num)| {
-  //         rustc_internal::stable(rustc_middle::ty::Instance::resolve(tcx, ParamEnv::reveal_all(), *id, args).ok().flatten())
-  //     })
-  //   }).flatten().collect()
-  // });
-  let mono_map = format!("{:?}", tcx.upstream_monomorphizations(()));
+  let mono_map_str = format!("{:?}", tcx.upstream_monomorphizations(()));
+  let mono_map: Vec<InstanceData> = tcx.with_stable_hashing_context(|ref hcx| {
+     tcx.upstream_monomorphizations(()).to_sorted(hcx, false).into_iter().flat_map(|(id, monos)| {
+      monos.to_sorted(hcx, false).into_iter().map(|(args, _crate_num)| {
+          let inst = rustc_internal::stable(rustc_middle::ty::Instance::resolve(tcx, ParamEnv::reveal_all(), *id, args).ok().flatten());
+          if let Some(inst) = inst {
+            Some(InstanceData {
+                internal_id: format!("{:?}", id.clone()),
+                instance: inst
+            })
+          } else {
+            None
+          }
+      })
+    }).flatten().collect()
+  });
   let crate_data = CrateData { name: local_crate.name,
                                items: items,
                                foreign_modules: foreign_modules,
-                               upstream_monomorphizations: mono_map,
+                               upstream_monomorphizations: mono_map_str,
+                               upstream_monomorphizations_resolved: mono_map,
                              };
   writer.write_all(to_json(crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
 }
