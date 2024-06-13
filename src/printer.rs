@@ -14,7 +14,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,ItemKind,to_json,mir::Body}; // Symbol
+use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 
@@ -42,6 +42,22 @@ struct Item {
     body: MirBody,
     promoted: Vec<MirBody>,
     details: Option<ItemDetails>
+}
+#[derive(Serialize)]
+struct ForeignItem {
+    name: String,
+    kind: ForeignItemKind,
+}
+#[derive(Serialize)]
+struct ForeignModule {
+    name: String,
+    items: Vec<ForeignItem>,
+}
+#[derive(Serialize)]
+struct CrateData {
+    name: String,
+    items: Vec<Item>,
+    foreign_modules: Vec<ForeignModule>,
 }
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
@@ -128,20 +144,26 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
 // TODO: Should we filter any incoming items?
 //       Example: .filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
+  let local_crate = stable_mir::local_crate();
   let items: Vec<Item> = stable_mir::all_local_items().iter().map(|item| {
-    let name = format!("{:?}", item.name());
     let body = item.body();
     let id = rustc_internal::internal(tcx,item.def_id());
     Item {
-      name: name.clone(),
+      name: item.name(),
       kind: item.kind(),
-      body: mk_mir_body(body, Some(&name)),
+      body: mk_mir_body(body, Some(&item.name())),
       promoted: tcx.promoted_mir(id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect(),
       details: get_item_details(tcx, id),
     }
   }).collect();
-
-  writer.write_all(to_json(items).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
+  let foreign_modules: Vec<ForeignModule> = local_crate.foreign_modules().into_iter().map(|module_def| {
+      ForeignModule {
+        name: module_def.name(),
+        items: module_def.module().items().into_iter().map(|item| ForeignItem { name: item.name(), kind: item.kind() }).collect()
+      }
+  }).collect();
+  let crate_data = CrateData { name: local_crate.name, items: items, foreign_modules: foreign_modules };
+  writer.write_all(to_json(crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
