@@ -38,6 +38,7 @@ struct MirBody(Body, Option<BodyDetails>);
 #[derive(Serialize)]
 struct Item {
     name: String,
+    id: stable_mir::DefId,
     kind: ItemKind,
     body: MirBody,
     promoted: Vec<MirBody>,
@@ -157,6 +158,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     let id = rustc_internal::internal(tcx,item.def_id());
     Item {
       name: item.name(),
+      id:   item.def_id(),
       kind: item.kind(),
       body: mk_mir_body(body, Some(&item.name())),
       promoted: tcx.promoted_mir(id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect(),
