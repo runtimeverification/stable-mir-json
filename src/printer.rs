@@ -3,18 +3,22 @@ use std::io;
 use std::iter::Iterator;
 use std::vec::Vec;
 use std::str;
-// extern crate rustc_hir;
+extern crate rustc_data_structures;
+extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_smir;
 extern crate stable_mir;
 // use rustc_hir::{def::DefKind, definitions::DefPath};
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder Generics, GenericPredicates
+use tracing::{debug, debug_span, trace};
+use rustc_data_structures::fx::FxHashSet;
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv, VtblEntry}; // Binder Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind, mir::mono::Instance}; // Symbol
+use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind, mir::mono::{Instance, InstanceKind, MonoItem}}; // Symbol
+use stable_mir::ty::{Allocation, RigidTy, Ty as TyStable, TyKind as TyKindStable};
 use tracing::enabled;
 use serde::Serialize;
 
@@ -153,6 +157,17 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
 //       Example: .filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
+  // From kani compiler_interface.rs
+  // From kani reachability.rs
+  let main_instance:Option<Instance> = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).unwrap());
+  let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
+    let def_id = rustc_internal::internal(tcx, instance.def.def_id());
+    Some(instance) == main_instance || tcx.is_reachable_non_generic(def_id)
+  })
+    .into_iter()
+    .map(MonoItem::Fn)
+    .collect();
+  let _all_mono_items = collect_all_mono_items(tcx, &initial_mono_items);
   let items: Vec<Item> = stable_mir::all_local_items().iter().map(|item| {
     let body = item.body();
     let id = rustc_internal::internal(tcx,item.def_id());
@@ -207,4 +222,171 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
         emit_smir_internal(tcx, &mut f);
     }
   }
+}
+
+fn collect_all_mono_items(tcx: TyCtxt, initial_mono_items: &[MonoItem]) -> Vec<MonoItem> {
+  let mut collector = MonoItemsCollector::new(tcx);
+  for item in initial_mono_items {
+    collector.collect(item.clone());
+  }
+  vec![]
+}
+
+struct MonoItemsCollector<'tcx> {
+  /// The compiler context.
+  tcx: TyCtxt<'tcx>,
+  /// Set of collected items used to avoid entering recursion loops.
+  collected: FxHashSet<MonoItem>,
+  /// Items enqueued for visiting.
+  queue: Vec<MonoItem>,
+}
+
+impl<'tcx> MonoItemsCollector<'tcx> {
+  pub fn new(tcx: TyCtxt<'tcx>) -> Self {
+    MonoItemsCollector {
+      tcx,
+      collected: FxHashSet::default(),
+      queue: vec![],
+    }
+  }
+
+  pub fn collect(&mut self, root: MonoItem) {
+    self.queue.push(root);
+    self.reachable_items();
+  }
+
+  fn reachable_items(&mut self) {
+    while let Some(to_visit) = self.queue.pop() {
+      if !self.collected.contains(&to_visit) {
+        self.collected.insert(to_visit.clone());
+        let next_items = match &to_visit {
+          MonoItem::Fn(instance) => self.visit_fn(*instance),
+          MonoItem::Static(static_def) => todo!(),
+          MonoItem::GlobalAsm(_) => {
+            vec![]
+          },
+        };
+
+        self.queue
+          .extend(next_items.into_iter().filter(|item| !self.collected.contains(item)));
+      }
+    }
+  }
+
+  fn visit_fn(&mut self, instance: Instance) -> Vec<MonoItem> {
+    let _guard = debug_span!("visit_fn", function=?instance).entered();
+    let body = instance.body();
+    let mut collector = MonoItemsFnCollector { tcx: self.tcx, collected: FxHashSet::default(), body: &body.unwrap() };
+    vec![]
+  }
+}
+
+struct MonoItemsFnCollector<'a, 'tcx> {
+  tcx: TyCtxt<'tcx>,
+  collected: FxHashSet<MonoItem>,
+  body: &'a Body,
+}
+
+// impl<'a, 'tcx> MonoItemsFnCollector<'a, 'tcx> {
+//   /// Collect the implementation of all trait methods and its supertrait methods for the given
+//   /// concrete type.
+//   fn collect_vtable_methods(&mut self, concrete_ty: TyStable, trait_ty: TyStable) {
+//       trace!(?concrete_ty, ?trait_ty, "collect_vtable_methods");
+//       let concrete_kind = concrete_ty.kind();
+//       let trait_kind = trait_ty.kind();
+
+//       assert!(!concrete_kind.is_trait(), "expected a concrete type, but found `{concrete_ty:?}`");
+//       assert!(trait_kind.is_trait(), "expected a trait `{trait_ty:?}`");
+//       if let Some(principal) = trait_kind.trait_principal() {
+//           // A trait object type can have multiple trait bounds but up to one non-auto-trait
+//           // bound. This non-auto-trait, named principal, is the only one that can have methods.
+//           // https://doc.rust-lang.org/reference/special-types-and-traits.html#auto-traits
+//           let poly_trait_ref = principal.with_self_ty(concrete_ty);
+
+//           // Walk all methods of the trait, including those of its supertraits
+//           let entries =
+//               self.tcx.vtable_entries(rustc_internal::internal(self.tcx, &poly_trait_ref));
+//           let methods = entries.iter().filter_map(|entry| match entry {
+//               VtblEntry::MetadataAlign
+//               | VtblEntry::MetadataDropInPlace
+//               | VtblEntry::MetadataSize
+//               | VtblEntry::Vacant => None,
+//               VtblEntry::TraitVPtr(_) => {
+//                   // all super trait items already covered, so skip them.
+//                   None
+//               }
+//               VtblEntry::Method(instance) => {
+//                   let instance = rustc_internal::stable(instance);
+//                   should_codegen_locally(&instance).then_some(MonoItem::Fn(instance))
+//               }
+//           });
+//           trace!(methods=?methods.clone().collect::<Vec<_>>(), "collect_vtable_methods");
+//           self.collected.extend(methods);
+//       }
+
+//       // Add the destructor for the concrete type.
+//       let instance = Instance::resolve_drop_in_place(concrete_ty);
+//       self.collect_instance(instance, false);
+//   }
+
+//   /// Collect an instance depending on how it is used (invoked directly or via fn_ptr).
+//   fn collect_instance(&mut self, instance: Instance, is_direct_call: bool) {
+//       let should_collect = match instance.kind {
+//           InstanceKind::Virtual { .. } => {
+//               // Instance definition has no body.
+//               assert!(is_direct_call, "Expected direct call {instance:?}");
+//               false
+//           }
+//           InstanceKind::Intrinsic => {
+//               // Intrinsics may have a fallback body.
+//               assert!(is_direct_call, "Expected direct call {instance:?}");
+//               let TyKindStable::RigidTy(RigidTy::FnDef(def, _)) = instance.ty().kind() else {
+//                   unreachable!("Expected function type for intrinsic: {instance:?}")
+//               };
+//               // The compiler is currently transitioning how to handle intrinsic fallback body.
+//               // Until https://github.com/rust-lang/project-stable-mir/issues/79 is implemented
+//               // we have to check `must_be_overridden` and `has_body`.
+//               !def.as_intrinsic().unwrap().must_be_overridden() && instance.has_body()
+//           }
+//           InstanceKind::Shim | InstanceKind::Item => true,
+//       };
+//       if should_collect && should_codegen_locally(&instance) {
+//           trace!(?instance, "collect_instance");
+//           self.collected.insert(instance.into());
+//       }
+//   }
+
+//   /// Collect constant values represented by static variables.
+//   fn collect_allocation(&mut self, alloc: &Allocation) {
+//       debug!(?alloc, "collect_allocation");
+//       for (_, id) in &alloc.provenance.ptrs {
+//           self.collected.extend(collect_alloc_items(id.0).into_iter())
+//       }
+//   }
+// }
+
+/// Collect all (top-level) items in the crate that matches the given predicate.
+/// An item can only be a root if they are a non-generic function.
+pub fn filter_crate_items<F>(tcx: TyCtxt, predicate: F) -> Vec<Instance>
+where
+    F: Fn(TyCtxt, Instance) -> bool,
+{
+    let crate_items = stable_mir::all_local_items();
+    // Filter regular items.
+    crate_items
+        .iter()
+        .filter_map(|item| {
+            // Only collect monomorphic items.
+            // TODO: Remove the def_kind check once https://github.com/rust-lang/rust/pull/119135 has been released.
+            let def_id = rustc_internal::internal(tcx, item.def_id());
+            (matches!(tcx.def_kind(def_id), rustc_hir::def::DefKind::Ctor(..))
+                || matches!(item.kind(), ItemKind::Fn))
+            .then(|| {
+                Instance::try_from(*item)
+                    .ok()
+                    .and_then(|instance| predicate(tcx, instance).then_some(instance))
+            })
+            .flatten()
+        })
+        .collect::<Vec<_>>()
 }
