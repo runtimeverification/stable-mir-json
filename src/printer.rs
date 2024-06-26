@@ -193,11 +193,13 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
                                upstream_monomorphizations: mono_map_str,
                                upstream_monomorphizations_resolved: mono_map,
                              };
-  // TODO: Write correct json formating 
+  writer.write_all("{\"crates\":".as_bytes()).unwrap();
   scc_accessor(|| {
     writer.write_all(to_json(crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
-    writer.write_all(to_json(global_allocs()).unwrap().as_bytes()).unwrap(); // TODO: Change unwrap to have good messages
+    writer.write_all(",\"gallocs\":".as_bytes()).unwrap();
+    writer.write_all(to_json(global_allocs()).expect("global_allocs failed").as_bytes()).expect("internal error: writing global_allocs JSON failed");
   });
+  writer.write_all("}".as_bytes()).unwrap();
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
