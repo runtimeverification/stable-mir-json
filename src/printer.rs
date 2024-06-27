@@ -17,8 +17,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind, mir::mono::{Instance, InstanceKind, MonoItem}}; // Symbol
-use stable_mir::ty::{Allocation, RigidTy, Ty as TyStable, TyKind as TyKindStable};
+use stable_mir::{CrateDef,ItemKind,to_json,mir::Body,ty::ForeignItemKind, mir::mono::{Instance, InstanceKind, MonoItem}, global_allocs, scc_accessor}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 
@@ -208,7 +207,13 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
                                upstream_monomorphizations: mono_map_str,
                                upstream_monomorphizations_resolved: mono_map,
                              };
-  writer.write_all(to_json(crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
+  writer.write_all("{\"crates\":".as_bytes()).unwrap();
+  scc_accessor(|| {
+    writer.write_all(to_json(crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
+    writer.write_all(",\"gallocs\":".as_bytes()).unwrap();
+    writer.write_all(to_json(global_allocs()).expect("global_allocs failed").as_bytes()).expect("internal error: writing global_allocs JSON failed");
+  });
+  writer.write_all("}".as_bytes()).unwrap();
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
