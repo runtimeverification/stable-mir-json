@@ -31,6 +31,8 @@ use stable_mir::Symbol;
 use tracing::enabled;
 use serde::Serialize;
 
+use crate::coercion::CoercionBase;
+
 // TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 #[derive(Serialize)]
 struct GenericData(Vec<(String,String)>);
@@ -167,10 +169,14 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   // From kani compiler_interface.rs
   // From kani reachability.rs
-  let main_instance:Option<Instance> = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).unwrap());
+  let maybe_main_instance = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).ok()).flatten();
+  let main_instance = match maybe_main_instance {
+    Some(instance) => instance,
+    None => return,
+  };
   let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
     let def_id = rustc_internal::internal(tcx, instance.def.def_id());
-    Some(instance) == main_instance || tcx.is_reachable_non_generic(def_id)
+    instance == main_instance || tcx.is_reachable_non_generic(def_id)
   })
     .into_iter()
     .map(MonoItem::Fn)
@@ -295,10 +301,14 @@ impl<'tcx> MonoItemsCollector<'tcx> {
 
   fn visit_fn(&mut self, instance: Instance) -> Vec<MonoItem> {
     let _guard = debug_span!("visit_fn", function=?instance).entered();
-    let body = instance.body().unwrap();
-    let mut collector = MonoItemsFnCollector { tcx: self.tcx, collected: FxHashSet::default(), body: &body };
-    collector.visit_body(&body);
-    collector.collected.into_iter().collect()
+    if let Some(body) = instance.body() {
+      let mut collector = MonoItemsFnCollector { tcx: self.tcx, collected: FxHashSet::default(), body: &body };
+      collector.visit_body(&body);
+      collector.collected.into_iter().collect()
+    } else {
+      println!("{instance:#?}");
+      vec![]
+    }
   }
 
   /// Visit a static object and collect drop / initialization functions.
@@ -654,11 +664,6 @@ pub fn extract_unsize_casting<'tcx>(
 /// E.g.: In order to convert an `Rc<String>` into an `Rc<dyn Debug>`, we need to generate a
 /// vtable that represents the `impl Debug for String`. So this type will carry the `String` type
 /// as the `src_ty` and the `dyn Debug` trait as `dst_ty`.
-#[derive(Debug)]
-pub struct CoercionBase<'tcx> {
-    pub src_ty: Ty<'tcx>,
-    pub dst_ty: Ty<'tcx>,
-}
 
 /// Iterates over the coercion path of a structure that implements `CoerceUnsized<T>` trait.
 /// The `CoerceUnsized<T>` trait indicates that this is a pointer or a wrapper for one, where
