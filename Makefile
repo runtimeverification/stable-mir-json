@@ -31,23 +31,8 @@ setup: rust_clone
 update: ${RUST_SRC}
 	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
 
-# HACK: we cannot wrap serde serializers built for packages inside rustc
-#       thus, we do the following:
-#       1. run cargo build as usual, but ignore errors---this builds serde and
-#          hence, gives us the path that cargo expects to find find libserde
-#       2. from (1), copy the rustc compiled libserde into our dep dir
-#       3. re-run cargo build; it will pick up the compiled libserde and continue
-#          successfully
-# NOTE: this hack may break if cross-compiling rustc or if there is some other
-#       divergence between the rustc and smir-pretty build environment, since
-#       we use build products from an early rustc build stage which may not
-#       match our current arch or build environemnt
 build:
-	if ! cargo build ${RELEASE_FLAG}; then                                    \
-	  cp ${RUST_DEP_DIR}/libserde-*.rmeta ${TARGET_DEP_DIR}/libserde-*.rmeta; \
-	  cp ${RUST_DEP_DIR}/libserde-*.rlib  ${TARGET_DEP_DIR}/libserde-*.rlib;  \
-	  cargo build ${RELEASE_FLAG};                                            \
-	fi
+	cargo build ${RELEASE_FLAG}
 
 clean:
 	cd "${RUST_SRC}" && ./x.py clean
