@@ -16,11 +16,11 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 // use rustc_hir::{def::DefKind, definitions::DefPath};
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder Generics, GenericPredicates
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::ForeignItemKind,mir::mono::{MonoItem,Instance,InstanceKind},global_allocs,scc_accessor}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::ForeignItemKind,mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 
@@ -107,7 +107,7 @@ fn get_body_details(body: &Body, name: Option<&String>) -> Option<BodyDetails> {
 }
 
 // unwrap early binder in a default manner; panic on error
-fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<T>) -> T
+fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<'tcx, T>) -> T
   where T: TypeFoldable<TyCtxt<'tcx>>
 {
   let v_copy = v.clone();
@@ -117,7 +117,7 @@ fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBi
   }
 }
 
-fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>) -> String {
+fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>>) -> String {
   // lookup type kind in order to perform case analysis
   let kind: &TyKind = ty.skip_binder().kind();
   if let TyKind::FnDef(fun_id, args) = kind {
@@ -216,13 +216,11 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let crate_data = CrateData { name: local_crate.name,
                                items: items,
                              };
-  writer.write_all("{\"crates\":".as_bytes()).unwrap();
-  scc_accessor(|| {
-    writer.write_all(serde_json::to_string(&crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
-    writer.write_all(",\"gallocs\":".as_bytes()).unwrap();
-    writer.write_all(serde_json::to_string(&global_allocs()).expect("global_allocs failed").as_bytes()).expect("internal error: writing global_allocs JSON failed");
-  });
-  writer.write_all("}".as_bytes()).unwrap();
+  write!(writer, "{{\"items:\" {}, \"allocs\": {}, \"types\": {}}}",
+    serde_json::to_string(&crate_data).expect("serde_json mono items failed"),
+    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
+    serde_json::to_string(&visited_tys()).expect("serde_json tys failed")
+  ).expect("Failed to write JSON to file");
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
