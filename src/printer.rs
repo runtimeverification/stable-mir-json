@@ -150,8 +150,6 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
   MirBody(body, details)
 }
 
-// TODO: Should we filter any incoming items?
-//       Example: .filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let units = tcx.collect_and_partition_mono_items(()).1;
