@@ -1,9 +1,4 @@
-use std::fs::File;
-use std::io;
-use std::iter::Iterator;
-use std::vec::Vec;
-use std::str;
-// extern crate rustc_hir;
+use std::{fs::File,io,iter::Iterator,vec::Vec,str};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -15,7 +10,6 @@ extern crate stable_mir;
 //       in addition to the rustc serde, we force ourselves to use rustc serde
 extern crate serde;
 extern crate serde_json;
-// use rustc_hir::{def::DefKind, definitions::DefPath};
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
@@ -23,6 +17,7 @@ use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::ForeignItemKind,mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
+use crate::kani_collector::{filter_crate_items, collect_all_mono_items};
 
 // TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 #[derive(Serialize)]
@@ -196,14 +191,35 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
   }
 }
 
-fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
-  let local_crate = stable_mir::local_crate();
+fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<Item> {
+  let collect_all = opts == "ALL";
+  let main_instance = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).ok()).flatten();
+  let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
+    let def_id = rustc_internal::internal(tcx, instance.def.def_id());
+    Some(instance) == main_instance || (collect_all && tcx.is_reachable_non_generic(def_id))
+  })
+    .into_iter()
+    .map(MonoItem::Fn)
+    .collect();
+  collect_all_mono_items(tcx, &initial_mono_items).iter().map(|item| mk_item(tcx, item.clone())).collect()
+}
+
+fn mono_collect(tcx: TyCtxt<'_>) -> Vec<Item> {
   let units = tcx.collect_and_partition_mono_items(()).1;
-  let items: Vec<Item> = units.iter().flat_map(|unit| {
+  units.iter().flat_map(|unit| {
     unit.items_in_deterministic_order(tcx).iter().map(|(internal_item,_)| {
       mk_item(tcx, rustc_internal::stable(internal_item))
     }).collect::<Vec<_>>()
-  }).collect();
+  }).collect()
+}
+
+fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
+  let local_crate = stable_mir::local_crate();
+  let items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
+    kani_collect(tcx, opts)
+  } else {
+    mono_collect(tcx)
+  };
   write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}}}",
     serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
     serde_json::to_string(&items).expect("serde_json mono items failed"),
