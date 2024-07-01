@@ -68,16 +68,6 @@ struct ForeignModule {
     name: String,
     items: Vec<ForeignItem>,
 }
-#[derive(Serialize)]
-struct InstanceData {
-    internal_id: String,
-    instance: Instance,
-}
-#[derive(Serialize)]
-struct CrateData {
-    name: String,
-    items: Vec<Item>,
-}
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
@@ -213,11 +203,9 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
       }
     }).collect::<Vec<_>>()
   }).collect();
-  let crate_data = CrateData { name: local_crate.name,
-                               items: items,
-                             };
-  write!(writer, "{{\"items\": {}, \"allocs\": {}, \"types\": {}}}",
-    serde_json::to_string(&crate_data).expect("serde_json mono items failed"),
+  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}}}",
+    serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
+    serde_json::to_string(&items).expect("serde_json mono items failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
     serde_json::to_string(&visited_tys()).expect("serde_json tys failed")
   ).expect("Failed to write JSON to file");
