@@ -150,55 +150,58 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
   MirBody(body, details)
 }
 
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
+  match item {
+    MonoItem::Fn(item) => {
+      let body = item.body();
+      let id = item.def.def_id();
+      let name = item.name();
+      let internal_id = rustc_internal::internal(tcx,id);
+      Item {
+        name: name.clone(),
+        mono_item_kind: MonoItemKind::MonoItemFn,
+        id:   Some(id),
+        instance_kind: Some(item.kind),
+        item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
+        body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
+        promoted: if item.has_body() { Some(tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect()) } else { None },
+        details: get_item_details(tcx, internal_id),
+      }
+    },
+    MonoItem::Static(static_def) => {
+      let internal_id = rustc_internal::internal(tcx,static_def.def_id());
+      Item {
+        name: static_def.name(),
+        mono_item_kind: MonoItemKind::MonoItemStatic,
+        id:   Some(static_def.def_id()),
+        instance_kind: None,
+        item_kind: None,
+        body: None,
+        promoted: None,
+        details: get_item_details(tcx, internal_id),
+      }
+    },
+    MonoItem::GlobalAsm(asm) => {
+      Item {
+        name: format!("{:#?}", asm),
+        mono_item_kind: MonoItemKind::MonoItemGlobalAsm,
+        id:   None,
+        instance_kind: None,
+        item_kind: None,
+        body: None,
+        promoted: None,
+        details: None,
+      }
+    }
+  }
+}
+
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let units = tcx.collect_and_partition_mono_items(()).1;
   let items: Vec<Item> = units.iter().flat_map(|unit| {
     unit.items_in_deterministic_order(tcx).iter().map(|(internal_item,_)| {
-      match rustc_internal::stable(internal_item) {
-        MonoItem::Fn(item) => {
-          // let item = rustc_internal::stable(instance);
-          let body = item.body();
-          let id = item.def.def_id();
-          let name = item.name();
-          let internal_id = rustc_internal::internal(tcx,id);
-          Item {
-            name: name.clone(),
-            mono_item_kind: MonoItemKind::MonoItemFn,
-            id:   Some(id),
-            instance_kind: Some(item.kind),
-            item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
-            body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
-            promoted: if item.has_body() { Some(tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect()) } else { None },
-            details: get_item_details(tcx, internal_id),
-          }
-        },
-        MonoItem::Static(static_def) => {
-          let internal_id = rustc_internal::internal(tcx,static_def.def_id());
-          Item {
-            name: static_def.name(),
-            mono_item_kind: MonoItemKind::MonoItemStatic,
-            id:   Some(static_def.def_id()),
-            instance_kind: None,
-            item_kind: None,
-            body: None,
-            promoted: None,
-            details: get_item_details(tcx, internal_id),
-          }
-        },
-        MonoItem::GlobalAsm(asm) => {
-          Item {
-            name: format!("{:#?}", asm),
-            mono_item_kind: MonoItemKind::MonoItemGlobalAsm,
-            id:   None,
-            instance_kind: None,
-            item_kind: None,
-            body: None,
-            promoted: None,
-            details: None,
-          }
-        }
-      }
+      mk_item(tcx, rustc_internal::stable(internal_item))
     }).collect::<Vec<_>>()
   }).collect();
   write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}}}",
