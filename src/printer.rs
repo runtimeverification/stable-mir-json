@@ -216,7 +216,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let crate_data = CrateData { name: local_crate.name,
                                items: items,
                              };
-  write!(writer, "{{\"items:\" {}, \"allocs\": {}, \"types\": {}}}",
+  write!(writer, "{{\"items\": {}, \"allocs\": {}, \"types\": {}}}",
     serde_json::to_string(&crate_data).expect("serde_json mono items failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
     serde_json::to_string(&visited_tys()).expect("serde_json tys failed")
