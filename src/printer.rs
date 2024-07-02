@@ -33,25 +33,30 @@ struct ItemDetails {
 struct BodyDetails {
     pp: String,
 }
-
 #[derive(Serialize)]
 struct MirBody(Body, Option<BodyDetails>);
 #[derive(Serialize)]
 enum MonoItemKind {
-    MonoItemFn,
-    MonoItemStatic,
-    MonoItemGlobalAsm
+    MonoItemFn {
+      name: String,
+      id: stable_mir::DefId,
+      instance_kind: InstanceKind,
+      item_kind: Option<ItemKind>,
+      body: Option<MirBody>,
+      promoted: Vec<MirBody>,
+    },
+    MonoItemStatic {
+      name: String,
+      id: stable_mir::DefId,
+      allocation: Option<Allocation>,
+    },
+    MonoItemGlobalAsm {
+      asm: String,
+    },
 }
 #[derive(Serialize)]
 struct Item {
-    name: String,
     mono_item_kind: MonoItemKind,
-    id: Option<stable_mir::DefId>,
-    instance_kind: Option<InstanceKind>,
-    item_kind: Option<ItemKind>,
-    body: Option<MirBody>,
-    promoted: Option<Vec<MirBody>>,
-    allocation: Option<Allocation>,
     details: Option<ItemDetails>
 }
 #[derive(Serialize)]
@@ -154,45 +159,35 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
       let name = item.name();
       let internal_id = rustc_internal::internal(tcx,id);
       Item {
-        name: name.clone(),
-        mono_item_kind: MonoItemKind::MonoItemFn,
-        id:   Some(id),
-        instance_kind: Some(item.kind),
-        item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
-        body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
-        promoted: if item.has_body() { Some(tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect()) } else { None },
-        allocation: None,
+        mono_item_kind: MonoItemKind::MonoItemFn {
+          name: name.clone(),
+          id: id,
+          instance_kind: item.kind,
+          item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
+          body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
+          promoted: if item.has_body() { tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect() } else { vec![] },
+        },
         details: get_item_details(tcx, internal_id),
       }
     },
     MonoItem::Static(static_def) => {
       let internal_id = rustc_internal::internal(tcx,static_def.def_id());
-      let allocation = match static_def.eval_initializer() {
-          Ok(allocation) => Some(allocation),
-          err            => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
+      let alloc = match static_def.eval_initializer() {
+          Ok(alloc) => Some(alloc),
+          err       => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
       };
       Item {
-        name: static_def.name(),
-        mono_item_kind: MonoItemKind::MonoItemStatic,
-        id:   Some(static_def.def_id()),
-        instance_kind: None,
-        item_kind: None,
-        body: None,
-        promoted: None,
-        allocation: allocation,
+        mono_item_kind: MonoItemKind::MonoItemStatic {
+          name: static_def.name(),
+          id: static_def.def_id(),
+          allocation: alloc,
+        },
         details: get_item_details(tcx, internal_id),
       }
     },
     MonoItem::GlobalAsm(asm) => {
       Item {
-        name: format!("{:#?}", asm),
-        mono_item_kind: MonoItemKind::MonoItemGlobalAsm,
-        id:   None,
-        instance_kind: None,
-        item_kind: None,
-        body: None,
-        promoted: None,
-        allocation: None,
+        mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm: format!("{:#?}", asm) },
         details: None,
       }
     }
