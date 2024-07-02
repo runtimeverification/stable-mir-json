@@ -56,8 +56,9 @@ enum MonoItemKind {
 }
 #[derive(Serialize)]
 struct Item {
+    symbol_name: String,
     mono_item_kind: MonoItemKind,
-    details: Option<ItemDetails>
+    details: Option<ItemDetails>,
 }
 #[derive(Serialize)]
 struct ForeignItem {
@@ -151,7 +152,7 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
   MirBody(body, details)
 }
 
-fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
   match item {
     MonoItem::Fn(item) => {
       let body = item.body();
@@ -159,6 +160,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
       let name = item.name();
       let internal_id = rustc_internal::internal(tcx,id);
       Item {
+        symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemFn {
           name: name.clone(),
           id: id,
@@ -177,6 +179,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
           err       => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
       };
       Item {
+        symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemStatic {
           name: static_def.name(),
           id: static_def.def_id(),
@@ -187,6 +190,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
     },
     MonoItem::GlobalAsm(asm) => {
       Item {
+        symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm: format!("{:#?}", asm) },
         details: None,
       }
@@ -204,14 +208,16 @@ fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<Item> {
     .into_iter()
     .map(MonoItem::Fn)
     .collect();
-  collect_all_mono_items(tcx, &initial_mono_items).iter().map(|item| mk_item(tcx, item.clone())).collect()
+  collect_all_mono_items(tcx, &initial_mono_items).iter().map(|item| {
+      mk_item(tcx, item.clone(), rustc_internal::internal(tcx, item).symbol_name(tcx).name.into())
+  }).collect()
 }
 
 fn mono_collect(tcx: TyCtxt<'_>) -> Vec<Item> {
   let units = tcx.collect_and_partition_mono_items(()).1;
   units.iter().flat_map(|unit| {
-    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item,_)| {
-      mk_item(tcx, rustc_internal::stable(internal_item))
+    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item, _)| {
+      mk_item(tcx, rustc_internal::stable(internal_item), internal_item.symbol_name(tcx).name.into())
     }).collect::<Vec<_>>()
   }).collect()
 }
