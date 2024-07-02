@@ -14,7 +14,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::ForeignItemKind,mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 use crate::kani_collector::{filter_crate_items, collect_all_mono_items};
@@ -51,6 +51,7 @@ struct Item {
     item_kind: Option<ItemKind>,
     body: Option<MirBody>,
     promoted: Option<Vec<MirBody>>,
+    allocation: Option<Allocation>,
     details: Option<ItemDetails>
 }
 #[derive(Serialize)]
@@ -160,11 +161,16 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
         item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
         body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
         promoted: if item.has_body() { Some(tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect()) } else { None },
+        allocation: None,
         details: get_item_details(tcx, internal_id),
       }
     },
     MonoItem::Static(static_def) => {
       let internal_id = rustc_internal::internal(tcx,static_def.def_id());
+      let allocation = match static_def.eval_initializer() {
+          Ok(allocation) => Some(allocation),
+          err            => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
+      };
       Item {
         name: static_def.name(),
         mono_item_kind: MonoItemKind::MonoItemStatic,
@@ -173,6 +179,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
         item_kind: None,
         body: None,
         promoted: None,
+        allocation: allocation,
         details: get_item_details(tcx, internal_id),
       }
     },
@@ -185,6 +192,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
         item_kind: None,
         body: None,
         promoted: None,
+        allocation: None,
         details: None,
       }
     }
