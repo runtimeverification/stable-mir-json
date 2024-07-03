@@ -10,11 +10,12 @@ extern crate stable_mir;
 //       in addition to the rustc serde, we force ourselves to use rustc serde
 extern crate serde;
 extern crate serde_json;
+use rustc_middle as middle;
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,TerminatorKind,Operand},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
@@ -222,6 +223,78 @@ fn mono_collect(tcx: TyCtxt<'_>) -> Vec<Item> {
   }).collect()
 }
 
+fn handle_intrinsic(tcx: TyCtxt<'_>, inst: middle::ty::Instance) {
+  let _ = tcx;
+  let _ = inst;
+}
+
+fn handle_virtual(tcx: TyCtxt<'_>, inst: middle::ty::Instance) {
+  let _ = tcx;
+  let _ = inst;
+}
+
+fn handle_call(tcx: TyCtxt<'_>, kind: &stable_mir::ty::ConstantKind, ty: &stable_mir::ty::Ty, args: &Vec<Operand>, add_fn: &mut impl FnMut(stable_mir::ty::FnDef, String)) {
+  use middle::ty::InstanceKind::*;
+  use stable_mir::ty::{ConstantKind::ZeroSized, TyKind::RigidTy, RigidTy::FnDef};
+  let _ = args;
+  match (kind,ty.kind()) {
+    (ZeroSized, RigidTy(fn_def_ty @ FnDef(fn_def, _))) => {
+      let (def, args) = match rustc_internal::internal(tcx, fn_def_ty) {
+        middle::ty::TyKind::FnDef(def, args) => (def, args),
+        _ => panic!("rustc_internal(FnDef) did not return FnDef")
+      };
+      let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, args).polymorphize(tcx);
+      match inst.def {
+        DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => {}
+        Intrinsic(_) => handle_intrinsic(tcx, inst),
+        Virtual(def_id, idx) => handle_virtual(tcx, inst),
+        _ => add_fn(fn_def, tcx.symbol_name(inst).name.into()),
+      }
+    },
+    (ZeroSized, _) => unreachable!(),
+    _ => {}
+  }
+}
+
+fn handle_drop(tcx: TyCtxt<'_>, place: &stable_mir::mir::Place, locals: &[stable_mir::mir::LocalDecl]) {
+  let _ = tcx;
+  let _ = place;
+  let _ = locals;
+}
+
+fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &MirBody, add_fn: &mut impl FnMut(stable_mir::ty::FnDef, String)) {
+  use stable_mir::mir::{TerminatorKind::{Call, Drop}, Operand::Constant, ConstOperand};
+  use stable_mir::ty::MirConst;
+  use middle::ty::InstanceKind::{DropGlue, AsyncDropGlueCtorShim};
+  for block in body.0.blocks.iter() {
+    match &block.terminator.kind {
+      Call { func: Constant(ConstOperand { const_: cnst, .. }), args, .. } => {
+        handle_call(tcx, cnst.kind(), &cnst.ty(), args, add_fn)
+      }
+      Drop { place, .. } => handle_drop(tcx, place, body.0.locals()),
+      _ => {}
+    }
+  }
+}
+
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<Item>) -> Vec<(stable_mir::ty::FnDef, String)> {
+  use std::collections::HashMap;
+  use MonoItemKind::*;
+  let mut hash_map = HashMap::new();
+  let ref mut add_to_hash_map = |fn_def, name| { (&mut hash_map).insert(fn_def, name); };
+  for item in items.iter() {
+    match &item.mono_item_kind {
+      MonoItemFn { ref body, promoted, .. } => {
+        collect_fn_calls_inner(tcx, body.as_ref().unwrap(), add_to_hash_map);
+        promoted.iter().for_each(|body| collect_fn_calls_inner(tcx, body, add_to_hash_map));
+      }
+      kind @ MonoItemStatic { .. } => {}
+      kind @ MonoItemGlobalAsm { .. } => {}
+    }
+  }
+  return vec![];
+}
+
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
@@ -229,11 +302,23 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   } else {
     mono_collect(tcx)
   };
-  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}}}",
+  let mut crates = vec![local_crate.clone()];
+  crates.append(&mut stable_mir::external_crates());
+  let foreign_modules: Vec<_> = crates.into_iter().map(|krate| {
+      ( krate.name.clone(),
+        krate.foreign_modules().into_iter().map(|mod_def| {
+          let fmod = mod_def.module();
+          ForeignModule { name: mod_def.name(), items: fmod.items().into_iter().map(|def| ForeignItem { name: def.name(), kind: def.kind() }).collect() }
+        }).collect::<Vec<_>>()
+      )
+  }).collect();
+  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}, \"functions\": {}, \"foreign_modules\": {}}}",
     serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
     serde_json::to_string(&items).expect("serde_json mono items failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
-    serde_json::to_string(&visited_tys()).expect("serde_json tys failed")
+    serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
+    serde_json::to_string::<Vec<String>>(&vec![]).expect("serde_json functions failed"),
+    serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
   ).expect("Failed to write JSON to file");
 }
 
