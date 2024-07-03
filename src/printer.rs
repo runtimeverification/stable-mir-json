@@ -17,7 +17,7 @@ use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
-use crate::kani_collector::{filter_crate_items, collect_all_mono_items};
+use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
 // TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 #[derive(Serialize)]

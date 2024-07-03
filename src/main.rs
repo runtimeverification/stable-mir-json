@@ -2,7 +2,7 @@
 use std::env;
 pub mod driver;
 pub mod printer;
-pub mod kani_collector;
+pub mod kani_lib;
 use driver::stable_mir_driver;
 use printer::emit_smir;
 
