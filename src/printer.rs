@@ -1,10 +1,6 @@
-use std::fs::File;
-use std::io;
-use std::iter::Iterator;
-use std::vec::Vec;
-use std::str;
-// extern crate rustc_hir;
+use std::{fs::File,io,iter::Iterator,vec::Vec,str};
 extern crate rustc_middle;
+extern crate rustc_monomorphize;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_smir;
@@ -14,14 +10,14 @@ extern crate stable_mir;
 //       in addition to the rustc serde, we force ourselves to use rustc serde
 extern crate serde;
 extern crate serde_json;
-// use rustc_hir::{def::DefKind, definitions::DefPath};
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder Generics, GenericPredicates
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateDef,ItemKind,mir::Body,ty::ForeignItemKind, mir::mono::Instance, global_allocs, scc_accessor}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::Body,ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
+use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
 // TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 #[derive(Serialize)]
@@ -37,17 +33,32 @@ struct ItemDetails {
 struct BodyDetails {
     pp: String,
 }
-
 #[derive(Serialize)]
 struct MirBody(Body, Option<BodyDetails>);
 #[derive(Serialize)]
+enum MonoItemKind {
+    MonoItemFn {
+      name: String,
+      id: stable_mir::DefId,
+      instance_kind: InstanceKind,
+      item_kind: Option<ItemKind>,
+      body: Option<MirBody>,
+      promoted: Vec<MirBody>,
+    },
+    MonoItemStatic {
+      name: String,
+      id: stable_mir::DefId,
+      allocation: Option<Allocation>,
+    },
+    MonoItemGlobalAsm {
+      asm: String,
+    },
+}
+#[derive(Serialize)]
 struct Item {
-    name: String,
-    id: stable_mir::DefId,
-    kind: ItemKind,
-    body: MirBody,
-    promoted: Vec<MirBody>,
-    details: Option<ItemDetails>
+    symbol_name: String,
+    mono_item_kind: MonoItemKind,
+    details: Option<ItemDetails>,
 }
 #[derive(Serialize)]
 struct ForeignItem {
@@ -58,19 +69,6 @@ struct ForeignItem {
 struct ForeignModule {
     name: String,
     items: Vec<ForeignItem>,
-}
-#[derive(Serialize)]
-struct InstanceData {
-    internal_id: String,
-    instance: Instance,
-}
-#[derive(Serialize)]
-struct CrateData {
-    name: String,
-    items: Vec<Item>,
-    foreign_modules: Vec<ForeignModule>,
-    upstream_monomorphizations: String,
-    upstream_monomorphizations_resolved: Vec<InstanceData>,
 }
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
@@ -101,7 +99,7 @@ fn get_body_details(body: &Body, name: Option<&String>) -> Option<BodyDetails> {
 }
 
 // unwrap early binder in a default manner; panic on error
-fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<T>) -> T
+fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<'tcx, T>) -> T
   where T: TypeFoldable<TyCtxt<'tcx>>
 {
   let v_copy = v.clone();
@@ -111,7 +109,7 @@ fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBi
   }
 }
 
-fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<Ty<'tcx>>) -> String {
+fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>>) -> String {
   // lookup type kind in order to perform case analysis
   let kind: &TyKind = ty.skip_binder().kind();
   if let TyKind::FnDef(fun_id, args) = kind {
@@ -154,57 +152,89 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
   MirBody(body, details)
 }
 
-// TODO: Should we filter any incoming items?
-//       Example: .filter(|item| has_attr(item, sym::test) or matches!(item.kind, ItemKind::Const | ItemKind::Static | ItemKind::Fn))
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
+  match item {
+    MonoItem::Fn(item) => {
+      let body = item.body();
+      let id = item.def.def_id();
+      let name = item.name();
+      let internal_id = rustc_internal::internal(tcx,id);
+      Item {
+        symbol_name: sym_name,
+        mono_item_kind: MonoItemKind::MonoItemFn {
+          name: name.clone(),
+          id: id,
+          instance_kind: item.kind,
+          item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
+          body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
+          promoted: if item.has_body() { tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect() } else { vec![] },
+        },
+        details: get_item_details(tcx, internal_id),
+      }
+    },
+    MonoItem::Static(static_def) => {
+      let internal_id = rustc_internal::internal(tcx,static_def.def_id());
+      let alloc = match static_def.eval_initializer() {
+          Ok(alloc) => Some(alloc),
+          err       => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
+      };
+      Item {
+        symbol_name: sym_name,
+        mono_item_kind: MonoItemKind::MonoItemStatic {
+          name: static_def.name(),
+          id: static_def.def_id(),
+          allocation: alloc,
+        },
+        details: get_item_details(tcx, internal_id),
+      }
+    },
+    MonoItem::GlobalAsm(asm) => {
+      Item {
+        symbol_name: sym_name,
+        mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm: format!("{:#?}", asm) },
+        details: None,
+      }
+    }
+  }
+}
+
+fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<Item> {
+  let collect_all = opts == "ALL";
+  let main_instance = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).ok()).flatten();
+  let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
+    let def_id = rustc_internal::internal(tcx, instance.def.def_id());
+    Some(instance) == main_instance || (collect_all && tcx.is_reachable_non_generic(def_id))
+  })
+    .into_iter()
+    .map(MonoItem::Fn)
+    .collect();
+  collect_all_mono_items(tcx, &initial_mono_items).iter().map(|item| {
+      mk_item(tcx, item.clone(), rustc_internal::internal(tcx, item).symbol_name(tcx).name.into())
+  }).collect()
+}
+
+fn mono_collect(tcx: TyCtxt<'_>) -> Vec<Item> {
+  let units = tcx.collect_and_partition_mono_items(()).1;
+  units.iter().flat_map(|unit| {
+    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item, _)| {
+      mk_item(tcx, rustc_internal::stable(internal_item), internal_item.symbol_name(tcx).name.into())
+    }).collect::<Vec<_>>()
+  }).collect()
+}
+
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
-  let items: Vec<Item> = stable_mir::all_local_items().iter().map(|item| {
-    let body = item.body();
-    let id = rustc_internal::internal(tcx,item.def_id());
-    Item {
-      name: item.name(),
-      id:   item.def_id(),
-      kind: item.kind(),
-      body: mk_mir_body(body, Some(&item.name())),
-      promoted: tcx.promoted_mir(id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect(),
-      details: get_item_details(tcx, id),
-    }
-  }).collect();
-  let foreign_modules: Vec<ForeignModule> = local_crate.foreign_modules().into_iter().map(|module_def| {
-      ForeignModule {
-        name: module_def.name(),
-        items: module_def.module().items().into_iter().map(|item| ForeignItem { name: item.name(), kind: item.kind() }).collect()
-      }
-  }).collect();
-  let mono_map_str = format!("{:?}", tcx.upstream_monomorphizations(()));
-  let mono_map: Vec<InstanceData> = tcx.with_stable_hashing_context(|ref hcx| {
-     tcx.upstream_monomorphizations(()).to_sorted(hcx, false).into_iter().flat_map(|(id, monos)| {
-      monos.to_sorted(hcx, false).into_iter().map(|(args, _crate_num)| {
-          let inst = rustc_internal::stable(rustc_middle::ty::Instance::resolve(tcx, ParamEnv::reveal_all(), *id, args).ok().flatten());
-          if let Some(inst) = inst {
-            Some(InstanceData {
-                internal_id: format!("{:?}", id.clone()),
-                instance: inst
-            })
-          } else {
-            None
-          }
-      })
-    }).flatten().collect()
-  });
-  let crate_data = CrateData { name: local_crate.name,
-                               items: items,
-                               foreign_modules: foreign_modules,
-                               upstream_monomorphizations: mono_map_str,
-                               upstream_monomorphizations_resolved: mono_map,
-                             };
-  writer.write_all("{\"crates\":".as_bytes()).unwrap();
-  scc_accessor(|| {
-    writer.write_all(serde_json::to_string(&crate_data).expect("serde_json failed").as_bytes()).expect("internal error: writing SMIR JSON failed");
-    writer.write_all(",\"gallocs\":".as_bytes()).unwrap();
-    writer.write_all(serde_json::to_string(&global_allocs()).expect("global_allocs failed").as_bytes()).expect("internal error: writing global_allocs JSON failed");
-  });
-  writer.write_all("}".as_bytes()).unwrap();
+  let items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
+    kani_collect(tcx, opts)
+  } else {
+    mono_collect(tcx)
+  };
+  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}}}",
+    serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
+    serde_json::to_string(&items).expect("serde_json mono items failed"),
+    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
+    serde_json::to_string(&visited_tys()).expect("serde_json tys failed")
+  ).expect("Failed to write JSON to file");
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
