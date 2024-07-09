@@ -153,7 +153,12 @@ fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
   MirBody(body, details)
 }
 
-fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
+fn get_promoted(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
+  let id = rustc_internal::internal(tcx, inst.def.def_id());
+  if inst.has_body() { tcx.promoted_mir(id).into_iter().map(rustc_internal::stable).collect() } else { vec![] }
+}
+
+fn mk_item(tcx: TyCtxt<'_>, item: &MonoItem, sym_name: String) -> Item {
   match item {
     MonoItem::Fn(item) => {
       let body = item.body();
@@ -166,9 +171,9 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
           name: name.clone(),
           id: id,
           instance_kind: item.kind,
-          item_kind: CrateItem::try_from(item).map_or(None, |item| Some(item.kind())),
+          item_kind: CrateItem::try_from(item.clone()).map_or(None, |item| Some(item.kind())),
           body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
-          promoted: if item.has_body() { tcx.promoted_mir(internal_id).into_iter().map(|body| mk_mir_body(rustc_internal::stable(body), None)).collect() } else { vec![] },
+          promoted: get_promoted(tcx, &item).into_iter().map(|body| mk_mir_body(body, None)).collect(),
         },
         details: get_item_details(tcx, internal_id),
       }
@@ -199,7 +204,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
   }
 }
 
-fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<Item> {
+fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<MonoItem> {
   let collect_all = opts == "ALL";
   let main_instance = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).ok()).flatten();
   let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
@@ -209,17 +214,13 @@ fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<Item> {
     .into_iter()
     .map(MonoItem::Fn)
     .collect();
-  collect_all_mono_items(tcx, &initial_mono_items).iter().map(|item| {
-      mk_item(tcx, item.clone(), rustc_internal::internal(tcx, item).symbol_name(tcx).name.into())
-  }).collect()
+  collect_all_mono_items(tcx, &initial_mono_items)
 }
 
-fn mono_collect(tcx: TyCtxt<'_>) -> Vec<Item> {
+fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
   let units = tcx.collect_and_partition_mono_items(()).1;
   units.iter().flat_map(|unit| {
-    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item, _)| {
-      mk_item(tcx, rustc_internal::stable(internal_item), internal_item.symbol_name(tcx).name.into())
-    }).collect::<Vec<_>>()
+    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item, _)| rustc_internal::stable(internal_item)).collect::<Vec<_>>()
   }).collect()
 }
 
@@ -262,46 +263,54 @@ fn handle_drop(tcx: TyCtxt<'_>, place: &stable_mir::mir::Place, locals: &[stable
   let _ = locals;
 }
 
-fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &MirBody, add_fn: &mut impl FnMut(stable_mir::ty::FnDef, String)) {
+fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &Body, add_fn: &mut impl FnMut(stable_mir::ty::FnDef, String)) {
   use stable_mir::mir::{TerminatorKind::{Call, Drop}, Operand::Constant, ConstOperand};
   use stable_mir::ty::MirConst;
   use middle::ty::InstanceKind::{DropGlue, AsyncDropGlueCtorShim};
-  for block in body.0.blocks.iter() {
+  for block in body.blocks.iter() {
     match &block.terminator.kind {
       Call { func: Constant(ConstOperand { const_: cnst, .. }), args, .. } => {
         handle_call(tcx, cnst.kind(), &cnst.ty(), args, add_fn)
       }
-      Drop { place, .. } => handle_drop(tcx, place, body.0.locals()),
+      Drop { place, .. } => handle_drop(tcx, place, body.locals()),
       _ => {}
     }
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<Item>) -> Vec<(stable_mir::ty::FnDef, String)> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(stable_mir::ty::FnDef, String)> {
   use std::collections::HashMap;
   use MonoItemKind::*;
   let mut hash_map = HashMap::new();
   let ref mut add_to_hash_map = |fn_def, name| { (&mut hash_map).insert(fn_def, name); };
   for item in items.iter() {
-    match &item.mono_item_kind {
-      MonoItemFn { ref body, promoted, .. } => {
-        collect_fn_calls_inner(tcx, body.as_ref().unwrap(), add_to_hash_map);
-        promoted.iter().for_each(|body| collect_fn_calls_inner(tcx, body, add_to_hash_map));
+    match &item {
+      MonoItem::Fn( inst ) => {
+        if let Some(ref body) = inst.body() {
+          collect_fn_calls_inner(tcx, body, add_to_hash_map);
+          get_promoted(tcx, inst).iter().for_each(|body| collect_fn_calls_inner(tcx, body, add_to_hash_map));
+        }
       }
-      kind @ MonoItemStatic { .. } => {}
-      kind @ MonoItemGlobalAsm { .. } => {}
+      kind @ MonoItem::Static { .. } => {}
+      kind @ MonoItem::GlobalAsm { .. } => {}
     }
   }
-  return vec![];
+  let calls: Vec<_> = hash_map.into_iter().collect();
+  // calls.sort_by(|fst,snd| rustc_internal::internal(tcx, fst.0.def_id()).cmp(rustc_internal::internal(tcx, snd.0.def_id())));
+  calls
 }
 
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
-  let items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
+  let mono_items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
     kani_collect(tcx, opts)
   } else {
     mono_collect(tcx)
   };
+  let called_functions = collect_fn_calls(tcx, mono_items.clone());
+  let items = mono_items.iter().map(|item|
+     mk_item(tcx, item, rustc_internal::internal(tcx, item).symbol_name(tcx).name.into())
+  ).collect::<Vec<_>>();
   let mut crates = vec![local_crate.clone()];
   crates.append(&mut stable_mir::external_crates());
   let foreign_modules: Vec<_> = crates.into_iter().map(|krate| {
@@ -317,7 +326,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     serde_json::to_string(&items).expect("serde_json mono items failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
     serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
-    serde_json::to_string::<Vec<String>>(&vec![]).expect("serde_json functions failed"),
+    serde_json::to_string(&called_functions).expect("serde_json functions failed"),
     serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
   ).expect("Failed to write JSON to file");
 }
