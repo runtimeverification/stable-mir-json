@@ -13,7 +13,7 @@ extern crate serde_json;
 use rustc_middle as middle;
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_span::{def_id::DefId, symbol}; // symbol::sym::test;
+use rustc_span::{def_id::DefId, symbol, DUMMY_SP}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,TerminatorKind,Operand},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
@@ -243,7 +243,7 @@ fn handle_call(tcx: TyCtxt<'_>, kind: &stable_mir::ty::ConstantKind, ty: &stable
         middle::ty::TyKind::FnDef(def, args) => (def, args),
         _ => panic!("rustc_internal(FnDef) did not return FnDef")
       };
-      let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, args).polymorphize(tcx);
+      let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, args, DUMMY_SP).polymorphize(tcx);
       match inst.def {
         DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => {}
         Intrinsic(_) => handle_intrinsic(tcx, inst),
