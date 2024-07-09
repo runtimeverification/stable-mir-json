@@ -15,7 +15,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol, DUMMY_SP}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,TerminatorKind,Operand},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,TerminatorKind,Operand},ty::{Allocation,ForeignItemKind,FnDef},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
@@ -71,6 +71,13 @@ struct ForeignModule {
     name: String,
     items: Vec<ForeignItem>,
 }
+#[derive(Serialize)]
+enum FnSym {
+    NoOpSym(FnDef),              // this function type corresponds to a no-op, so call can be optimized away
+    IntrinsicSym(FnDef, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
+    NormalSym(FnDef, String),    // this function type corresponds to a linkable function, which we must look up in memory
+}
+
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
@@ -224,57 +231,64 @@ fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
   }).collect()
 }
 
-fn handle_intrinsic(tcx: TyCtxt<'_>, inst: middle::ty::Instance) {
-  let _ = tcx;
-  let _ = inst;
-}
+// fn handle_intrinsic(tcx: TyCtxt<'_>, inst: middle::ty::Instance) -> FnSym {
+//   let _ = tcx;
+//   let _ = inst;
+// }
 
-fn handle_virtual(tcx: TyCtxt<'_>, inst: middle::ty::Instance) {
-  let _ = tcx;
-  let _ = inst;
-}
-
-fn handle_call(tcx: TyCtxt<'_>, kind: &stable_mir::ty::ConstantKind, ty: &stable_mir::ty::Ty, args: &Vec<Operand>, add_fn: &mut impl FnMut(stable_mir::ty::FnDef, String)) {
+fn fn_def_ty_sym(tcx: TyCtxt<'_>, ty: &stable_mir::ty::Ty) -> Option<FnSym> {
   use middle::ty::InstanceKind::*;
-  use stable_mir::ty::{ConstantKind::ZeroSized, TyKind::RigidTy, RigidTy::FnDef};
-  let _ = args;
-  match (kind,ty.kind()) {
-    (ZeroSized, RigidTy(fn_def_ty @ FnDef(fn_def, _))) => {
+  use stable_mir::ty::{TyKind::RigidTy, RigidTy::FnDef};
+  match ty.kind() {
+    RigidTy(fn_def_ty @ FnDef(fn_def, _)) => {
       let (def, args) = match rustc_internal::internal(tcx, fn_def_ty) {
         middle::ty::TyKind::FnDef(def, args) => (def, args),
         _ => panic!("rustc_internal(FnDef) did not return FnDef")
       };
       let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, args, DUMMY_SP).polymorphize(tcx);
-      match inst.def {
-        DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => {}
-        Intrinsic(_) => handle_intrinsic(tcx, inst),
-        Virtual(def_id, idx) => handle_virtual(tcx, inst),
-        _ => add_fn(fn_def, tcx.symbol_name(inst).name.into()),
-      }
-    },
-    (ZeroSized, _) => unreachable!(),
-    _ => {}
+      let fn_sym = match inst.def {
+        DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => FnSym::NoOpSym(fn_def),
+        Intrinsic(_) => unreachable!(),  // handle_intrinsic(tcx, inst),
+        Virtual(_, _) | _ => FnSym::NormalSym(fn_def, tcx.symbol_name(inst).name.into()),
+      };
+      Some(fn_sym)
+    }
+    _ => None
   }
 }
 
-fn handle_drop(tcx: TyCtxt<'_>, place: &stable_mir::mir::Place, locals: &[stable_mir::mir::LocalDecl]) {
-  let _ = tcx;
-  let _ = place;
-  let _ = locals;
-}
-
-fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &Body, add_fn: &mut impl FnMut(stable_mir::ty::FnDef, String)) {
+fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &Body, add_fn: &mut impl FnMut(FnSym)) {
   use stable_mir::mir::{TerminatorKind::{Call, Drop}, Operand::Constant, ConstOperand};
   use stable_mir::ty::MirConst;
   use middle::ty::InstanceKind::{DropGlue, AsyncDropGlueCtorShim};
   for block in body.blocks.iter() {
-    match &block.terminator.kind {
-      Call { func: Constant(ConstOperand { const_: cnst, .. }), args, .. } => {
-        handle_call(tcx, cnst.kind(), &cnst.ty(), args, add_fn)
+    let fn_sym = match &block.terminator.kind {
+      Call { func: Constant(ConstOperand { const_: cnst, .. }), args: _, .. } => {
+        if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized { return }
+        Some(fn_def_ty_sym(tcx, &cnst.ty()).expect("Direct calls to functions must return a function name"))
       }
-      Drop { place, .. } => handle_drop(tcx, place, body.locals()),
-      _ => {}
-    }
+      Drop { place, .. } => {
+        let drop_ty = place.ty(body.locals()).unwrap();
+        let inst = rustc_internal::stable(middle::ty::Instance::resolve_drop_in_place(tcx, rustc_internal::internal(tcx, drop_ty)));
+        fn_def_ty_sym(tcx, &inst.ty())
+      }
+      _ => None
+    };
+    if let Some(fn_sym) = fn_sym { add_fn(fn_sym) };
+  }
+}
+
+fn update_link_map(link_map: &mut std::collections::HashMap<FnDef, String>, fn_sym: FnSym, check_collision: bool) {
+  let (fn_def, name) = match fn_sym {
+    FnSym::NoOpSym(fn_def) => (fn_def, "".into()),
+    FnSym::IntrinsicSym(fn_def, name) => (fn_def, name),
+    FnSym::NormalSym(fn_def, name) => (fn_def, name),
+  };
+  if let Some(old_name) = link_map.insert(fn_def, name.clone()) {
+    panic!("Added inconsistent entries into link map! {:?} -> {}, {}", fn_def, old_name, name);
+  }
+  if check_collision {
+    println!("Regenerated link map entry: {:?} -> {}", fn_def, name);
   }
 }
 
@@ -282,7 +296,13 @@ fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(stable_mir::t
   use std::collections::HashMap;
   use MonoItemKind::*;
   let mut hash_map = HashMap::new();
-  let ref mut add_to_hash_map = |fn_def, name| { (&mut hash_map).insert(fn_def, name); };
+  let ref mut add_to_hash_map = |fn_sym| { update_link_map(&mut hash_map, fn_sym, false) };
+  for item in items.iter() {
+    if let MonoItem::Fn ( inst ) = item {
+       if let Some(fn_sym) = fn_def_ty_sym(tcx, &inst.ty()) { add_to_hash_map(fn_sym) }
+    }
+  }
+  let ref mut add_to_hash_map = |fn_sym| { update_link_map(&mut hash_map, fn_sym, true) };
   for item in items.iter() {
     match &item {
       MonoItem::Fn( inst ) => {
