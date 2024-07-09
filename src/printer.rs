@@ -73,9 +73,9 @@ struct ForeignModule {
 }
 #[derive(Serialize)]
 enum FnSym {
-    NoOpSym(FnDef),              // this function type corresponds to a no-op, so call can be optimized away
-    IntrinsicSym(FnDef, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
-    NormalSym(FnDef, String),    // this function type corresponds to a linkable function, which we must look up in memory
+    NoOpSym(FnDef, stable_mir::ty::GenericArgs),              // this function type corresponds to a no-op, so call can be optimized away
+    IntrinsicSym(FnDef, stable_mir::ty::GenericArgs, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
+    NormalSym(FnDef, stable_mir::ty::GenericArgs, String),    // this function type corresponds to a linkable function, which we must look up in memory
 }
 
 
@@ -240,16 +240,16 @@ fn fn_def_ty_sym(tcx: TyCtxt<'_>, ty: &stable_mir::ty::Ty) -> Option<FnSym> {
   use middle::ty::InstanceKind::*;
   use stable_mir::ty::{TyKind::RigidTy, RigidTy::FnDef};
   match ty.kind() {
-    RigidTy(fn_def_ty @ FnDef(fn_def, _)) => {
-      let (def, args) = match rustc_internal::internal(tcx, fn_def_ty) {
-        middle::ty::TyKind::FnDef(def, args) => (def, args),
+    RigidTy(ref fn_def_ty @ FnDef(fn_def, ref args)) => {
+      let (def, int_args) = match rustc_internal::internal(tcx, fn_def_ty) {
+        middle::ty::TyKind::FnDef(def, int_args) => (def, int_args),
         _ => panic!("rustc_internal(FnDef) did not return FnDef")
       };
-      let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, args, DUMMY_SP).polymorphize(tcx);
+      let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, int_args, DUMMY_SP).polymorphize(tcx);
       let fn_sym = match inst.def {
-        DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => FnSym::NoOpSym(fn_def),
-        Intrinsic(_) => unreachable!(),  // handle_intrinsic(tcx, inst),
-        Virtual(_, _) | _ => FnSym::NormalSym(fn_def, tcx.symbol_name(inst).name.into()),
+        DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => FnSym::NoOpSym(fn_def, args.clone()),
+        Virtual(_, _) | _ => FnSym::NormalSym(fn_def, args.clone(), tcx.symbol_name(inst).name.into()),
+        // Intrinsic(_) => handle_intrinsic(tcx, inst),
       };
       Some(fn_sym)
     }
@@ -278,21 +278,28 @@ fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &Body, add_fn: &mut impl FnMut(
   }
 }
 
-fn update_link_map(link_map: &mut std::collections::HashMap<FnDef, String>, fn_sym: FnSym, check_collision: bool) {
-  let (fn_def, name) = match fn_sym {
-    FnSym::NoOpSym(fn_def) => (fn_def, "".into()),
-    FnSym::IntrinsicSym(fn_def, name) => (fn_def, name),
-    FnSym::NormalSym(fn_def, name) => (fn_def, name),
+fn update_link_map(link_map: &mut std::collections::HashMap<(FnDef, u64), String>, fn_sym: FnSym, check_collision: bool) {
+  use std::hash::{Hash, Hasher};
+  let (fn_def, args, name) = match fn_sym {
+    FnSym::NoOpSym(fn_def, args) => (fn_def, args, "".into()),
+    FnSym::IntrinsicSym(fn_def, args, name) => (fn_def, args, name),
+    FnSym::NormalSym(fn_def, args, name) => (fn_def, args, name),
   };
-  if let Some(old_name) = link_map.insert(fn_def, name.clone()) {
-    panic!("Added inconsistent entries into link map! {:?} -> {}, {}", fn_def, old_name, name);
+  let mut hasher = std::hash::DefaultHasher::new();
+  for arg in args.0.iter() {
+    format!("{:?}", arg).hash(&mut hasher);
+  }
+  if let Some(old_name) = link_map.insert((fn_def, hasher.finish()), name.clone()) {
+    if old_name != name {
+      panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (fn_def, &args.0), old_name, name);
+    }
   }
   if check_collision {
-    println!("Regenerated link map entry: {:?} -> {}", fn_def, name);
+    println!("Regenerated link map entry: {:?} -> {}", (fn_def, &args.0), name);
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(stable_mir::ty::FnDef, String)> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::FnDef, u64), String)> {
   use std::collections::HashMap;
   use MonoItemKind::*;
   let mut hash_map = HashMap::new();
