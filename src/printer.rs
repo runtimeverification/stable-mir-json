@@ -22,29 +22,40 @@ use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items
 
 // TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 #[derive(Serialize)]
+struct BodyDetails {
+    pp: String,
+}
+#[derive(Serialize)]
 struct GenericData(Vec<(String,String)>);
 #[derive(Serialize)]
 struct ItemDetails {
+    // these fields only defined for fn items
+    fn_instance_kind: Option<InstanceKind>,
+    fn_item_kind: Option<ItemKind>,
+    fn_body_details: Vec<BodyDetails>,
+    // these fields defined for all items
     internal_kind: String,
     path: String,
     internal_ty: String,
     generic_data: GenericData,
 }
 #[derive(Serialize)]
-struct BodyDetails {
-    pp: String,
+struct ForeignItem {
+    name: String,
+    kind: ForeignItemKind,
 }
 #[derive(Serialize)]
-struct MirBody(Body, Option<BodyDetails>);
+struct ForeignModule {
+    name: String,
+    items: Vec<ForeignItem>,
+}
+
 #[derive(Serialize)]
 enum MonoItemKind {
     MonoItemFn {
       name: String,
       id: stable_mir::DefId,
-      instance_kind: InstanceKind,
-      item_kind: Option<ItemKind>,
-      body: Option<MirBody>,
-      promoted: Vec<MirBody>,
+      body: Vec<Body>,
     },
     MonoItemStatic {
       name: String,
@@ -61,23 +72,12 @@ struct Item {
     mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
 }
-#[derive(Serialize)]
-struct ForeignItem {
-    name: String,
-    kind: ForeignItemKind,
-}
-#[derive(Serialize)]
-struct ForeignModule {
-    name: String,
-    items: Vec<ForeignItem>,
-}
-#[derive(Serialize)]
+
 enum FnSym {
     NoOpSym(FnDef, stable_mir::ty::GenericArgs),              // this function type corresponds to a no-op, so call can be optimized away
     IntrinsicSym(FnDef, stable_mir::ty::GenericArgs, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
     NormalSym(FnDef, stable_mir::ty::GenericArgs, String),    // this function type corresponds to a linkable function, which we must look up in memory
 }
-
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
@@ -93,17 +93,10 @@ fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      return GenericData(v);
 }
 
-fn get_body_details(body: &Body, name: Option<&String>) -> Option<BodyDetails> {
-  if enabled!(tracing::Level::DEBUG) {
-    let mut v = Vec::new();
-    let name = if let Some(name) = name { name } else { "<promoted>" };
-    let _ = body.dump(&mut v, name);
-    Some(BodyDetails {
-      pp: str::from_utf8(&v).unwrap().into(),
-    })
-  } else {
-    None
-  }
+fn get_body_details(body: &Body) -> BodyDetails {
+  let mut v = Vec::new();
+  let _ = body.dump(&mut v, "<omitted>");
+  BodyDetails { pp: str::from_utf8(&v).unwrap().into() }
 }
 
 // unwrap early binder in a default manner; panic on error
@@ -136,9 +129,12 @@ fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>
   }
 }
 
-fn get_item_details(tcx: TyCtxt<'_>, id: DefId) -> Option<ItemDetails> {
+fn get_item_details(tcx: TyCtxt<'_>, id: DefId, fn_inst: Option<Instance>) -> Option<ItemDetails> {
   if enabled!(tracing::Level::DEBUG) {
     Some(ItemDetails {
+      fn_instance_kind: fn_inst.map(|i| i.kind),
+      fn_item_kind: fn_inst.map(|i| CrateItem::try_from(i).ok()).flatten().map(|i| i.kind()),
+      fn_body_details: if let Some(fn_inst) = fn_inst { get_bodies(tcx, &fn_inst).iter().map(get_body_details).collect() } else { vec![] },
       internal_kind: format!("{:#?}", tcx.def_kind(id)),
       path: tcx.def_path_str(id),  // NOTE: underlying data from tcx.def_path(id);
       internal_ty: print_type(tcx, id, tcx.type_of(id)),
@@ -155,34 +151,36 @@ pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Sym
    tcx.has_attr(rustc_internal::internal(tcx,item), attr)
 }
 
-fn mk_mir_body(body: Body, name: Option<&String>) -> MirBody {
-  let details = get_body_details(&body, name);
-  MirBody(body, details)
-}
-
 fn get_promoted(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
   let id = rustc_internal::internal(tcx, inst.def.def_id());
   if inst.has_body() { tcx.promoted_mir(id).into_iter().map(rustc_internal::stable).collect() } else { vec![] }
 }
 
+fn get_bodies(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
+  if let Some(body) = inst.body() {
+    let id = rustc_internal::internal(tcx, inst.def.def_id());
+    let mut bodies = get_promoted(tcx, inst);
+    bodies.insert(0, body);
+    bodies
+  } else {
+    vec![]
+  }
+}
+
 fn mk_item(tcx: TyCtxt<'_>, item: &MonoItem, sym_name: String) -> Item {
   match item {
-    MonoItem::Fn(item) => {
-      let body = item.body();
-      let id = item.def.def_id();
-      let name = item.name();
+    MonoItem::Fn(inst) => {
+      let id = inst.def.def_id();
+      let name = inst.name();
       let internal_id = rustc_internal::internal(tcx,id);
       Item {
         symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemFn {
           name: name.clone(),
           id: id,
-          instance_kind: item.kind,
-          item_kind: CrateItem::try_from(item.clone()).map_or(None, |item| Some(item.kind())),
-          body: body.map_or(None, |body| { Some(mk_mir_body(body, Some(&name))) }),
-          promoted: get_promoted(tcx, &item).into_iter().map(|body| mk_mir_body(body, None)).collect(),
+          body: get_bodies(tcx, inst),
         },
-        details: get_item_details(tcx, internal_id),
+        details: get_item_details(tcx, internal_id, Some(*inst))
       }
     },
     MonoItem::Static(static_def) => {
@@ -198,7 +196,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: &MonoItem, sym_name: String) -> Item {
           id: static_def.def_id(),
           allocation: alloc,
         },
-        details: get_item_details(tcx, internal_id),
+        details: get_item_details(tcx, internal_id, None),
       }
     },
     MonoItem::GlobalAsm(asm) => {
