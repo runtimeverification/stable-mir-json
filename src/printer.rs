@@ -15,7 +15,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol, DUMMY_SP}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,TerminatorKind,Operand},ty::{Allocation,ForeignItemKind,FnDef},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Operand,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind,FnDef},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
 use serde::Serialize;
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
@@ -234,51 +234,46 @@ fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
 //   let _ = inst;
 // }
 
-fn fn_def_ty_sym(tcx: TyCtxt<'_>, ty: &stable_mir::ty::Ty) -> Option<FnSym> {
+fn fn_inst_for_ty(tcx: TyCtxt<'_>, ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
+  ty.kind().fn_def().map(|(fn_def, args)| {
+    if direct_call {
+      Instance::resolve(fn_def, args)
+    } else {
+      Instance::resolve_for_fn_ptr(fn_def, args)
+    }.ok()
+  }).flatten()
+}
+
+fn fn_inst_sym(tcx: TyCtxt<'_>, inst: Option<&Instance>) -> Option<FnSym> {
   use middle::ty::InstanceKind::*;
   use stable_mir::ty::{TyKind::RigidTy, RigidTy::FnDef};
-  match ty.kind() {
-    RigidTy(ref fn_def_ty @ FnDef(fn_def, ref args)) => {
-      let (def, int_args) = match rustc_internal::internal(tcx, fn_def_ty) {
-        middle::ty::TyKind::FnDef(def, int_args) => (def, int_args),
-        _ => panic!("rustc_internal(FnDef) did not return FnDef")
-      };
-      let inst = middle::ty::Instance::expect_resolve(tcx, ParamEnv::reveal_all(), def, int_args, DUMMY_SP).polymorphize(tcx);
-      let fn_sym = match inst.def {
-        DropGlue(_, None) | AsyncDropGlueCtorShim(_, None) => FnSym::NoOpSym(fn_def, args.clone()),
-        Virtual(_, _) | _ => FnSym::NormalSym(fn_def, args.clone(), tcx.symbol_name(inst).name.into()),
-        // Intrinsic(_) => handle_intrinsic(tcx, inst),
-      };
-      Some(fn_sym)
+  use FnSym::*;
+  inst.map(|inst| {
+    let binding = inst.ty().kind();
+    if let Some((fn_def, args)) = binding.fn_def() {
+      if inst.is_empty_shim() {
+        NoOpSym(fn_def, args.clone())
+      } else if let Some(intrinsic_name) = inst.intrinsic_name() {
+        IntrinsicSym(fn_def, args.clone(), intrinsic_name)
+      } else {
+        NormalSym(fn_def, args.clone(), inst.mangled_name())
+      }.into()
+    } else {
+      None
     }
-    _ => None
-  }
+  }).flatten()
 }
 
-fn collect_fn_calls_inner(tcx: TyCtxt<'_>, body: &Body, add_fn: &mut impl FnMut(FnSym)) {
-  use stable_mir::mir::{TerminatorKind::{Call, Drop}, Operand::Constant, ConstOperand};
-  use stable_mir::ty::MirConst;
-  use middle::ty::InstanceKind::{DropGlue, AsyncDropGlueCtorShim};
-  for block in body.blocks.iter() {
-    let fn_sym = match &block.terminator.kind {
-      Call { func: Constant(ConstOperand { const_: cnst, .. }), args: _, .. } => {
-        if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized { return }
-        Some(fn_def_ty_sym(tcx, &cnst.ty()).expect("Direct calls to functions must return a function name"))
-      }
-      Drop { place, .. } => {
-        let drop_ty = place.ty(body.locals()).unwrap();
-        let inst = rustc_internal::stable(middle::ty::Instance::resolve_drop_in_place(tcx, rustc_internal::internal(tcx, drop_ty)));
-        fn_def_ty_sym(tcx, &inst.ty())
-      }
-      _ => None
-    };
-    if let Some(fn_sym) = fn_sym { add_fn(fn_sym) };
-  }
+struct LinkNameCollector<'tcx, 'local> {
+  tcx: TyCtxt<'tcx>,
+  link_map: &'local mut std::collections::HashMap<(FnDef, u64), String>,
+  locals: &'local [LocalDecl],
 }
 
-fn update_link_map(link_map: &mut std::collections::HashMap<(FnDef, u64), String>, fn_sym: FnSym, check_collision: bool) {
+fn update_link_map(link_map: &mut std::collections::HashMap<(FnDef, u64), String>, fn_sym: Option<FnSym>, check_collision: bool) {
   use std::hash::{Hash, Hasher};
-  let (fn_def, args, name) = match fn_sym {
+  if fn_sym.is_none() { return }
+  let (fn_def, args, name) = match fn_sym.unwrap() {
     FnSym::NoOpSym(fn_def, args) => (fn_def, args, "".into()),
     FnSym::IntrinsicSym(fn_def, args, name) => (fn_def, args, name),
     FnSym::NormalSym(fn_def, args, name) => (fn_def, args, name),
@@ -299,24 +294,60 @@ fn update_link_map(link_map: &mut std::collections::HashMap<(FnDef, u64), String
   }
 }
 
+impl MirVisitor for LinkNameCollector<'_, '_> {
+  fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
+    use TerminatorKind::*;
+    use stable_mir::mir::{Operand::Constant, ConstOperand};
+    let fn_sym = match &term.kind {
+      Call { func: Constant(ConstOperand { const_: cnst, .. }), args: _, .. } => {
+        if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized { return }
+        let inst = fn_inst_for_ty(self.tcx, cnst.ty(), true).expect("Direct calls to functions must resolve to an instance");
+        fn_inst_sym(self.tcx, Some(&inst))
+      }
+      Drop { place, .. } => {
+        let drop_ty = place.ty(self.locals).unwrap();
+        let inst = Instance::resolve_drop_in_place(drop_ty);
+        fn_inst_sym(self.tcx, Some(&inst))
+      }
+      _ => None
+    };
+    update_link_map(self.link_map, fn_sym, true);
+    self.super_terminator(term, loc);
+  }
+
+  fn visit_rvalue(&mut self, rval: &Rvalue, loc: stable_mir::mir::visit::Location) {
+    use stable_mir::mir::{PointerCoercion, CastKind};
+    match rval {
+      Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
+        let inst = fn_inst_for_ty(self.tcx, op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
+        let fn_sym = fn_inst_sym(self.tcx, Some(&inst));
+        update_link_map(self.link_map, fn_sym, true);
+      }
+      _ => {}
+    };
+    self.super_rvalue(rval, loc);
+  }
+}
+
 fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::FnDef, u64), String)> {
   use std::collections::HashMap;
   use MonoItemKind::*;
   let mut hash_map = HashMap::new();
-  let ref mut add_to_hash_map = |fn_sym| { update_link_map(&mut hash_map, fn_sym, false) };
   for item in items.iter() {
     if let MonoItem::Fn ( inst ) = item {
-       if let Some(fn_sym) = fn_def_ty_sym(tcx, &inst.ty()) { add_to_hash_map(fn_sym) }
+       update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), false)
     }
   }
-  let ref mut add_to_hash_map = |fn_sym| { update_link_map(&mut hash_map, fn_sym, true) };
   for item in items.iter() {
     match &item {
       MonoItem::Fn( inst ) => {
-        if let Some(ref body) = inst.body() {
-          collect_fn_calls_inner(tcx, body, add_to_hash_map);
-          get_promoted(tcx, inst).iter().for_each(|body| collect_fn_calls_inner(tcx, body, add_to_hash_map));
-        }
+         for body in get_bodies(tcx, inst).into_iter() {
+           LinkNameCollector {
+             tcx,
+             link_map: &mut hash_map,
+             locals: body.locals()
+           }.visit_body(&body)
+         }
       }
       kind @ MonoItem::Static { .. } => {}
       kind @ MonoItem::GlobalAsm { .. } => {}
