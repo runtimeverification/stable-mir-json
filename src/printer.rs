@@ -350,14 +350,20 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
         }).collect::<Vec<_>>()
       )
   }).collect();
-  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {}, \"types\": {}, \"functions\": {}, \"foreign_modules\": {}}}",
+  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {},  \"functions\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
     serde_json::to_string(&items).expect("serde_json mono items failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
-    serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
     serde_json::to_string(&called_functions).expect("serde_json functions failed"),
-    serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
   ).expect("Failed to write JSON to file");
+  if enabled!(tracing::Level::DEBUG) {
+    write!(writer, ",\"types\": {}, \"foreign_modules\": {}}}",
+      serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
+      serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
+    ).expect("Failed to write JSON to file");
+  } else {
+    write!(writer, "}}").expect("Failed to write JSON to file");
+  }
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
