@@ -293,9 +293,11 @@ fn update_link_map(link_map: &mut std::collections::HashMap<(FnDef, u64), String
     if old_name != name {
       panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (fn_def, &args.0), old_name, name);
     }
-  }
-  if check_collision {
-    println!("Regenerated link map entry: {:?} -> {}", (fn_def, &args.0), name);
+    if check_collision {
+      println!("Regenerated link map entry: {:?} -> {}", (fn_def, &args.0), name);
+    }
+  } else if check_collision {
+    println!("Generated link map entry from call: {:?} -> {}", (fn_def, &args.0), name);
   }
 }
 
