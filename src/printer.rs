@@ -11,9 +11,9 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; // Binder, Generics, GenericPredicates
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable}; // ParamEnv, Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_span::{def_id::DefId, symbol, DUMMY_SP}; // symbol::sym::test;
+use rustc_span::{def_id::DefId, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Operand,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind,FnDef},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
@@ -158,7 +158,6 @@ fn get_promoted(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
 
 fn get_bodies(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
   if let Some(body) = inst.body() {
-    let id = rustc_internal::internal(tcx, inst.def.def_id());
     let mut bodies = get_promoted(tcx, inst);
     bodies.insert(0, body);
     bodies
@@ -249,7 +248,7 @@ fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSym
   inst.map(|inst| {
     let ty = inst.ty();
     let kind = ty.kind();
-    if let Some((fn_def, args)) = kind.fn_def() {
+    if kind.fn_def().is_some() {
       let internal_inst = rustc_internal::internal(tcx, inst);
       if inst.is_empty_shim() {
         NoOpSym(ty, internal_inst.def)
@@ -265,48 +264,38 @@ fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSym
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-enum MaybeInstanceKind<'tcx> {
-  MaybeInstance(middle::ty::InstanceKind<'tcx>),
-  NoInstance()
-}
+struct InstanceKindS<'tcx>(middle::ty::InstanceKind<'tcx>);
 
-impl Serialize for MaybeInstanceKind<'_> {
+impl Serialize for InstanceKindS<'_> {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
       S: Serializer,
   {
-      use MaybeInstanceKind::*;
-      let val = match self {
-        MaybeInstance(kind) => format!("{:?}", kind),
-        NoInstance() => "".into(),
-      };
-      serializer.serialize_newtype_struct("Instance", &val)
+      serializer.serialize_newtype_struct("InstanceKind", &format!("{:?}", self.0))
   }
 }
 
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<(stable_mir::ty::Ty, MaybeInstanceKind<'tcx>), String>,
+  link_map: &'local mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), String>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, MaybeInstanceKind<'tcx>), String>, fn_sym: Option<FnSym<'tcx>>, check_collision: bool) {
-  use std::hash::{Hash, Hasher};
-  use MaybeInstanceKind::*;
+fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), String>, fn_sym: Option<FnSym<'tcx>>, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
-    FnSym::NoOpSym(ty, kind) => (ty, MaybeInstance(kind), "".into()),
-    FnSym::IntrinsicSym(ty, kind, name) => (ty, MaybeInstance(kind), name),
-    FnSym::NormalSym(ty, kind, name) => (ty, MaybeInstance(kind), name),
+    FnSym::NoOpSym(ty, kind) => (ty, InstanceKindS(kind), "".into()),
+    FnSym::IntrinsicSym(ty, kind, name) => (ty,InstanceKindS(kind), name),
+    FnSym::NormalSym(ty, kind, name) => (ty, InstanceKindS(kind), name),
   };
   if let Some(old_name) = link_map.insert((ty, kind.clone()), name.clone()) {
     if old_name != name {
-      println!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (ty, ty.kind().fn_def(), &kind), old_name, name);
+      panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (ty, ty.kind().fn_def(), &kind), old_name, name);
     }
-    if check_collision {
+    if check_collision && enabled!(tracing::Level::DEBUG) {
       println!("Regenerated link map entry: {:?} -> {}", (ty, ty.kind().fn_def(), &kind), name);
     }
-  } else if check_collision {
+  } else if check_collision && enabled!(tracing::Level::DEBUG) {
     println!("Generated link map entry from call: {:?} -> {}", (ty, ty.kind().fn_def(), &kind), name);
   }
 }
@@ -346,8 +335,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, MaybeInstanceKind<'_>), String)> {
-  use MonoItemKind::*;
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), String)> {
   let mut hash_map = HashMap::new();
   for item in items.iter() {
     if let MonoItem::Fn ( inst ) = item {
