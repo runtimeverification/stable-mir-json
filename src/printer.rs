@@ -264,16 +264,6 @@ fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSym
   }).flatten()
 }
 
-#[derive(Eq, PartialEq, Debug, Serialize)]
-struct GenericArgsWrapper(stable_mir::ty::GenericArgs);
-impl std::hash::Hash for GenericArgsWrapper {
-    fn hash<H>(&self, state: &mut H) where H: std::hash::Hasher {
-      let bytes_str = format!("{:?}", self);
-      let bytes = bytes_str.as_bytes();
-      bytes.iter().for_each(|byte| state.write_u8(*byte));
-    }
-}
-
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum MaybeInstanceKind<'tcx> {
   MaybeInstance(middle::ty::InstanceKind<'tcx>),
