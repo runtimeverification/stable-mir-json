@@ -337,9 +337,11 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
 
 fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), String)> {
   let mut hash_map = HashMap::new();
-  for item in items.iter() {
-    if let MonoItem::Fn ( inst ) = item {
-       update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), false)
+  if std::env::var("LINK_MONO_ITEMS").is_ok() {
+    for item in items.iter() {
+      if let MonoItem::Fn ( inst ) = item {
+         update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), false)
+      }
     }
   }
   for item in items.iter() {
