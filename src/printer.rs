@@ -1,4 +1,4 @@
-use std::{fs::File,io,iter::Iterator,vec::Vec,str};
+use std::{collections::HashMap,fs::File,io,iter::Iterator,vec::Vec,str,};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -17,7 +17,7 @@ use rustc_span::{def_id::DefId, symbol, DUMMY_SP}; // symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Operand,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind,FnDef},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use tracing::enabled;
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
 // TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
@@ -73,10 +73,10 @@ struct Item {
     details: Option<ItemDetails>,
 }
 
-enum FnSym {
-    NoOpSym(FnDef, stable_mir::ty::GenericArgs),              // this function type corresponds to a no-op, so call can be optimized away
-    IntrinsicSym(FnDef, stable_mir::ty::GenericArgs, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
-    NormalSym(FnDef, stable_mir::ty::GenericArgs, String),    // this function type corresponds to a linkable function, which we must look up in memory
+enum FnSym<'tcx> {
+    NoOpSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>),              // this function type corresponds to a no-op, so call can be optimized away
+    IntrinsicSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
+    NormalSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
 }
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
@@ -234,7 +234,7 @@ fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
 //   let _ = inst;
 // }
 
-fn fn_inst_for_ty(tcx: TyCtxt<'_>, ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
+fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
   ty.kind().fn_def().map(|(fn_def, args)| {
     if direct_call {
       Instance::resolve(fn_def, args)
@@ -244,19 +244,19 @@ fn fn_inst_for_ty(tcx: TyCtxt<'_>, ty: stable_mir::ty::Ty, direct_call: bool) ->
   }).flatten()
 }
 
-fn fn_inst_sym(tcx: TyCtxt<'_>, inst: Option<&Instance>) -> Option<FnSym> {
-  use middle::ty::InstanceKind::*;
-  use stable_mir::ty::{TyKind::RigidTy, RigidTy::FnDef};
+fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSym<'tcx>> {
   use FnSym::*;
   inst.map(|inst| {
-    let binding = inst.ty().kind();
-    if let Some((fn_def, args)) = binding.fn_def() {
+    let ty = inst.ty();
+    let kind = ty.kind();
+    if let Some((fn_def, args)) = kind.fn_def() {
+      let internal_inst = rustc_internal::internal(tcx, inst);
       if inst.is_empty_shim() {
-        NoOpSym(fn_def, args.clone())
+        NoOpSym(ty, internal_inst.def)
       } else if let Some(intrinsic_name) = inst.intrinsic_name() {
-        IntrinsicSym(fn_def, args.clone(), intrinsic_name)
+        IntrinsicSym(ty, internal_inst.def, intrinsic_name)
       } else {
-        NormalSym(fn_def, args.clone(), inst.mangled_name())
+        NormalSym(ty, internal_inst.def, inst.mangled_name())
       }.into()
     } else {
       None
@@ -264,33 +264,60 @@ fn fn_inst_sym(tcx: TyCtxt<'_>, inst: Option<&Instance>) -> Option<FnSym> {
   }).flatten()
 }
 
+#[derive(Eq, PartialEq, Debug, Serialize)]
+struct GenericArgsWrapper(stable_mir::ty::GenericArgs);
+impl std::hash::Hash for GenericArgsWrapper {
+    fn hash<H>(&self, state: &mut H) where H: std::hash::Hasher {
+      let bytes_str = format!("{:?}", self);
+      let bytes = bytes_str.as_bytes();
+      bytes.iter().for_each(|byte| state.write_u8(*byte));
+    }
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+enum MaybeInstanceKind<'tcx> {
+  MaybeInstance(middle::ty::InstanceKind<'tcx>),
+  NoInstance()
+}
+
+impl Serialize for MaybeInstanceKind<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+      use MaybeInstanceKind::*;
+      let val = match self {
+        MaybeInstance(kind) => format!("{:?}", kind),
+        NoInstance() => "".into(),
+      };
+      serializer.serialize_newtype_struct("Instance", &val)
+  }
+}
+
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut std::collections::HashMap<(FnDef, u64), String>,
+  link_map: &'local mut HashMap<(stable_mir::ty::Ty, MaybeInstanceKind<'tcx>), String>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map(link_map: &mut std::collections::HashMap<(FnDef, u64), String>, fn_sym: Option<FnSym>, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, MaybeInstanceKind<'tcx>), String>, fn_sym: Option<FnSym<'tcx>>, check_collision: bool) {
   use std::hash::{Hash, Hasher};
+  use MaybeInstanceKind::*;
   if fn_sym.is_none() { return }
-  let (fn_def, args, name) = match fn_sym.unwrap() {
-    FnSym::NoOpSym(fn_def, args) => (fn_def, args, "".into()),
-    FnSym::IntrinsicSym(fn_def, args, name) => (fn_def, args, name),
-    FnSym::NormalSym(fn_def, args, name) => (fn_def, args, name),
+  let (ty, kind, name) = match fn_sym.unwrap() {
+    FnSym::NoOpSym(ty, kind) => (ty, MaybeInstance(kind), "".into()),
+    FnSym::IntrinsicSym(ty, kind, name) => (ty, MaybeInstance(kind), name),
+    FnSym::NormalSym(ty, kind, name) => (ty, MaybeInstance(kind), name),
   };
-  let mut hasher = std::hash::DefaultHasher::new();
-  for arg in args.0.iter() {
-    format!("{:?}", arg).hash(&mut hasher);
-  }
-  if let Some(old_name) = link_map.insert((fn_def, hasher.finish()), name.clone()) {
+  if let Some(old_name) = link_map.insert((ty, kind.clone()), name.clone()) {
     if old_name != name {
-      panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (fn_def, &args.0), old_name, name);
+      println!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (ty, ty.kind().fn_def(), &kind), old_name, name);
     }
     if check_collision {
-      println!("Regenerated link map entry: {:?} -> {}", (fn_def, &args.0), name);
+      println!("Regenerated link map entry: {:?} -> {}", (ty, ty.kind().fn_def(), &kind), name);
     }
   } else if check_collision {
-    println!("Generated link map entry from call: {:?} -> {}", (fn_def, &args.0), name);
+    println!("Generated link map entry from call: {:?} -> {}", (ty, ty.kind().fn_def(), &kind), name);
   }
 }
 
@@ -301,7 +328,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
     let fn_sym = match &term.kind {
       Call { func: Constant(ConstOperand { const_: cnst, .. }), args: _, .. } => {
         if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized { return }
-        let inst = fn_inst_for_ty(self.tcx, cnst.ty(), true).expect("Direct calls to functions must resolve to an instance");
+        let inst = fn_inst_for_ty(cnst.ty(), true).expect("Direct calls to functions must resolve to an instance");
         fn_inst_sym(self.tcx, Some(&inst))
       }
       Drop { place, .. } => {
@@ -319,7 +346,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
     use stable_mir::mir::{PointerCoercion, CastKind};
     match rval {
       Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
-        let inst = fn_inst_for_ty(self.tcx, op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
+        let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
         let fn_sym = fn_inst_sym(self.tcx, Some(&inst));
         update_link_map(self.link_map, fn_sym, true);
       }
@@ -329,8 +356,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::FnDef, u64), String)> {
-  use std::collections::HashMap;
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, MaybeInstanceKind<'_>), String)> {
   use MonoItemKind::*;
   let mut hash_map = HashMap::new();
   for item in items.iter() {
