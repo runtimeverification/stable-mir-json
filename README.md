@@ -39,6 +39,12 @@ To generate stable MIR output without building a binary, you can invoke the tool
 ./run.sh -Z no-codegen <crate_root>
 ```
 
+There are a few environment variables that can be set to control the tools output:
+
+1.  `LINK_ITEMS` - add entries to the link-time `functions` map for each monomorphic item in the crate;
+2.  `LINK_INST`  - use a richer key-structure for the link-time `functions` map which uses keys that are pairs of a function type (`Ty`) _and_ an function instance kind (`InstanceKind`)
+3.  `DEBUG` - serialize additional data in the JSON file and dump logs to stdout
+
 ### Invocation Details
 
 We use an uncommon build process where we link against a patched rustc installed in this repo.
