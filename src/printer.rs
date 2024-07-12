@@ -263,14 +263,22 @@ fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSym
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct InstanceKindS<'tcx>(middle::ty::InstanceKind<'tcx>);
+struct LinkMapKey<'tcx>(stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
 
-impl Serialize for InstanceKindS<'_> {
+impl Serialize for LinkMapKey<'_> {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
   where
       S: Serializer,
   {
-      serializer.serialize_str(&format!("{:?}", self.0).as_str())
+    use serde::ser::SerializeTuple;
+    if link_instance_enabled() {
+      let mut tup = serializer.serialize_tuple(2)?;
+      tup.serialize_element(&self.0)?;
+      tup.serialize_element(&format!("{:?}", self.1).as_str())?;
+      tup.end()
+    } else {
+      <stable_mir::ty::Ty as Serialize>::serialize(&self.0, serializer)
+    }
   }
 }
 
@@ -296,31 +304,31 @@ impl Serialize for ItemSource {
 
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<(stable_mir::ty::Ty, Option<InstanceKindS<'tcx>>), (ItemSource, String)>,
+  link_map: &'local mut HashMap<LinkMapKey<'tcx>, (ItemSource, String)>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, Option<InstanceKindS<'tcx>>), (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<LinkMapKey<'tcx>, (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
-    FnSym::NoOpSym(ty, kind) => (ty, InstanceKindS(kind), "".into()),
-    FnSym::IntrinsicSym(ty, kind, name) => (ty,InstanceKindS(kind), name),
-    FnSym::NormalSym(ty, kind, name) => (ty, InstanceKindS(kind), name),
+    FnSym::NoOpSym(ty, kind) => (ty, kind, "".into()),
+    FnSym::IntrinsicSym(ty, kind, name) => (ty, kind, name),
+    FnSym::NormalSym(ty, kind, name) => (ty, kind, name),
   };
   let new_val = (source, name);
-  let wrapped_kind = if link_instance_enabled() { Some(kind.clone()) } else { None };
-  if let Some(curr_val) = link_map.get_mut(&(ty, wrapped_kind.clone())) {
+  let key = if link_instance_enabled() { LinkMapKey(ty, Some(kind)) } else { LinkMapKey(ty, None) };
+  if let Some(curr_val) = link_map.get_mut(&key.clone()) {
     if curr_val.1 != new_val.1 {
       panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
     curr_val.0.0 |= new_val.0.0;
     if check_collision && debug_enabled() {
-      println!("Regenerated link map entry: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
+      println!("Regenerated link map entry: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
   } else {
-    link_map.insert((ty, wrapped_kind), new_val.clone());
+    link_map.insert(key.clone(), new_val.clone());
     if check_collision && debug_enabled() {
-      println!("Generated link map entry from call: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
+      println!("Generated link map entry from call: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
   }
 }
@@ -360,7 +368,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, Option<InstanceKindS<'_>>), (ItemSource, String))> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (ItemSource, String))> {
   let mut hash_map = HashMap::new();
   if link_items_enabled() {
     for item in items.iter() {
