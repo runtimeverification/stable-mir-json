@@ -274,17 +274,33 @@ impl Serialize for InstanceKindS<'_> {
   }
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct ItemSource(u8);
 const ITEM: u8 = 1 << 0;
 const TERM: u8 = 1 << 1;
 const FPTR: u8 = 1 << 2;
 
+impl Serialize for ItemSource {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+      use serde::ser::SerializeSeq;
+      let mut seq = serializer.serialize_seq(None)?;
+      if self.0 & ITEM != 0u8 { seq.serialize_element(&"Item")? };
+      if self.0 & TERM != 0u8 { seq.serialize_element(&"Term")? };
+      if self.0 & FPTR != 0u8 { seq.serialize_element(&"Fptr")? };
+      seq.end()
+  }
+}
+
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (u8, String)>,
+  link_map: &'local mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (ItemSource, String)>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (u8, String)>, fn_sym: Option<FnSym<'tcx>>, source: u8, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
     FnSym::NoOpSym(ty, kind) => (ty, InstanceKindS(kind), "".into()),
@@ -296,7 +312,7 @@ fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKin
     if curr_val.1 != new_val.1 {
       panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
-    curr_val.0 |= new_val.0;
+    curr_val.0.0 |= new_val.0.0;
     if check_collision && debug_enabled() {
       println!("Regenerated link map entry: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
     }
@@ -325,7 +341,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       }
       _ => None
     };
-    update_link_map(self.link_map, fn_sym, TERM, true);
+    update_link_map(self.link_map, fn_sym, ItemSource(TERM), true);
     self.super_terminator(term, loc);
   }
 
@@ -335,7 +351,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
         let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
         let fn_sym = fn_inst_sym(self.tcx, Some(&inst));
-        update_link_map(self.link_map, fn_sym, FPTR, true);
+        update_link_map(self.link_map, fn_sym, ItemSource(FPTR), true);
       }
       _ => {}
     };
@@ -343,11 +359,11 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), (u8, String))> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), (ItemSource, String))> {
   let mut hash_map = HashMap::new();
   for item in items.iter() {
     if let MonoItem::Fn ( inst ) = item {
-       update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), ITEM, false)
+       update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), ItemSource(ITEM), false)
     }
   }
   for item in items.iter() {
