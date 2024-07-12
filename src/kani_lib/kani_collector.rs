@@ -23,33 +23,6 @@ use stable_mir::ty::{RigidTy, ClosureKind, ConstantKind, Allocation, Ty as TySta
 use stable_mir::mir::alloc::{AllocId, GlobalAlloc};
 use stable_mir::Symbol;
 
-/// Collect all (top-level) items in the crate that matches the given predicate.
-/// An item can only be a root if they are a non-generic function.
-pub fn filter_crate_items<F>(tcx: TyCtxt, predicate: F) -> Vec<Instance>
-where
-    F: Fn(TyCtxt, Instance) -> bool,
-{
-    let crate_items = stable_mir::all_local_items();
-    // Filter regular items.
-    crate_items
-        .iter()
-        .filter_map(|item| {
-            // Only collect monomorphic items.
-            // TODO: Remove the def_kind check once https://github.com/rust-lang/rust/pull/119135 has been released.
-            let def_id = rustc_internal::internal(tcx, item.def_id());
-            (matches!(tcx.def_kind(def_id), rustc_hir::def::DefKind::Ctor(..))
-                || matches!(item.kind(), ItemKind::Fn))
-            .then(|| {
-                Instance::try_from(*item)
-                    .ok()
-                    .and_then(|instance| predicate(tcx, instance).then_some(instance))
-            })
-            .flatten()
-        })
-        .collect::<Vec<_>>()
-}
-
-/// Collect all MonoItems that are possibly called by or loaded by an initial list of MonoItems
 pub fn collect_all_mono_items(tcx: TyCtxt, initial_mono_items: &[MonoItem]) -> Vec<MonoItem> {
   let mut collector = MonoItemsCollector::new(tcx);
   for item in initial_mono_items {
@@ -64,7 +37,6 @@ pub fn collect_all_mono_items(tcx: TyCtxt, initial_mono_items: &[MonoItem]) -> V
   sorted_items.sort_by_cached_key(|item| to_fingerprint(tcx, item));
   sorted_items
 }
-
 
 struct MonoItemsCollector<'tcx> {
   /// The compiler context.
@@ -411,6 +383,32 @@ fn collect_alloc_items(alloc_id: AllocId) -> Vec<MonoItem> {
       }
   };
   items
+}
+
+/// Collect all (top-level) items in the crate that matches the given predicate.
+/// An item can only be a root if they are a non-generic function.
+pub fn filter_crate_items<F>(tcx: TyCtxt, predicate: F) -> Vec<Instance>
+where
+    F: Fn(TyCtxt, Instance) -> bool,
+{
+    let crate_items = stable_mir::all_local_items();
+    // Filter regular items.
+    crate_items
+        .iter()
+        .filter_map(|item| {
+            // Only collect monomorphic items.
+            // TODO: Remove the def_kind check once https://github.com/rust-lang/rust/pull/119135 has been released.
+            let def_id = rustc_internal::internal(tcx, item.def_id());
+            (matches!(tcx.def_kind(def_id), rustc_hir::def::DefKind::Ctor(..))
+                || matches!(item.kind(), ItemKind::Fn))
+            .then(|| {
+                Instance::try_from(*item)
+                    .ok()
+                    .and_then(|instance| predicate(tcx, instance).then_some(instance))
+            })
+            .flatten()
+        })
+        .collect::<Vec<_>>()
 }
 
 pub fn extract_unsize_casting<'tcx>(
