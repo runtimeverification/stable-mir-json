@@ -270,7 +270,7 @@ impl Serialize for InstanceKindS<'_> {
   where
       S: Serializer,
   {
-      serializer.serialize_newtype_struct("InstanceKind", &format!("{:?}", self.0))
+      serializer.serialize_str(&format!("{:?}", self.0).as_str())
   }
 }
 
@@ -296,11 +296,11 @@ impl Serialize for ItemSource {
 
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (ItemSource, String)>,
+  link_map: &'local mut HashMap<(stable_mir::ty::Ty, Option<InstanceKindS<'tcx>>), (ItemSource, String)>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, Option<InstanceKindS<'tcx>>), (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
     FnSym::NoOpSym(ty, kind) => (ty, InstanceKindS(kind), "".into()),
@@ -308,7 +308,8 @@ fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKin
     FnSym::NormalSym(ty, kind, name) => (ty, InstanceKindS(kind), name),
   };
   let new_val = (source, name);
-  if let Some(curr_val) = link_map.get_mut(&(ty, kind.clone())) {
+  let wrapped_kind = if link_instance_enabled() { Some(kind.clone()) } else { None };
+  if let Some(curr_val) = link_map.get_mut(&(ty, wrapped_kind.clone())) {
     if curr_val.1 != new_val.1 {
       panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
@@ -317,7 +318,7 @@ fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKin
       println!("Regenerated link map entry: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
     }
   } else {
-    link_map.insert((ty, kind.clone()), new_val.clone());
+    link_map.insert((ty, wrapped_kind), new_val.clone());
     if check_collision && debug_enabled() {
       println!("Generated link map entry from call: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
     }
@@ -359,11 +360,13 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), (ItemSource, String))> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, Option<InstanceKindS<'_>>), (ItemSource, String))> {
   let mut hash_map = HashMap::new();
-  for item in items.iter() {
-    if let MonoItem::Fn ( inst ) = item {
-       update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), ItemSource(ITEM), false)
+  if link_items_enabled() {
+    for item in items.iter() {
+      if let MonoItem::Fn ( inst ) = item {
+         update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), ItemSource(ITEM), false)
+      }
     }
   }
   for item in items.iter() {
@@ -377,8 +380,8 @@ fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::
            }.visit_body(&body)
          }
       }
-      kind @ MonoItem::Static { .. } => {}
-      kind @ MonoItem::GlobalAsm { .. } => {}
+      MonoItem::Static { .. } => {}
+      MonoItem::GlobalAsm { .. } => {}
     }
   }
   let calls: Vec<_> = hash_map.into_iter().collect();
@@ -444,5 +447,21 @@ fn debug_enabled() -> bool  {
     static DEBUG: OnceLock<bool> = OnceLock::new();
     *DEBUG.get_or_init(|| {
         std::env::var("DEBUG").is_ok()
+    })
+}
+
+fn link_items_enabled() -> bool  {
+    use std::sync::OnceLock;
+    static DEBUG: OnceLock<bool> = OnceLock::new();
+    *DEBUG.get_or_init(|| {
+        std::env::var("LINK_ITEMS").is_ok()
+    })
+}
+
+fn link_instance_enabled() -> bool  {
+    use std::sync::OnceLock;
+    static DEBUG: OnceLock<bool> = OnceLock::new();
+    *DEBUG.get_or_init(|| {
+        std::env::var("LINK_INST").is_ok()
     })
 }
