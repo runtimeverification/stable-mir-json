@@ -15,8 +15,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::DefId, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Operand,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind,FnDef},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
-use tracing::enabled;
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use serde::{Serialize, Serializer};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
@@ -82,9 +81,9 @@ enum FnSym<'tcx> {
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
      let mut next_id = Some(id);
-     while let Some(_curr_id) = next_id {
-        let params = tcx.generics_of(id);
-        let preds  = tcx.predicates_of(id);
+     while let Some(curr_id) = next_id {
+        let params = tcx.generics_of(curr_id);
+        let preds  = tcx.predicates_of(curr_id);
         if params.parent != preds.parent { panic!("Generics and predicates parent ids are distinct"); }
         v.push((format!("{:#?}", params), format!("{:#?}", preds)));
         next_id = params.parent;
@@ -130,7 +129,7 @@ fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>
 }
 
 fn get_item_details(tcx: TyCtxt<'_>, id: DefId, fn_inst: Option<Instance>) -> Option<ItemDetails> {
-  if enabled!(tracing::Level::DEBUG) {
+  if debug_enabled() {
     Some(ItemDetails {
       fn_instance_kind: fn_inst.map(|i| i.kind),
       fn_item_kind: fn_inst.map(|i| CrateItem::try_from(i).ok()).flatten().map(|i| i.kind()),
@@ -275,28 +274,37 @@ impl Serialize for InstanceKindS<'_> {
   }
 }
 
+const ITEM: u8 = 1 << 0;
+const TERM: u8 = 1 << 1;
+const FPTR: u8 = 1 << 2;
+
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), String>,
+  link_map: &'local mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (u8, String)>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), String>, fn_sym: Option<FnSym<'tcx>>, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<(stable_mir::ty::Ty, InstanceKindS<'tcx>), (u8, String)>, fn_sym: Option<FnSym<'tcx>>, source: u8, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
     FnSym::NoOpSym(ty, kind) => (ty, InstanceKindS(kind), "".into()),
     FnSym::IntrinsicSym(ty, kind, name) => (ty,InstanceKindS(kind), name),
     FnSym::NormalSym(ty, kind, name) => (ty, InstanceKindS(kind), name),
   };
-  if let Some(old_name) = link_map.insert((ty, kind.clone()), name.clone()) {
-    if old_name != name {
-      panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {}, {}", check_collision, (ty, ty.kind().fn_def(), &kind), old_name, name);
+  let new_val = (source, name);
+  if let Some(curr_val) = link_map.get_mut(&(ty, kind.clone())) {
+    if curr_val.1 != new_val.1 {
+      panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
-    if check_collision && enabled!(tracing::Level::DEBUG) {
-      println!("Regenerated link map entry: {:?} -> {}", (ty, ty.kind().fn_def(), &kind), name);
+    curr_val.0 |= new_val.0;
+    if check_collision && debug_enabled() {
+      println!("Regenerated link map entry: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
     }
-  } else if check_collision && enabled!(tracing::Level::DEBUG) {
-    println!("Generated link map entry from call: {:?} -> {}", (ty, ty.kind().fn_def(), &kind), name);
+  } else {
+    link_map.insert((ty, kind.clone()), new_val.clone());
+    if check_collision && debug_enabled() {
+      println!("Generated link map entry from call: {:?} -> {:?}", (ty, ty.kind().fn_def(), &kind), new_val);
+    }
   }
 }
 
@@ -317,7 +325,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       }
       _ => None
     };
-    update_link_map(self.link_map, fn_sym, true);
+    update_link_map(self.link_map, fn_sym, TERM, true);
     self.super_terminator(term, loc);
   }
 
@@ -327,7 +335,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
         let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
         let fn_sym = fn_inst_sym(self.tcx, Some(&inst));
-        update_link_map(self.link_map, fn_sym, true);
+        update_link_map(self.link_map, fn_sym, FPTR, true);
       }
       _ => {}
     };
@@ -335,13 +343,11 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), String)> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<((stable_mir::ty::Ty, InstanceKindS<'_>), (u8, String))> {
   let mut hash_map = HashMap::new();
-  if std::env::var("LINK_MONO_ITEMS").is_ok() {
-    for item in items.iter() {
-      if let MonoItem::Fn ( inst ) = item {
-         update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), false)
-      }
+  for item in items.iter() {
+    if let MonoItem::Fn ( inst ) = item {
+       update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), ITEM, false)
     }
   }
   for item in items.iter() {
@@ -389,10 +395,11 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
     serde_json::to_string(&items).expect("serde_json mono items failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
-    serde_json::to_string(&called_functions).expect("serde_json functions failed"),
+    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions failed"),
   ).expect("Failed to write JSON to file");
-  if enabled!(tracing::Level::DEBUG) {
-    write!(writer, ",\"types\": {}, \"foreign_modules\": {}}}",
+  if debug_enabled() {
+    write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
+      serde_json::to_string(&called_functions.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
       serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
       serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
     ).expect("Failed to write JSON to file");
@@ -401,7 +408,9 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   }
 }
 
+
 pub fn emit_smir(tcx: TyCtxt<'_>) {
+
   match tcx.output_filenames(()).path(OutputType::Mir) {
     OutFileName::Stdout => {
         let mut f = io::stdout();
@@ -412,4 +421,12 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
         emit_smir_internal(tcx, &mut f);
     }
   }
+}
+
+fn debug_enabled() -> bool  {
+    use std::sync::OnceLock;
+    static DEBUG: OnceLock<bool> = OnceLock::new();
+    *DEBUG.get_or_init(|| {
+        std::env::var("DEBUG").is_ok()
+    })
 }
