@@ -13,7 +13,7 @@ extern crate serde_json;
 use rustc_middle as middle;
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable}; // ParamEnv, Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_span::{def_id::DefId, symbol}; // DUMMY_SP, symbol::sym::test;
+use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use serde::{Serialize, Serializer};
@@ -418,11 +418,14 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
         }).collect::<Vec<_>>()
       )
   }).collect();
-  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {},  \"functions\": {}",
-    serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
-    serde_json::to_string(&items).expect("serde_json mono items failed"),
-    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
-    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions failed"),
+  let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+  let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
+  write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {}, \"items\": {}",
+    serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
+    serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
+    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
+    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
+    serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
