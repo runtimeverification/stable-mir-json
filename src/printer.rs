@@ -78,6 +78,13 @@ enum FnSym<'tcx> {
     NormalSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
 }
 
+#[derive(Debug, Copy, Clone, Serialize)]
+enum FnSymType {
+    NoOpSymType,
+    IntrinsicSymType,
+    NormalSymType,
+}
+
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
      let mut next_id = Some(id);
@@ -304,21 +311,21 @@ impl Serialize for ItemSource {
 
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<LinkMapKey<'tcx>, (ItemSource, String)>,
+  link_map: &'local mut HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType, String)>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<LinkMapKey<'tcx>, (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
-  let (ty, kind, name) = match fn_sym.unwrap() {
-    FnSym::NoOpSym(ty, kind) => (ty, kind, "".into()),
-    FnSym::IntrinsicSym(ty, kind, name) => (ty, kind, name),
-    FnSym::NormalSym(ty, kind, name) => (ty, kind, name),
+  let (sym_kind, ty, kind, name) = match fn_sym.unwrap() {
+    FnSym::NoOpSym(ty, kind) => (FnSymType::NoOpSymType, ty, kind, "".into()),
+    FnSym::IntrinsicSym(ty, kind, name) => (FnSymType::IntrinsicSymType, ty, kind, name),
+    FnSym::NormalSym(ty, kind, name) => (FnSymType::NormalSymType, ty, kind, name),
   };
-  let new_val = (source, name);
+  let new_val = (source, sym_kind, name);
   let key = if link_instance_enabled() { LinkMapKey(ty, Some(kind)) } else { LinkMapKey(ty, None) };
   if let Some(curr_val) = link_map.get_mut(&key.clone()) {
-    if curr_val.1 != new_val.1 {
+    if curr_val.2 != new_val.2 {
       panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
     curr_val.0.0 |= new_val.0.0;
@@ -368,7 +375,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (ItemSource, String))> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (ItemSource, FnSymType, String))> {
   let mut hash_map = HashMap::new();
   if link_items_enabled() {
     for item in items.iter() {
@@ -424,12 +431,12 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
     serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
-    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
+    serde_json::to_string(&called_functions.iter().map(|(k,(_,sym_kind,name))| (k,(sym_kind,name))).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
     serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-      serde_json::to_string(&called_functions.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
+      serde_json::to_string(&called_functions.iter().map(|(k,(source,_,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
       serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
       serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
     ).expect("Failed to write JSON to file");
