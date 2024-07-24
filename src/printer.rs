@@ -13,7 +13,7 @@ extern crate serde_json;
 use rustc_middle as middle;
 use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable}; // ParamEnv, Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_span::{def_id::DefId, symbol}; // DUMMY_SP, symbol::sym::test;
+use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
 use serde::{Serialize, Serializer};
@@ -72,10 +72,17 @@ struct Item {
     details: Option<ItemDetails>,
 }
 
-enum FnSym<'tcx> {
-    NoOpSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>),              // this function type corresponds to a no-op, so call can be optimized away
-    IntrinsicSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
-    NormalSym(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
+enum FnSymInfo<'tcx> {
+    NoOpSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>),              // this function type corresponds to a no-op, so call can be optimized away
+    IntrinsicSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
+    NormalSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+enum FnSymType {
+    NoOpSym(String),
+    IntrinsicSym(String),
+    NormalSym(String),
 }
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
@@ -227,7 +234,7 @@ fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
   }).collect()
 }
 
-// fn handle_intrinsic(tcx: TyCtxt<'_>, inst: middle::ty::Instance) -> FnSym {
+// fn handle_intrinsic(tcx: TyCtxt<'_>, inst: middle::ty::Instance) -> FnSymInfo {
 //   let _ = tcx;
 //   let _ = inst;
 // }
@@ -242,19 +249,19 @@ fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance>
   }).flatten()
 }
 
-fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSym<'tcx>> {
-  use FnSym::*;
+fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSymInfo<'tcx>> {
+  use FnSymInfo::*;
   inst.map(|inst| {
     let ty = inst.ty();
     let kind = ty.kind();
     if kind.fn_def().is_some() {
       let internal_inst = rustc_internal::internal(tcx, inst);
       if inst.is_empty_shim() {
-        NoOpSym(ty, internal_inst.def)
+        NoOpSymInfo(ty, internal_inst.def)
       } else if let Some(intrinsic_name) = inst.intrinsic_name() {
-        IntrinsicSym(ty, internal_inst.def, intrinsic_name)
+        IntrinsicSymInfo(ty, internal_inst.def, intrinsic_name)
       } else {
-        NormalSym(ty, internal_inst.def, inst.mangled_name())
+        NormalSymInfo(ty, internal_inst.def, inst.mangled_name())
       }.into()
     } else {
       None
@@ -304,16 +311,16 @@ impl Serialize for ItemSource {
 
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<LinkMapKey<'tcx>, (ItemSource, String)>,
+  link_map: &'local mut HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<LinkMapKey<'tcx>, (ItemSource, String)>, fn_sym: Option<FnSym<'tcx>>, source: ItemSource, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
-    FnSym::NoOpSym(ty, kind) => (ty, kind, "".into()),
-    FnSym::IntrinsicSym(ty, kind, name) => (ty, kind, name),
-    FnSym::NormalSym(ty, kind, name) => (ty, kind, name),
+    FnSymInfo::NoOpSymInfo(ty, kind) => (ty, kind, FnSymType::NoOpSym("".into())),
+    FnSymInfo::IntrinsicSymInfo(ty, kind, name) => (ty, kind, FnSymType::IntrinsicSym(name)),
+    FnSymInfo::NormalSymInfo(ty, kind, name) => (ty, kind, FnSymType::NormalSym(name)),
   };
   let new_val = (source, name);
   let key = if link_instance_enabled() { LinkMapKey(ty, Some(kind)) } else { LinkMapKey(ty, None) };
@@ -368,7 +375,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (ItemSource, String))> {
+fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (ItemSource, FnSymType))> {
   let mut hash_map = HashMap::new();
   if link_items_enabled() {
     for item in items.iter() {
@@ -418,11 +425,14 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
         }).collect::<Vec<_>>()
       )
   }).collect();
-  write!(writer, "{{\"name\": {}, \"items\": {}, \"allocs\": {},  \"functions\": {}",
-    serde_json::to_string(&local_crate.name).expect("serde_json string failed"),
-    serde_json::to_string(&items).expect("serde_json mono items failed"),
-    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs failed"),
-    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions failed"),
+  let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+  let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
+  write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {}, \"items\": {}",
+    serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
+    serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
+    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
+    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
+    serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
