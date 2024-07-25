@@ -67,6 +67,8 @@ enum MonoItemKind {
 }
 #[derive(Serialize)]
 struct Item {
+    #[serde(skip)]
+    mono_item: MonoItem,
     symbol_name: String,
     mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
@@ -172,20 +174,21 @@ fn get_bodies(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
   }
 }
 
-fn mk_item(tcx: TyCtxt<'_>, item: &MonoItem, sym_name: String) -> Item {
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
   match item {
     MonoItem::Fn(inst) => {
       let id = inst.def.def_id();
       let name = inst.name();
       let internal_id = rustc_internal::internal(tcx,id);
       Item {
+        mono_item: item,
         symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemFn {
           name: name.clone(),
           id: id,
-          body: get_bodies(tcx, inst),
+          body: get_bodies(tcx, &inst),
         },
-        details: get_item_details(tcx, internal_id, Some(*inst))
+        details: get_item_details(tcx, internal_id, Some(inst))
       }
     },
     MonoItem::Static(static_def) => {
@@ -195,6 +198,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: &MonoItem, sym_name: String) -> Item {
           err       => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
       };
       Item {
+        mono_item: item,
         symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemStatic {
           name: static_def.name(),
@@ -204,10 +208,12 @@ fn mk_item(tcx: TyCtxt<'_>, item: &MonoItem, sym_name: String) -> Item {
         details: get_item_details(tcx, internal_id, None),
       }
     },
-    MonoItem::GlobalAsm(asm) => {
+    MonoItem::GlobalAsm(ref asm) => {
+      let asm = format!("{:#?}", asm);
       Item {
+        mono_item: item,
         symbol_name: sym_name,
-        mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm: format!("{:#?}", asm) },
+        mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm },
         details: None,
       }
     }
@@ -404,43 +410,97 @@ fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (
   calls
 }
 
-fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
-  let seen_consts: HashSet<stable_mir::ty::UnevaluatedConst> = HashSet::new();
-  let mut mono_items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
+struct UnevaluatedConstCollector<'tcx, 'local> {
+  tcx: TyCtxt<'tcx>,
+  seen_consts: &'local mut HashSet<stable_mir::ty::ConstDef>,
+  seen_items: &'local mut HashMap<String, Item>,
+  pending_new_items: &'local mut HashMap<String, Item>,
+  pending_old_items: &'local HashMap<String, Item>,
+}
+
+impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
+  fn visit_mir_const(&mut self, constant: &stable_mir::ty::MirConst, _location: stable_mir::mir::visit::Location) {
+    if let stable_mir::ty::ConstantKind::Unevaluated(uconst) = constant.kind() {
+        if self.seen_consts.insert(uconst.def) {
+          let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
+          let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
+          let inst = rustc_middle::ty::Instance::try_resolve(self.tcx, ParamEnv::reveal_all(), internal_def, internal_args);
+          match inst {
+             Ok(Some(inst)) => {
+               let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
+               let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
+               if ! ( self.seen_items.contains_key(&item_name) && self.pending_old_items.contains_key(&item_name) ) {
+                 self.pending_new_items.insert(item_name.clone(), mk_item(self.tcx, rustc_internal::stable(internal_mono_item), item_name));
+               }
+             },
+             _ => panic!("Failed to resolve mono item for {:?}", uconst),
+          }
+        }
+    }
+  }
+}
+
+fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
+  mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+}
+
+fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
+  item.symbol_name(tcx).name.into()
+}
+
+fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
+  // get initial set of mono_items
+  let mono_items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
     kani_collect(tcx, opts)
   } else {
     mono_collect(tcx)
   };
-  let mut old_len: usize = 0;
-  while old_len < mono_items.len() {
-    mono_items[old_len..].iter().for_each(|item| if let MonoItem::Fn(inst) = item { let _ = serde_json::to_string(&get_bodies(tcx, inst)); });
-    old_len = mono_items.len();
-    let consts = stable_mir::visited_constants();
-    for const_ in consts {
-      if ! seen_consts.contains(&const_) {
-        let internal_def = rustc_internal::internal(tcx, &const_.def.def_id());
-        let internal_args = rustc_internal::internal(tcx, &const_.args);
-        let inst = rustc_middle::ty::Instance::try_resolve(tcx, ParamEnv::reveal_all(), internal_def, internal_args);
-        match inst {
-           Ok(Some(inst)) => {
-             let const_item = rustc_internal::stable(rustc_middle::mir::mono::MonoItem::Fn(inst));
-             if ! mono_items.contains(&const_item) { mono_items.push(const_item); }
-           },
-           _ => panic!("Failed to resolve mono item for {:?}", const_),
-        }
+
+  // setup collector prerequisites
+  let mut seen_consts = HashSet::new();
+  let mut seen_items = HashMap::new();
+  let mut pending_items = mono_items.iter().map(|item| {
+      let name = mono_item_name(tcx, item);
+      ( name.clone(), mk_item(tcx, item.clone(), name) )
+  }).collect::<HashMap<_,_>>();
+
+  loop {
+    // get next pending item
+    let next_item = pending_items.iter().next().map(|(name,item)| {
+      match item.mono_item_kind {
+        MonoItemKind::MonoItemFn { ref body, .. } => (name.clone(), body),
+        _ => panic!("Unexpectedly empty pending items map"),
       }
-    }
+    });
+    if next_item.is_none() { break; }
+    let (curr_name, bodies) = next_item.unwrap();
+
+    // create new collector
+    let mut pending_new_items = HashMap::new();
+    let mut collector = UnevaluatedConstCollector {
+      tcx,
+      seen_consts: &mut seen_consts,
+      seen_items: &mut seen_items,
+      pending_new_items: &mut pending_new_items,
+      pending_old_items: &pending_items,
+    };
+
+    // append new items for each fresh collected constant
+    bodies.iter().for_each(|body| collector.visit_body(body));
+    pending_new_items.drain().for_each(|(name,item)| { pending_items.insert(name, item); });
+
+    // move the pending item into seen
+    let value = pending_items.remove(&curr_name).unwrap();
+    seen_items.insert(curr_name, value);
   }
-  mono_items
+
+  seen_items.drain().map(|(_name,item)| item).collect()
 }
 
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
-  let mono_items = recursively_collect_items(tcx);
-  let called_functions = collect_fn_calls(tcx, mono_items.clone());
-  let items = mono_items.iter().map(|item|
-     mk_item(tcx, item, rustc_internal::internal(tcx, item).symbol_name(tcx).name.into())
-  ).collect::<Vec<_>>();
+  let items = recursively_collect_items(tcx);
+  let called_functions = collect_fn_calls(tcx, items.iter().map(|i| i.mono_item.clone()).collect::<Vec<_>>());
   let mut crates = vec![local_crate.clone()];
   crates.append(&mut stable_mir::external_crates());
   let foreign_modules: Vec<_> = crates.into_iter().map(|krate| {
