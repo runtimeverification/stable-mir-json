@@ -469,10 +469,10 @@ fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
     // get next pending item
     let next_item = pending_items.iter().next().map(|(name,item)| {
       match item.mono_item_kind {
-        MonoItemKind::MonoItemFn { ref body, .. } => (name.clone(), body),
-        _ => panic!("Unexpectedly empty pending items map"),
+        MonoItemKind::MonoItemFn { ref body, .. } => Some((name.clone(), body)),
+        _ => None
       }
-    });
+    }).flatten();
     if next_item.is_none() { break; }
     let (curr_name, bodies) = next_item.unwrap();
 
