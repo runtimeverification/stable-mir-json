@@ -19,73 +19,22 @@ use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,Ter
 use serde::{Serialize, Serializer};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
-// TODO: consider using underlying structs struct GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
+// Structs for serializing extra details about mono items
+// ======================================================
+
 #[derive(Serialize)]
 struct BodyDetails {
     pp: String,
 }
-#[derive(Serialize)]
-struct GenericData(Vec<(String,String)>);
-#[derive(Serialize)]
-struct ItemDetails {
-    // these fields only defined for fn items
-    fn_instance_kind: Option<InstanceKind>,
-    fn_item_kind: Option<ItemKind>,
-    fn_body_details: Vec<BodyDetails>,
-    // these fields defined for all items
-    internal_kind: String,
-    path: String,
-    internal_ty: String,
-    generic_data: GenericData,
-}
-#[derive(Serialize)]
-struct ForeignItem {
-    name: String,
-    kind: ForeignItemKind,
-}
-#[derive(Serialize)]
-struct ForeignModule {
-    name: String,
-    items: Vec<ForeignItem>,
+
+fn get_body_details(body: &Body) -> BodyDetails {
+  let mut v = Vec::new();
+  let _ = body.dump(&mut v, "<omitted>");
+  BodyDetails { pp: str::from_utf8(&v).unwrap().into() }
 }
 
 #[derive(Serialize)]
-enum MonoItemKind {
-    MonoItemFn {
-      name: String,
-      id: stable_mir::DefId,
-      body: Vec<Body>,
-    },
-    MonoItemStatic {
-      name: String,
-      id: stable_mir::DefId,
-      allocation: Option<Allocation>,
-    },
-    MonoItemGlobalAsm {
-      asm: String,
-    },
-}
-#[derive(Serialize)]
-struct Item {
-    #[serde(skip)]
-    mono_item: MonoItem,
-    symbol_name: String,
-    mono_item_kind: MonoItemKind,
-    details: Option<ItemDetails>,
-}
-
-enum FnSymInfo<'tcx> {
-    NoOpSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>),              // this function type corresponds to a no-op, so call can be optimized away
-    IntrinsicSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
-    NormalSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-enum FnSymType {
-    NoOpSym(String),
-    IntrinsicSym(String),
-    NormalSym(String),
-}
+struct GenericData(Vec<(String,String)>); // Alternatively, GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      let mut v = Vec::new();
@@ -101,10 +50,17 @@ fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      return GenericData(v);
 }
 
-fn get_body_details(body: &Body) -> BodyDetails {
-  let mut v = Vec::new();
-  let _ = body.dump(&mut v, "<omitted>");
-  BodyDetails { pp: str::from_utf8(&v).unwrap().into() }
+#[derive(Serialize)]
+struct ItemDetails {
+    // these fields only defined for fn items
+    fn_instance_kind: Option<InstanceKind>,
+    fn_item_kind: Option<ItemKind>,
+    fn_body_details: Vec<BodyDetails>,
+    // these fields defined for all items
+    internal_kind: String,
+    path: String,
+    internal_ty: String,
+    generic_data: GenericData,
 }
 
 // unwrap early binder in a default manner; panic on error
@@ -154,105 +110,43 @@ fn get_item_details(tcx: TyCtxt<'_>, id: DefId, fn_inst: Option<Instance>) -> Op
   }
 }
 
-// Possible input: sym::test
-pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Symbol) -> bool {
-   tcx.has_attr(rustc_internal::internal(tcx,item), attr)
+#[derive(Serialize)]
+struct ForeignItem {
+    name: String,
+    kind: ForeignItemKind,
+}
+#[derive(Serialize)]
+struct ForeignModule {
+    name: String,
+    items: Vec<ForeignItem>,
 }
 
-fn get_promoted(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
-  let id = rustc_internal::internal(tcx, inst.def.def_id());
-  if inst.has_body() { tcx.promoted_mir(id).into_iter().map(rustc_internal::stable).collect() } else { vec![] }
-}
-
-fn get_bodies(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
-  if let Some(body) = inst.body() {
-    let mut bodies = get_promoted(tcx, inst);
-    bodies.insert(0, body);
-    bodies
-  } else {
-    vec![]
-  }
-}
-
-fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
-  match item {
-    MonoItem::Fn(inst) => {
-      let id = inst.def.def_id();
-      let name = inst.name();
-      let internal_id = rustc_internal::internal(tcx,id);
-      Item {
-        mono_item: item,
-        symbol_name: sym_name,
-        mono_item_kind: MonoItemKind::MonoItemFn {
-          name: name.clone(),
-          id: id,
-          body: get_bodies(tcx, &inst),
-        },
-        details: get_item_details(tcx, internal_id, Some(inst))
-      }
-    },
-    MonoItem::Static(static_def) => {
-      let internal_id = rustc_internal::internal(tcx,static_def.def_id());
-      let alloc = match static_def.eval_initializer() {
-          Ok(alloc) => Some(alloc),
-          err       => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
-      };
-      Item {
-        mono_item: item,
-        symbol_name: sym_name,
-        mono_item_kind: MonoItemKind::MonoItemStatic {
-          name: static_def.name(),
-          id: static_def.def_id(),
-          allocation: alloc,
-        },
-        details: get_item_details(tcx, internal_id, None),
-      }
-    },
-    MonoItem::GlobalAsm(ref asm) => {
-      let asm = format!("{:#?}", asm);
-      Item {
-        mono_item: item,
-        symbol_name: sym_name,
-        mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm },
-        details: None,
-      }
-    }
-  }
-}
-
-fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<MonoItem> {
-  let collect_all = opts == "ALL";
-  let main_instance = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).ok()).flatten();
-  let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
-    let def_id = rustc_internal::internal(tcx, instance.def.def_id());
-    Some(instance) == main_instance || (collect_all && tcx.is_reachable_non_generic(def_id))
-  })
-    .into_iter()
-    .map(MonoItem::Fn)
-    .collect();
-  collect_all_mono_items(tcx, &initial_mono_items)
-}
-
-fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
-  let units = tcx.collect_and_partition_mono_items(()).1;
-  units.iter().flat_map(|unit| {
-    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item, _)| rustc_internal::stable(internal_item)).collect::<Vec<_>>()
+fn get_foreign_module_details() -> Vec<(String, Vec<ForeignModule>)> {
+  let mut crates = vec![stable_mir::local_crate()];
+  crates.append(&mut stable_mir::external_crates());
+  crates.into_iter().map(|krate| {
+      ( krate.name.clone(),
+        krate.foreign_modules().into_iter().map(|mod_def| {
+          let fmod = mod_def.module();
+          ForeignModule { name: mod_def.name(), items: fmod.items().into_iter().map(|def| ForeignItem { name: def.name(), kind: def.kind() }).collect() }
+        }).collect::<Vec<_>>()
+      )
   }).collect()
 }
 
-// fn handle_intrinsic(tcx: TyCtxt<'_>, inst: middle::ty::Instance) -> FnSymInfo {
-//   let _ = tcx;
-//   let _ = inst;
-// }
+// Structs for serializing critical link-time metadata
+// ===================================================
 
-fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
-  ty.kind().fn_def().map(|(fn_def, args)| {
-    if direct_call {
-      Instance::resolve(fn_def, args)
-    } else {
-      Instance::resolve_for_fn_ptr(fn_def, args)
-    }.ok()
-  }).flatten()
+enum FnSymInfo<'tcx> {
+    NoOpSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>),              // this function type corresponds to a no-op, so call can be optimized away
+    IntrinsicSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
+    NormalSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
+}
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+enum FnSymType {
+    NoOpSym(String),
+    IntrinsicSym(String),
+    NormalSym(String),
 }
 
 fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSymInfo<'tcx>> {
@@ -315,13 +209,150 @@ impl Serialize for ItemSource {
   }
 }
 
+
+// Miscellaneous helper functions
+// ==============================
+
+macro_rules! def_env_var {
+    ($fn_name:ident, $var_name:ident) => {
+        fn $fn_name() -> bool {
+            use std::sync::OnceLock;
+            static VAR: OnceLock<bool> = OnceLock::new();
+            *VAR.get_or_init(|| {
+                std::env::var(stringify!($var_name)).is_ok()
+            })
+        }
+    };
+}
+
+def_env_var!(debug_enabled,         DEBUG);
+def_env_var!(link_items_enabled,    LINK_ITEMS);
+def_env_var!(link_instance_enabled, LINK_INST);
+
+// Possible input: sym::test
+pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Symbol) -> bool {
+   tcx.has_attr(rustc_internal::internal(tcx,item), attr)
+}
+
+fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
+  mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+}
+
+fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
+  item.symbol_name(tcx).name.into()
+}
+
+fn get_promoted(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
+  let id = rustc_internal::internal(tcx, inst.def.def_id());
+  if inst.has_body() { tcx.promoted_mir(id).into_iter().map(rustc_internal::stable).collect() } else { vec![] }
+}
+
+fn get_bodies(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
+  if let Some(body) = inst.body() {
+    let mut bodies = get_promoted(tcx, inst);
+    bodies.insert(0, body);
+    bodies
+  } else {
+    vec![]
+  }
+}
+
+fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
+  ty.kind().fn_def().map(|(fn_def, args)| {
+    if direct_call {
+      Instance::resolve(fn_def, args)
+    } else {
+      Instance::resolve_for_fn_ptr(fn_def, args)
+    }.ok()
+  }).flatten()
+}
+
+// Structs for serializing critical details about mono items
+// =========================================================
+
+#[derive(Serialize)]
+enum MonoItemKind {
+    MonoItemFn {
+      name: String,
+      id: stable_mir::DefId,
+      body: Vec<Body>,
+    },
+    MonoItemStatic {
+      name: String,
+      id: stable_mir::DefId,
+      allocation: Option<Allocation>,
+    },
+    MonoItemGlobalAsm {
+      asm: String,
+    },
+}
+#[derive(Serialize)]
+struct Item {
+    #[serde(skip)]
+    mono_item: MonoItem,
+    symbol_name: String,
+    mono_item_kind: MonoItemKind,
+    details: Option<ItemDetails>,
+}
+
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
+  match item {
+    MonoItem::Fn(inst) => {
+      let id = inst.def.def_id();
+      let name = inst.name();
+      let internal_id = rustc_internal::internal(tcx,id);
+      Item {
+        mono_item: item,
+        symbol_name: sym_name,
+        mono_item_kind: MonoItemKind::MonoItemFn {
+          name: name.clone(),
+          id: id,
+          body: get_bodies(tcx, &inst),
+        },
+        details: get_item_details(tcx, internal_id, Some(inst))
+      }
+    },
+    MonoItem::Static(static_def) => {
+      let internal_id = rustc_internal::internal(tcx,static_def.def_id());
+      let alloc = match static_def.eval_initializer() {
+          Ok(alloc) => Some(alloc),
+          err       => { println!("StaticDef({:#?}).eval_initializer() failed with: {:#?}", static_def, err); None }
+      };
+      Item {
+        mono_item: item,
+        symbol_name: sym_name,
+        mono_item_kind: MonoItemKind::MonoItemStatic {
+          name: static_def.name(),
+          id: static_def.def_id(),
+          allocation: alloc,
+        },
+        details: get_item_details(tcx, internal_id, None),
+      }
+    },
+    MonoItem::GlobalAsm(ref asm) => {
+      let asm = format!("{:#?}", asm);
+      Item {
+        mono_item: item,
+        symbol_name: sym_name,
+        mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm },
+        details: None,
+      }
+    }
+  }
+}
+
+// Link-time resolution logic
+// ==========================
+
+type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
+
 struct LinkNameCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>,
+  link_map: &'local mut LinkMap<'tcx>,
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = match fn_sym.unwrap() {
     FnSymInfo::NoOpSymInfo(ty, kind) => (ty, kind, FnSymType::NoOpSym("".into())),
@@ -410,6 +441,9 @@ fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>
   calls
 }
 
+// Collection Transitive Closure
+// =============================
+
 struct UnevaluatedConstCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
   seen_consts: &'local mut HashSet<stable_mir::ty::ConstDef>,
@@ -440,31 +474,12 @@ impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
   }
 }
 
-fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
-  mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
-}
-
-fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
-  item.symbol_name(tcx).name.into()
-}
-
-fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
-  // get initial set of mono_items
-  let mono_items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
-    kani_collect(tcx, opts)
-  } else {
-    mono_collect(tcx)
-  };
-
+fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Item>) -> Vec<Item> {
   // setup collector prerequisites
   let mut seen_consts = HashSet::new();
   let mut seen_items = HashMap::new();
-  let mut pending_items = mono_items.iter().map(|item| {
-      let name = mono_item_name(tcx, item);
-      ( name.clone(), mk_item(tcx, item.clone(), name) )
-  }).collect::<HashMap<_,_>>();
+  let mut pending_items = items;
   let mut target_len = pending_items.len();
-
   loop {
     // get next pending item
     let next_item = pending_items.iter().next().map(|(name,item)| {
@@ -504,20 +519,50 @@ fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
   seen_items.drain().map(|(_name,item)| item).collect()
 }
 
+// Core item collection logic
+// ==========================
+
+fn kani_collect(tcx: TyCtxt<'_>, opts: String) -> Vec<MonoItem> {
+  let collect_all = opts == "ALL";
+  let main_instance = stable_mir::entry_fn().map(|main_fn| Instance::try_from(main_fn).ok()).flatten();
+  let initial_mono_items: Vec<MonoItem> = filter_crate_items(tcx, |_, instance| {
+    let def_id = rustc_internal::internal(tcx, instance.def.def_id());
+    Some(instance) == main_instance || (collect_all && tcx.is_reachable_non_generic(def_id))
+  })
+    .into_iter()
+    .map(MonoItem::Fn)
+    .collect();
+  collect_all_mono_items(tcx, &initial_mono_items)
+}
+
+fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
+  let units = tcx.collect_and_partition_mono_items(()).1;
+  units.iter().flat_map(|unit| {
+    unit.items_in_deterministic_order(tcx).iter().map(|(internal_item, _)| rustc_internal::stable(internal_item)).collect::<Vec<_>>()
+  }).collect()
+}
+
+fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
+  // get initial set of mono_items
+  let items = if let Ok(opts) = std::env::var("USE_KANI_PORT") {
+    kani_collect(tcx, opts)
+  } else {
+    mono_collect(tcx)
+  };
+  items.iter().map(|item| {
+      let name = mono_item_name(tcx, item);
+      ( name.clone(), mk_item(tcx, item.clone(), name) )
+  }).collect::<HashMap<_,_>>()
+}
+
+// Serialization Entrypoint
+// ========================
+
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
-  let items = recursively_collect_items(tcx);
+  let items = collect_items(tcx);
+  let items = collect_unevaluated_constant_items(tcx, items);
   let called_functions = collect_fn_calls(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
-  let mut crates = vec![local_crate.clone()];
-  crates.append(&mut stable_mir::external_crates());
-  let foreign_modules: Vec<_> = crates.into_iter().map(|krate| {
-      ( krate.name.clone(),
-        krate.foreign_modules().into_iter().map(|mod_def| {
-          let fmod = mod_def.module();
-          ForeignModule { name: mod_def.name(), items: fmod.items().into_iter().map(|def| ForeignItem { name: def.name(), kind: def.kind() }).collect() }
-        }).collect::<Vec<_>>()
-      )
-  }).collect();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
   let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {}, \"items\": {}",
@@ -531,16 +576,14 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
       serde_json::to_string(&called_functions.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
       serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
-      serde_json::to_string(&foreign_modules).expect("foreign_module serialization failed"),
+      serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
     ).expect("Failed to write JSON to file");
   } else {
     write!(writer, "}}").expect("Failed to write JSON to file");
   }
 }
 
-
 pub fn emit_smir(tcx: TyCtxt<'_>) {
-
   match tcx.output_filenames(()).path(OutputType::Mir) {
     OutFileName::Stdout => {
         let mut f = io::stdout();
@@ -551,28 +594,4 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
         emit_smir_internal(tcx, &mut f);
     }
   }
-}
-
-fn debug_enabled() -> bool  {
-    use std::sync::OnceLock;
-    static DEBUG: OnceLock<bool> = OnceLock::new();
-    *DEBUG.get_or_init(|| {
-        std::env::var("DEBUG").is_ok()
-    })
-}
-
-fn link_items_enabled() -> bool  {
-    use std::sync::OnceLock;
-    static DEBUG: OnceLock<bool> = OnceLock::new();
-    *DEBUG.get_or_init(|| {
-        std::env::var("LINK_ITEMS").is_ok()
-    })
-}
-
-fn link_instance_enabled() -> bool  {
-    use std::sync::OnceLock;
-    static DEBUG: OnceLock<bool> = OnceLock::new();
-    *DEBUG.get_or_init(|| {
-        std::env::var("LINK_INST").is_ok()
-    })
 }
