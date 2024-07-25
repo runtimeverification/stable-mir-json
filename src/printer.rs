@@ -436,8 +436,8 @@ fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>
 
 struct UnevaluatedConstCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  seen_consts: &'local mut HashSet<stable_mir::ty::ConstDef>,
-  seen_items: &'local mut HashMap<String, Item>,
+  unevaluated_consts: &'local mut HashMap<stable_mir::ty::ConstDef, String>,
+  processed_items: &'local mut HashMap<String, Item>,
   pending_new_items: &'local mut HashMap<String, Item>,
   pending_old_items: &'local HashMap<String, Item>,
 }
@@ -445,29 +445,24 @@ struct UnevaluatedConstCollector<'tcx, 'local> {
 impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
   fn visit_mir_const(&mut self, constant: &stable_mir::ty::MirConst, _location: stable_mir::mir::visit::Location) {
     if let stable_mir::ty::ConstantKind::Unevaluated(uconst) = constant.kind() {
-        if self.seen_consts.insert(uconst.def) {
-          let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
-          let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
-          let inst = rustc_middle::ty::Instance::try_resolve(self.tcx, ParamEnv::reveal_all(), internal_def, internal_args);
-          match inst {
-             Ok(Some(inst)) => {
-               let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
-               let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
-               if ! ( self.seen_items.contains_key(&item_name) && self.pending_old_items.contains_key(&item_name) ) {
-                 self.pending_new_items.insert(item_name.clone(), mk_item(self.tcx, rustc_internal::stable(internal_mono_item), item_name));
-               }
-             },
-             _ => panic!("Failed to resolve mono item for {:?}", uconst),
-          }
-        }
+      let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
+      let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
+      let maybe_inst = rustc_middle::ty::Instance::try_resolve(self.tcx, ParamEnv::reveal_all(), internal_def, internal_args);
+      let inst = maybe_inst.ok().flatten().expect(format!("Failed to resolve mono item for {:?}", uconst).as_str());
+      let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
+      let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
+      if ! ( self.processed_items.contains_key(&item_name) && self.pending_old_items.contains_key(&item_name) ) {
+          self.unevaluated_consts.insert(uconst.def, item_name.clone());
+          self.pending_new_items.insert(item_name.clone(), mk_item(self.tcx, rustc_internal::stable(internal_mono_item), item_name));
+      }
     }
   }
 }
 
 fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Item>) -> Vec<Item> {
   // setup collector prerequisites
-  let mut seen_consts = HashSet::new();
-  let mut seen_items = HashMap::new();
+  let mut unevaluated_consts = HashMap::new();
+  let mut processed_items = HashMap::new();
   let mut pending_items = items;
   let mut target_len = pending_items.len();
   loop {
@@ -485,8 +480,8 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
     let mut pending_new_items = HashMap::new();
     let mut collector = UnevaluatedConstCollector {
       tcx,
-      seen_consts: &mut seen_consts,
-      seen_items: &mut seen_items,
+      unevaluated_consts: &mut unevaluated_consts,
+      processed_items: &mut processed_items,
       // we must split the pending items map because
       // we are borrowing from one of pending_old_items elements
       pending_new_items: &mut pending_new_items,
@@ -502,11 +497,11 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
 
     // move processed item into seen items
     let value = pending_items.remove(&curr_name).unwrap();
-    seen_items.insert(curr_name, value);
+    processed_items.insert(curr_name, value);
   }
 
-  assert!(target_len == seen_items.len());
-  seen_items.drain().map(|(_name,item)| item).collect()
+  assert!(target_len == processed_items.len());
+  processed_items.drain().map(|(_name,item)| item).collect()
 }
 
 // Core item collection logic
