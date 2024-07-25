@@ -381,7 +381,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
   }
 }
 
-fn collect_fn_calls(tcx: TyCtxt<'_>, items: Vec<MonoItem>) -> Vec<(LinkMapKey, (ItemSource, FnSymType))> {
+fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>) -> Vec<(LinkMapKey<'tcx>, (ItemSource, FnSymType))> {
   let mut hash_map = HashMap::new();
   if link_items_enabled() {
     for item in items.iter() {
@@ -507,7 +507,7 @@ fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let items = recursively_collect_items(tcx);
-  let called_functions = collect_fn_calls(tcx, items.iter().map(|i| i.mono_item.clone()).collect::<Vec<_>>());
+  let called_functions = collect_fn_calls(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
   let mut crates = vec![local_crate.clone()];
   crates.append(&mut stable_mir::external_crates());
   let foreign_modules: Vec<_> = crates.into_iter().map(|krate| {
