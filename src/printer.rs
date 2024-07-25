@@ -463,6 +463,7 @@ fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
       let name = mono_item_name(tcx, item);
       ( name.clone(), mk_item(tcx, item.clone(), name) )
   }).collect::<HashMap<_,_>>();
+  let mut target_len = pending_items.len();
 
   loop {
     // get next pending item
@@ -481,19 +482,25 @@ fn recursively_collect_items(tcx: TyCtxt<'_>) -> Vec<Item> {
       tcx,
       seen_consts: &mut seen_consts,
       seen_items: &mut seen_items,
+      // we must split the pending items map because
+      // we are borrowing from one of pending_old_items elements
       pending_new_items: &mut pending_new_items,
       pending_old_items: &pending_items,
     };
 
-    // append new items for each fresh collected constant
+    // add each fresh collected constant to pending new items
     bodies.iter().for_each(|body| collector.visit_body(body));
+
+    // move pending new items to pending old items
+    target_len += pending_new_items.len();
     pending_new_items.drain().for_each(|(name,item)| { pending_items.insert(name, item); });
 
-    // move the pending item into seen
+    // move processed item into seen items
     let value = pending_items.remove(&curr_name).unwrap();
     seen_items.insert(curr_name, value);
   }
 
+  assert!(target_len == seen_items.len());
   seen_items.drain().map(|(_name,item)| item).collect()
 }
 
