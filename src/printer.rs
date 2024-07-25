@@ -134,82 +134,6 @@ fn get_foreign_module_details() -> Vec<(String, Vec<ForeignModule>)> {
   }).collect()
 }
 
-// Structs for serializing critical link-time metadata
-// ===================================================
-
-enum FnSymInfo<'tcx> {
-    NoOpSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>),              // this function type corresponds to a no-op, so call can be optimized away
-    IntrinsicSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String), // this function type corresponds to an intrinsic with the given name, so it has a built-in meaning
-    NormalSymInfo(stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, String),    // this function type corresponds to a linkable function, which we must look up in memory
-}
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-enum FnSymType {
-    NoOpSym(String),
-    IntrinsicSym(String),
-    NormalSym(String),
-}
-
-fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSymInfo<'tcx>> {
-  use FnSymInfo::*;
-  inst.map(|inst| {
-    let ty = inst.ty();
-    let kind = ty.kind();
-    if kind.fn_def().is_some() {
-      let internal_inst = rustc_internal::internal(tcx, inst);
-      if inst.is_empty_shim() {
-        NoOpSymInfo(ty, internal_inst.def)
-      } else if let Some(intrinsic_name) = inst.intrinsic_name() {
-        IntrinsicSymInfo(ty, internal_inst.def, intrinsic_name)
-      } else {
-        NormalSymInfo(ty, internal_inst.def, inst.mangled_name())
-      }.into()
-    } else {
-      None
-    }
-  }).flatten()
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct LinkMapKey<'tcx>(stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
-
-impl Serialize for LinkMapKey<'_> {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-      S: Serializer,
-  {
-    use serde::ser::SerializeTuple;
-    if link_instance_enabled() {
-      let mut tup = serializer.serialize_tuple(2)?;
-      tup.serialize_element(&self.0)?;
-      tup.serialize_element(&format!("{:?}", self.1).as_str())?;
-      tup.end()
-    } else {
-      <stable_mir::ty::Ty as Serialize>::serialize(&self.0, serializer)
-    }
-  }
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct ItemSource(u8);
-const ITEM: u8 = 1 << 0;
-const TERM: u8 = 1 << 1;
-const FPTR: u8 = 1 << 2;
-
-impl Serialize for ItemSource {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-      S: Serializer,
-  {
-      use serde::ser::SerializeSeq;
-      let mut seq = serializer.serialize_seq(None)?;
-      if self.0 & ITEM != 0u8 { seq.serialize_element(&"Item")? };
-      if self.0 & TERM != 0u8 { seq.serialize_element(&"Term")? };
-      if self.0 & FPTR != 0u8 { seq.serialize_element(&"Fptr")? };
-      seq.end()
-  }
-}
-
-
 // Miscellaneous helper functions
 // ==============================
 
@@ -344,6 +268,76 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
 // Link-time resolution logic
 // ==========================
 
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+enum FnSymType {
+    NoOpSym(String),
+    IntrinsicSym(String),
+    NormalSym(String),
+}
+
+type FnSymInfo<'tcx> = (stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, FnSymType);
+
+fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSymInfo<'tcx>> {
+  use FnSymType::*;
+  inst.map(|inst| {
+    let ty = inst.ty();
+    let kind = ty.kind();
+    if kind.fn_def().is_some() {
+      let internal_inst = rustc_internal::internal(tcx, inst);
+      let sym_type = if inst.is_empty_shim() {
+         NoOpSym(String::from(""))
+      } else if let Some(intrinsic_name) = inst.intrinsic_name() {
+         IntrinsicSym(intrinsic_name)
+      } else {
+         NormalSym(inst.mangled_name())
+      };
+      Some((ty, internal_inst.def, sym_type))
+    } else {
+      None
+    }
+  }).flatten()
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct LinkMapKey<'tcx>(stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
+
+impl Serialize for LinkMapKey<'_> {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+    use serde::ser::SerializeTuple;
+    if link_instance_enabled() {
+      let mut tup = serializer.serialize_tuple(2)?;
+      tup.serialize_element(&self.0)?;
+      tup.serialize_element(&format!("{:?}", self.1).as_str())?;
+      tup.end()
+    } else {
+      <stable_mir::ty::Ty as Serialize>::serialize(&self.0, serializer)
+    }
+  }
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct ItemSource(u8);
+const ITEM: u8 = 1 << 0;
+const TERM: u8 = 1 << 1;
+const FPTR: u8 = 1 << 2;
+
+impl Serialize for ItemSource {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+      use serde::ser::SerializeSeq;
+      let mut seq = serializer.serialize_seq(None)?;
+      if self.0 & ITEM != 0u8 { seq.serialize_element(&"Item")? };
+      if self.0 & TERM != 0u8 { seq.serialize_element(&"Term")? };
+      if self.0 & FPTR != 0u8 { seq.serialize_element(&"Fptr")? };
+      seq.end()
+  }
+}
+
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 
 struct LinkNameCollector<'tcx, 'local> {
@@ -354,11 +348,7 @@ struct LinkNameCollector<'tcx, 'local> {
 
 fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
-  let (ty, kind, name) = match fn_sym.unwrap() {
-    FnSymInfo::NoOpSymInfo(ty, kind) => (ty, kind, FnSymType::NoOpSym("".into())),
-    FnSymInfo::IntrinsicSymInfo(ty, kind, name) => (ty, kind, FnSymType::IntrinsicSym(name)),
-    FnSymInfo::NormalSymInfo(ty, kind, name) => (ty, kind, FnSymType::NormalSym(name)),
-  };
+  let (ty, kind, name) = fn_sym.unwrap();
   let new_val = (source, name);
   let key = if link_instance_enabled() { LinkMapKey(ty, Some(kind)) } else { LinkMapKey(ty, None) };
   if let Some(curr_val) = link_map.get_mut(&key.clone()) {
