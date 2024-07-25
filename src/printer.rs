@@ -360,10 +360,10 @@ fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<
       println!("Regenerated link map entry: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
   } else {
-    link_map.insert(key.clone(), new_val.clone());
     if check_collision && debug_enabled() {
       println!("Generated link map entry from call: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
+    link_map.insert(key.clone(), new_val);
   }
 }
 
