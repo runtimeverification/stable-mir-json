@@ -1,4 +1,4 @@
-use std::{collections::{HashMap,HashSet},fs::File,io,iter::Iterator,vec::Vec,str,};
+use std::{collections::HashMap,fs::File,io,iter::Iterator,vec::Vec,str,};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -189,6 +189,18 @@ fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance>
       Instance::resolve_for_fn_ptr(fn_def, args)
     }.ok()
   }).flatten()
+}
+
+fn take_any<K: Clone + std::hash::Hash + std::cmp::Eq, V>(map: &mut HashMap<K,V>) -> Option<(K,V)> {
+  let key = map.keys().next()?.clone();
+  map.remove(&key).map(|val| (key,val))
+}
+
+fn hash<T: std::hash::Hash>(obj: T) -> u64 {
+    use std::hash::Hasher;
+    let mut hasher = std::hash::DefaultHasher::new();
+    obj.hash(&mut hasher);
+    hasher.finish()
 }
 
 // Structs for serializing critical details about mono items
@@ -438,8 +450,8 @@ struct UnevaluatedConstCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
   unevaluated_consts: &'local mut HashMap<stable_mir::ty::ConstDef, String>,
   processed_items: &'local mut HashMap<String, Item>,
-  pending_new_items: &'local mut HashMap<String, Item>,
-  pending_old_items: &'local HashMap<String, Item>,
+  pending_items: &'local mut HashMap<String, Item>,
+  current_item: u64,
 }
 
 impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
@@ -451,9 +463,14 @@ impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
       let inst = maybe_inst.ok().flatten().expect(format!("Failed to resolve mono item for {:?}", uconst).as_str());
       let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
       let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
-      if ! ( self.processed_items.contains_key(&item_name) && self.pending_old_items.contains_key(&item_name) ) {
+      if ! (    self.processed_items.contains_key(&item_name)
+             && self.pending_items.contains_key(&item_name)
+             && self.current_item == hash(&item_name)
+           )
+      {
+          if debug_enabled() { println!("Adding unevaluated const body for: {}", item_name); }
           self.unevaluated_consts.insert(uconst.def, item_name.clone());
-          self.pending_new_items.insert(item_name.clone(), mk_item(self.tcx, rustc_internal::stable(internal_mono_item), item_name));
+          self.pending_items.insert(item_name.clone(), mk_item(self.tcx, rustc_internal::stable(internal_mono_item), item_name));
       }
     }
   }
@@ -464,43 +481,32 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
   let mut unevaluated_consts = HashMap::new();
   let mut processed_items = HashMap::new();
   let mut pending_items = items;
-  let mut target_len = pending_items.len();
   loop {
     // get next pending item
-    let next_item = pending_items.iter().next().map(|(name,item)| {
-      match item.mono_item_kind {
-        MonoItemKind::MonoItemFn { ref body, .. } => Some((name.clone(), body)),
-        _ => None
-      }
-    }).flatten();
-    if next_item.is_none() { break; }
-    let (curr_name, bodies) = next_item.unwrap();
+    let (curr_name, value) = if let Some(v) = take_any(&mut pending_items) { v } else { break };
 
-    // create new collector
-    let mut pending_new_items = HashMap::new();
+    // skip item if it isn't a function
+    let bodies = match value.mono_item_kind {
+      MonoItemKind::MonoItemFn { ref body, .. } => body,
+      _ => continue
+    };
+
+    // create new collector for function body
     let mut collector = UnevaluatedConstCollector {
       tcx,
       unevaluated_consts: &mut unevaluated_consts,
       processed_items: &mut processed_items,
-      // we must split the pending items map because
-      // we are borrowing from one of pending_old_items elements
-      pending_new_items: &mut pending_new_items,
-      pending_old_items: &pending_items,
+      pending_items: &mut pending_items,
+      current_item: hash(&curr_name),
     };
 
     // add each fresh collected constant to pending new items
     bodies.iter().for_each(|body| collector.visit_body(body));
 
-    // move pending new items to pending old items
-    target_len += pending_new_items.len();
-    pending_new_items.drain().for_each(|(name,item)| { pending_items.insert(name, item); });
-
     // move processed item into seen items
-    let value = pending_items.remove(&curr_name).unwrap();
-    processed_items.insert(curr_name, value);
+    processed_items.insert(curr_name.to_string(), value);
   }
 
-  assert!(target_len == processed_items.len());
   processed_items.drain().map(|(_name,item)| item).collect()
 }
 
