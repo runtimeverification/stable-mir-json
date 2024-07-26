@@ -476,7 +476,7 @@ impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
   }
 }
 
-fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Item>) -> Vec<Item> {
+fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Item>) -> (HashMap<stable_mir::ty::ConstDef,String>, Vec<Item>) {
   // setup collector prerequisites
   let mut unevaluated_consts = HashMap::new();
   let mut processed_items = HashMap::new();
@@ -507,7 +507,7 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
     processed_items.insert(curr_name.to_string(), value);
   }
 
-  processed_items.drain().map(|(_name,item)| item).collect()
+  (unevaluated_consts, processed_items.drain().map(|(_name,item)| item).collect())
 }
 
 // Core item collection logic
@@ -552,15 +552,16 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let items = collect_items(tcx);
-  let items = collect_unevaluated_constant_items(tcx, items);
+  let (unevaluated_consts, items) = collect_unevaluated_constant_items(tcx, items);
   let called_functions = collect_fn_calls(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
   let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
-  write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {}, \"items\": {}",
+  write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
     serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
     serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
     serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
+    serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
     serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
