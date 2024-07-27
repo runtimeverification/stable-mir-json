@@ -464,8 +464,8 @@ impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
       let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
       let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
       if ! (    self.processed_items.contains_key(&item_name)
-             && self.pending_items.contains_key(&item_name)
-             && self.current_item == hash(&item_name)
+             || self.pending_items.contains_key(&item_name)
+             || self.current_item == hash(&item_name)
            )
       {
           if debug_enabled() { println!("Adding unevaluated const body for: {}", item_name); }
