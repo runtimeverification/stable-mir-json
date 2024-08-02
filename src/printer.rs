@@ -159,7 +159,11 @@ pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Sym
 }
 
 fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
-  mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+  if let MonoItem::GlobalAsm(data) = item {
+    hash(data).to_string()
+  } else {
+    mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+  }
 }
 
 fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
