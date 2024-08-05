@@ -215,6 +215,7 @@ enum MonoItemKind {
     MonoItemFn {
       name: String,
       id: stable_mir::DefId,
+      intrinsic: Option<String>,
       body: Vec<Body>,
     },
     MonoItemStatic {
@@ -241,13 +242,16 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
       let id = inst.def.def_id();
       let name = inst.name();
       let internal_id = rustc_internal::internal(tcx,id);
+      let intrinsic_name = tcx.intrinsic(internal_id).map(|i| i.name.to_string());
+      let bodies = get_bodies(tcx, &inst);
       Item {
         mono_item: item,
         symbol_name: sym_name,
         mono_item_kind: MonoItemKind::MonoItemFn {
           name: name.clone(),
           id: id,
-          body: get_bodies(tcx, &inst),
+          intrinsic: intrinsic_name,
+          body: bodies,
         },
         details: get_item_details(tcx, internal_id, Some(inst))
       }
