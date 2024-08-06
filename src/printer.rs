@@ -159,7 +159,11 @@ pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Sym
 }
 
 fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
-  mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+  if let MonoItem::GlobalAsm(data) = item {
+    hash(data).to_string()
+  } else {
+    mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+  }
 }
 
 fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
@@ -289,10 +293,10 @@ enum FnSymType {
 
 type FnSymInfo<'tcx> = (stable_mir::ty::Ty, middle::ty::InstanceKind<'tcx>, FnSymType);
 
-fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, inst: Option<&Instance>) -> Option<FnSymInfo<'tcx>> {
+fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, ty: Option<stable_mir::ty::Ty>, inst: Option<&Instance>) -> Option<FnSymInfo<'tcx>> {
   use FnSymType::*;
   inst.map(|inst| {
-    let ty = inst.ty();
+    let ty = if let Some(ty) = ty { ty } else { inst.ty() };
     let kind = ty.kind();
     if kind.fn_def().is_some() {
       let internal_inst = rustc_internal::internal(tcx, inst);
@@ -387,12 +391,12 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       Call { func: Constant(ConstOperand { const_: cnst, .. }), args: _, .. } => {
         if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized { return }
         let inst = fn_inst_for_ty(cnst.ty(), true).expect("Direct calls to functions must resolve to an instance");
-        fn_inst_sym(self.tcx, Some(&inst))
+        fn_inst_sym(self.tcx, Some(cnst.ty()), Some(&inst))
       }
       Drop { place, .. } => {
         let drop_ty = place.ty(self.locals).unwrap();
         let inst = Instance::resolve_drop_in_place(drop_ty);
-        fn_inst_sym(self.tcx, Some(&inst))
+        fn_inst_sym(self.tcx, None, Some(&inst))
       }
       _ => None
     };
@@ -405,7 +409,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
     match rval {
       Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
         let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
-        let fn_sym = fn_inst_sym(self.tcx, Some(&inst));
+        let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));
         update_link_map(self.link_map, fn_sym, ItemSource(FPTR), true);
       }
       _ => {}
@@ -419,7 +423,7 @@ fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>
   if link_items_enabled() {
     for item in items.iter() {
       if let MonoItem::Fn ( inst ) = item {
-         update_link_map(&mut hash_map, fn_inst_sym(tcx, Some(inst)), ItemSource(ITEM), false)
+         update_link_map(&mut hash_map, fn_inst_sym(tcx, None, Some(inst)), ItemSource(ITEM), false)
       }
     }
   }
@@ -464,8 +468,8 @@ impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
       let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
       let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
       if ! (    self.processed_items.contains_key(&item_name)
-             && self.pending_items.contains_key(&item_name)
-             && self.current_item == hash(&item_name)
+             || self.pending_items.contains_key(&item_name)
+             || self.current_item == hash(&item_name)
            )
       {
           if debug_enabled() { println!("Adding unevaluated const body for: {}", item_name); }
