@@ -84,7 +84,7 @@ def load_files(name, files):
 def run(name, files):
   crate_data = load_files(name, files)
   present_items = defaultdict(set)
-  link_missing = defaultdict(set)
+  link_missing = defaultdict(lambda: defaultdict(set))
   present_items_mangled = set()
   link_foreign = set()
   for crate_name, crate_datum in crate_data.items():
@@ -104,12 +104,16 @@ def run(name, files):
         else:
           demangled_func_name,sym_hash = demangle(func_name)
           if sym_hash not in present_items[demangled_func_name]:
-            link_missing[demangled_func_name].add(sym_hash)
+            link_missing[demangled_func_name][crate_name].add(sym_hash)
   present_items_size = reduce(lambda x,y: x+len(y), present_items.values(), 0)
   if len(present_items_mangled) != present_items_size:
     raise ValueError("De-mangling process failed")
   for item in sorted(link_foreign): print(item)
-  for k in sorted(link_missing.keys()): print(f'{"::".join(k)}->{sorted(link_missing[k])}')
+  for k in sorted(link_missing.keys()):
+    for crate in link_missing[k]:
+      crate_name = Path(crate).stem
+      if crate_name.endswith('.smir'): crate_name = crate_name[:-5]
+      print(f'{crate_name}::{"::".join(k)}->{sorted(link_missing[k][crate])}')
 
 if __name__ == "__main__":
     if len(sys.argv) < 2: print(f"USAGE: {sys.argv[0]} crate-name [json file list]\n\nPrint mono-items whose bodies were not found in compiled crate metadata")
