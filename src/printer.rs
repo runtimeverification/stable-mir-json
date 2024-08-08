@@ -15,7 +15,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind},visited_tys,visited_alloc_ids}; // Symbol
+use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind}}; // Symbol
 use serde::{Serialize, Serializer};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
@@ -356,11 +356,17 @@ impl Serialize for ItemSource {
 
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 
-struct LinkNameCollector<'tcx, 'local> {
+struct InternedValueCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  link_map: &'local mut LinkMap<'tcx>,
   locals: &'local [LocalDecl],
+  link_map: &'local mut LinkMap<'tcx>,
+  visited_allocs: &'local mut HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
+  visited_tys: &'local mut HashMap<stable_mir::ty::Ty, stable_mir::ty::TyKind>,
 }
+
+type InternedValues<'tcx> = (LinkMap<'tcx>,
+                             HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
+                             HashMap<stable_mir::ty::Ty, stable_mir::ty::TyKind>);
 
 fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
@@ -383,7 +389,70 @@ fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<
   }
 }
 
-impl MirVisitor for LinkNameCollector<'_, '_> {
+fn collect_alloc(val_collector: &mut InternedValueCollector, val: stable_mir::mir::alloc::AllocId) {
+    use stable_mir::mir::alloc::GlobalAlloc;
+    match GlobalAlloc::from(val) {
+        GlobalAlloc::Memory(alloc) => {
+            alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
+                collect_alloc(val_collector, prov.0);
+            })
+        }
+        GlobalAlloc::Static(def) => { val_collector.visited_tys.insert(def.ty(), def.ty().kind()); },
+        _ => {}
+    }
+}
+
+fn collect_vec_tys(collector: &mut InternedValueCollector, tys: Vec<stable_mir::ty::Ty>) {
+    tys.into_iter().for_each(|ty| collect_ty(collector, ty));
+}
+
+fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty::GenericArgs) {
+    use stable_mir::ty::{GenericArgKind::*, TyConst, TyConstKind::*};
+    for arg in args.0.iter() {
+        match arg {
+            Type(ty) => collect_ty(collector, *ty),
+            Const(ty_const) => match ty_const.kind() {
+                Value(ty, _) | ZSTValue(ty) => collect_ty(collector, *ty),
+                _ => {}
+            },
+            _ => {}
+        }
+     }
+}
+
+fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
+    use stable_mir::ty::{GenericArgKind::*, RigidTy::*, TyConst, TyConstKind::*, TyKind::RigidTy};
+    if val_collector.visited_tys.insert(val, val.kind()).is_some() {
+        match val.kind() {
+            RigidTy(Array(ty, _) | Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
+                collect_ty(val_collector, ty)
+            }
+            RigidTy(Tuple(tys)) => collect_vec_tys(val_collector, tys),
+            RigidTy(Adt(def, ref args)) => {
+                for variant in def.variants_iter() {
+                    for field in variant.fields() {
+                        collect_ty(val_collector, field.ty());
+                    }
+                }
+                collect_arg_tys(val_collector, args);
+            }
+            // FIXME: Would be good to grab the coroutine signature
+            RigidTy(Coroutine(_, ref args, _) | CoroutineWitness(_, ref args)) => collect_arg_tys(val_collector, args),
+            ref kind @ RigidTy(FnDef(_, ref args) | Closure(_, ref args)) => {
+                collect_vec_tys(val_collector, kind.fn_sig().unwrap().value.inputs_and_output);
+                collect_arg_tys(val_collector, args);
+            }
+            RigidTy(Foreign(def)) => match def.kind() {
+                ForeignItemKind::Fn(def) => collect_vec_tys(val_collector, def.fn_sig().value.inputs_and_output),
+                ForeignItemKind::Type(ty) => collect_ty(val_collector, ty),
+                ForeignItemKind::Static(def) => collect_ty(val_collector, def.ty()),
+            }
+            _ => {}
+        }
+    }
+}
+
+impl MirVisitor for InternedValueCollector<'_, '_> {
   fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
     use TerminatorKind::*;
     use stable_mir::mir::{Operand::Constant, ConstOperand};
@@ -416,14 +485,35 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
     };
     self.super_rvalue(rval, loc);
   }
+
+  fn visit_mir_const(&mut self, constant: &stable_mir::ty::MirConst, _location: stable_mir::mir::visit::Location) {
+    use stable_mir::ty::{ConstantKind, TyConst, TyConstKind};
+    match constant.kind() {
+      ConstantKind::Allocated(alloc) => {
+        alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, prov.0));
+      },
+      ConstantKind::Ty(ty_const) => {
+        if let TyConstKind::Value(..) = ty_const.kind() {
+          panic!("TyConstKind::Value");
+        }
+      },
+      ConstantKind::Unevaluated(_) | ConstantKind::Param(_) | ConstantKind::ZeroSized => {}
+    }
+  }
+
+  fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
+     collect_ty(self, *ty);
+  }
 }
 
-fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>) -> Vec<(LinkMapKey<'tcx>, (ItemSource, FnSymType))> {
-  let mut hash_map = HashMap::new();
+fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>) -> InternedValues<'tcx> {
+  let mut calls_map = HashMap::new();
+  let mut visited_tys = HashMap::new();
+  let mut visited_allocs = HashMap::new();
   if link_items_enabled() {
     for item in items.iter() {
       if let MonoItem::Fn ( inst ) = item {
-         update_link_map(&mut hash_map, fn_inst_sym(tcx, None, Some(inst)), ItemSource(ITEM), false)
+         update_link_map(&mut calls_map, fn_inst_sym(tcx, None, Some(inst)), ItemSource(ITEM), false)
       }
     }
   }
@@ -431,10 +521,12 @@ fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>
     match &item {
       MonoItem::Fn( inst ) => {
          for body in get_bodies(tcx, inst).into_iter() {
-           LinkNameCollector {
+           InternedValueCollector {
              tcx,
-             link_map: &mut hash_map,
-             locals: body.locals()
+             locals: body.locals(),
+             link_map: &mut calls_map,
+             visited_tys: &mut visited_tys,
+             visited_allocs: &mut visited_allocs,
            }.visit_body(&body)
          }
       }
@@ -442,9 +534,7 @@ fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>
       MonoItem::GlobalAsm { .. } => {}
     }
   }
-  let calls: Vec<_> = hash_map.into_iter().collect();
-  // calls.sort_by(|fst,snd| rustc_internal::internal(tcx, fst.0.def_id()).cmp(rustc_internal::internal(tcx, snd.0.def_id())));
-  calls
+  (calls_map, visited_allocs, visited_tys)
 }
 
 // Collection Transitive Closure
@@ -550,28 +640,66 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
   }).collect::<HashMap<_,_>>()
 }
 
+// JSON Post-processing
+// ====================
+
+struct RemapData<'tcx> {
+  uneval_consts: HashMap<stable_mir::ty::ConstDef,String>,
+  interned_values: InternedValues<'tcx>,
+  crate_id: serde_json::Value,
+}
+
+fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
+  match val {
+    serde_json::Value::Object(map) => {
+      for (k,ptrs) in map.iter_mut() {
+        if k.as_str() == "provenance" {
+          let ptrs = ptrs.as_object_mut().unwrap();
+          assert!(ptrs.len() == 1 && ptrs.contains_key("ptrs"));
+          let ptrs = ptrs.get_mut("ptrs").unwrap().as_array_mut().unwrap();
+          for mapping in ptrs.iter_mut() {
+            let mapping = mapping.as_array_mut().unwrap();
+            let alloc_id = mapping.get_mut(1).unwrap();
+            println!("Remapping {:?}", alloc_id);
+            *alloc_id = serde_json::Value::Array(vec![proc.crate_id.clone(), alloc_id.clone()]);
+          }
+        } else {
+          process_json(ptrs, proc);
+        }
+      }
+    },
+    serde_json::Value::Array(array) => array.iter_mut().for_each(|val| process_json(val, proc)),
+    _ => {}
+  }
+}
+
 // Serialization Entrypoint
 // ========================
 
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
-  let local_crate = stable_mir::local_crate();
+
   let items = collect_items(tcx);
-  let (unevaluated_consts, items) = collect_unevaluated_constant_items(tcx, items);
-  let called_functions = collect_fn_calls(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
+  let (uneval_consts, items) = collect_unevaluated_constant_items(tcx, items);
+  let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
+  let mut json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
+
+  let local_crate = stable_mir::local_crate();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
-  let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
+  let json_crate_id = serde_json::to_value(&crate_id).unwrap();
+  process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id });
+
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
     serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
-    serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
-    serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
-    serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
+    "temp", // serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
+    "temp", // serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
+    "temp", // serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
     serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-      serde_json::to_string(&called_functions.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
-      serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
+      "temp", // serde_json::to_string(&called_functions.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
+      "temp", // serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
       serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
     ).expect("Failed to write JSON to file");
   } else {
