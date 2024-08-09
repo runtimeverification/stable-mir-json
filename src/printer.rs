@@ -16,7 +16,7 @@ use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind}}; // Symbol
-use serde::{Serialize, Serializer, ser::{SerializeStruct, SerializeTuple}};
+use serde::{Serialize, Serializer, ser::{SerializeStruct}};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 
 // Structs for serializing extra details about mono items
@@ -230,10 +230,10 @@ enum Value {
 
 #[derive(Serialize)]
 enum MonoItemKind {
-    MonoItemFn(Vec<Body>),
-    MonoItemStatic(Allocation),
-    MonoItemGlobalAsm(String),
-    MonoItemAllocation(Value), // new MonoItem --- used for post-processed Statics/Consts
+  MonoItemFn(Vec<Body>),
+  MonoItemStatic(stable_mir::ty::Ty, Allocation),
+  MonoItemGlobalAsm(String),
+  MonoItemAllocation(Value), // new MonoItem --- used for post-processed Statics/Consts
 }
 
 #[derive(Serialize)]
@@ -242,7 +242,12 @@ enum ItemKey {
   Index(u64, u64),
 }
 
-struct Item(ItemKey, MonoItemKind, MonoItem, Option<ItemDetails>);
+struct Item {
+  key: ItemKey,
+  kind: MonoItemKind,
+  item: MonoItem,
+  details: Option<ItemDetails>
+}
 
 impl Serialize for Item {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -250,15 +255,15 @@ impl Serialize for Item {
       S: Serializer,
   {
     if debug_enabled() {
-      let mut state = serializer.serialize_struct("Item", 2)?;
-      state.serialize_field("key", &self.0)?;
-      state.serialize_field("mono_item_kind", &self.1)?;
-      state.serialize_field("details", &self.3)?;
+      let mut state = serializer.serialize_struct("Item", 3)?;
+      state.serialize_field("key", &self.key)?;
+      state.serialize_field("kind", &self.kind)?;
+      state.serialize_field("details", &self.details)?;
       state.end()
     } else {
-      let mut state = serializer.serialize_tuple(2)?;
-      state.serialize_element(&self.0)?;
-      state.serialize_element(&self.1)?;
+      let mut state = serializer.serialize_struct("Item", 2)?;
+      state.serialize_field("key", &self.key)?;
+      state.serialize_field("kind", &self.kind)?;
       state.end()
     }
   }
@@ -270,18 +275,33 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
       let id = inst.def.def_id();
       let name = inst.name();
       let internal_id = rustc_internal::internal(tcx,id);
-      Item(ItemKey::Symbol(sym_name), MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)), item, get_item_details(tcx, internal_id, Some(inst), Some(name), Some(id)))
+      Item {
+        key: ItemKey::Symbol(sym_name),
+        kind: MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)),
+        item,
+        details: get_item_details(tcx, internal_id, Some(inst), Some(name), Some(id)),
+      }
     },
     MonoItem::Static(static_def) => {
       let id = static_def.def_id();
       let name = static_def.name();
       let internal_id = rustc_internal::internal(tcx,id);
       let alloc = static_def.eval_initializer().expect(format!("StaticDef({:#?}).eval_initializer() failed", static_def).as_str());
-      Item(ItemKey::Symbol(sym_name),MonoItemKind::MonoItemStatic(alloc), item, get_item_details(tcx, internal_id, None, Some(name), Some(id)))
+      Item {
+        key: ItemKey::Symbol(sym_name),
+        kind: MonoItemKind::MonoItemStatic(static_def.ty(), alloc),
+        item,
+        details: get_item_details(tcx, internal_id, None, Some(name), Some(id)),
+      }
     },
     MonoItem::GlobalAsm(ref asm) => {
       let asm = format!("{:#?}", asm);
-      Item(ItemKey::Symbol(sym_name), MonoItemKind::MonoItemGlobalAsm(asm), item, None)
+      Item {
+        key: ItemKey::Symbol(sym_name),
+        kind: MonoItemKind::MonoItemGlobalAsm(asm),
+        item,
+        details: None,
+      }
     }
   }
 }
@@ -597,7 +617,7 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
     let (curr_name, value) = if let Some(v) = take_any(&mut pending_items) { v } else { break };
 
     // skip item if it isn't a function
-    let bodies = match value.1 {
+    let bodies = match value.kind {
       MonoItemKind::MonoItemFn(ref body) => body,
       _ => continue
     };
@@ -679,14 +699,17 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
       }
     },
     (None, Some(kind_val)) => {
-      kind_val.get("Value").map(|v| v.as_array()).flatten().map(|vals|
-        if vals.len() == 2 &&
-           vals[0].as_u64().is_some() &&
-           vals[1].as_object().is_some() {
-          panic!("Unexpected TyConst::Value")
-        }
-      );
-      None
+      let opt_array = if let Some(kind) = kind_val.get("Value") {
+        panic!("Unexpected TyConst::Value")
+      } else if let Some(kind) = kind_val.get("MonoItemStatic") {
+        kind.as_array()
+      } else {
+        None
+      };
+      opt_array.map(|array| {
+        assert!(array.len() == 2 && array[0].as_u64().is_some() && array[1].as_object().is_some());
+        (array[0].as_u64().unwrap(), array[1].as_object().unwrap().clone())
+      })
     },
     _ => None,
   };
@@ -722,7 +745,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
 
   let items = collect_items(tcx);
   let (uneval_consts, items) = collect_unevaluated_constant_items(tcx, items);
-  let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.2).collect::<Vec<_>>());
+  let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.item).collect::<Vec<_>>());
   let mut json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
 
   let local_crate = stable_mir::local_crate();
