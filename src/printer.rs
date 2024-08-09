@@ -211,6 +211,19 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 // =========================================================
 
 #[derive(Serialize)]
+enum Address {
+  LocalAddr(u64, stable_mir::mir::Place),
+  GlobalAddr(u64, Vec<stable_mir::mir::ProjectionElem>),
+}
+
+#[derive(Serialize)]
+enum Value {
+  Scalar(u128, u8, bool),
+  Float(f64, u8),
+  Ptr(Address, Option<Box<Value>>),
+}
+
+#[derive(Serialize)]
 enum MonoItemKind {
     MonoItemFn {
       name: String,
@@ -226,6 +239,7 @@ enum MonoItemKind {
       asm: String,
     },
 }
+
 #[derive(Serialize)]
 struct Item {
     #[serde(skip)]
@@ -530,8 +544,20 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
            }.visit_body(&body)
          }
       }
-      MonoItem::Static { .. } => {}
-      MonoItem::GlobalAsm { .. } => {}
+      MonoItem::Static(def) => {
+         let alloc = def.eval_initializer().unwrap();
+         let mut val_collector = InternedValueCollector {
+           tcx,
+           locals: &[],
+           link_map: &mut calls_map,
+           visited_tys: &mut visited_tys,
+           visited_allocs: &mut visited_allocs,
+         };
+         alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
+           collect_alloc(&mut val_collector, prov.0);
+         });
+      }
+      MonoItem::GlobalAsm(_) => {}
     }
   }
   (calls_map, visited_allocs, visited_tys)
@@ -647,24 +673,49 @@ struct RemapData<'tcx> {
   uneval_consts: HashMap<stable_mir::ty::ConstDef,String>,
   interned_values: InternedValues<'tcx>,
   crate_id: serde_json::Value,
+  tcx: TyCtxt<'tcx>,
+}
+
+fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>)> {
+  let ty_alloc = match (map.get("ty"), map.get("kind")) {
+    (Some(ty_val), Some(kind_val)) => {
+      let ty_val = ty_val.as_u64();
+      let kind_val = kind_val.get("Allocated").map(|v| v.as_object()).flatten();
+      if let (Some(ty_val),Some(alloc_val)) = (ty_val,kind_val) {
+        Some((ty_val,alloc_val.clone()))
+      } else {
+        None
+      }
+    },
+    (None, Some(kind_val)) => {
+      kind_val.get("Value").map(|v| v.as_array()).flatten().map(|vals|
+        if vals.len() == 2 &&
+           vals[0].as_u64().is_some() &&
+           vals[1].as_object().is_some() {
+          panic!("Unexpected TyConst::Value")
+        }
+      );
+      None
+    },
+    _ => None,
+  };
+  ty_alloc.as_ref().map(|(_ty, alloc)| {
+    assert!(alloc.contains_key("bytes")      &&
+            alloc.contains_key("provenance") &&
+            alloc.contains_key("align")      &&
+            alloc.contains_key("mutability"));
+  });
+  ty_alloc
 }
 
 fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
   match val {
-    serde_json::Value::Object(map) => {
-      for (k,ptrs) in map.iter_mut() {
-        if k.as_str() == "provenance" {
-          let ptrs = ptrs.as_object_mut().unwrap();
-          assert!(ptrs.len() == 1 && ptrs.contains_key("ptrs"));
-          let ptrs = ptrs.get_mut("ptrs").unwrap().as_array_mut().unwrap();
-          for mapping in ptrs.iter_mut() {
-            let mapping = mapping.as_array_mut().unwrap();
-            let alloc_id = mapping.get_mut(1).unwrap();
-            println!("Remapping {:?}", alloc_id);
-            *alloc_id = serde_json::Value::Array(vec![proc.crate_id.clone(), alloc_id.clone()]);
-          }
-        } else {
-          process_json(ptrs, proc);
+    serde_json::Value::Object(ref mut map) => {
+      if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
+          map["Allocated"] = serde_json::Value::Null;
+      } else {
+        for val in map.values_mut() {
+          process_json(val, proc);
         }
       }
     },
@@ -686,7 +737,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
   let json_crate_id = serde_json::to_value(&crate_id).unwrap();
-  process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id });
+  process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id, tcx });
 
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
