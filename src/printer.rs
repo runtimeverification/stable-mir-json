@@ -416,15 +416,28 @@ fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<
 
 fn collect_alloc(val_collector: &mut InternedValueCollector, val: stable_mir::mir::alloc::AllocId) {
     use stable_mir::mir::alloc::GlobalAlloc;
-    match GlobalAlloc::from(val) {
-        GlobalAlloc::Memory(alloc) => {
+    println!("DEBUG: called collect_alloc");
+    let entry = val_collector.visited_allocs.entry(val);
+    if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) { return; }
+    let global_alloc = GlobalAlloc::from(val);
+    entry.or_insert(global_alloc.clone());
+    match global_alloc {
+        GlobalAlloc::Memory(ref alloc) => {
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, prov.0);
-            })
+            });
         }
-        GlobalAlloc::Static(def) => { val_collector.visited_tys.insert(def.ty(), def.ty().kind()); },
+        GlobalAlloc::Static(ref def) => {
+            // TODO: get MIR for this static using rustc_middle::ty::Instance::mono(tcx, def_id)
+            val_collector.visited_tys.insert(def.ty(), def.ty().kind());
+            let alloc = def.eval_initializer().unwrap();
+            println!("Debug static alloc {:?}:{:?}:{:?}", mono_item_name(val_collector.tcx, &MonoItem::Static(*def)), def, alloc);
+            alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
+                collect_alloc(val_collector, prov.0);
+            });
+        },
         _ => {}
-    }
+    };
 }
 
 fn collect_vec_tys(collector: &mut InternedValueCollector, tys: Vec<stable_mir::ty::Ty>) {
@@ -687,13 +700,13 @@ struct RemapData<'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 
-fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>)> {
+fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>, bool)> {
   let ty_alloc = match (map.get("ty"), map.get("kind")) {
     (Some(ty_val), Some(kind_val)) => {
       let ty_val = ty_val.as_u64();
       let kind_val = kind_val.get("Allocated").map(|v| v.as_object()).flatten();
       if let (Some(ty_val),Some(alloc_val)) = (ty_val,kind_val) {
-        Some((ty_val,alloc_val.clone()))
+        Some((ty_val,alloc_val.clone(),false))
       } else {
         None
       }
@@ -708,12 +721,12 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
       };
       opt_array.map(|array| {
         assert!(array.len() == 2 && array[0].as_u64().is_some() && array[1].as_object().is_some());
-        (array[0].as_u64().unwrap(), array[1].as_object().unwrap().clone())
+        (array[0].as_u64().unwrap(), array[1].as_object().unwrap().clone(),true)
       })
     },
     _ => None,
   };
-  ty_alloc.as_ref().map(|(_ty, alloc)| {
+  ty_alloc.as_ref().map(|(_ty, alloc, needs_id_remap)| {
     assert!(alloc.contains_key("bytes")      &&
             alloc.contains_key("provenance") &&
             alloc.contains_key("align")      &&
@@ -725,8 +738,19 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
 fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
   match val {
     serde_json::Value::Object(ref mut map) => {
-      if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
-          map["Allocated"] = serde_json::Value::Null;
+      if let Some((ty_idx,json_alloc,needs_id_remap)) = get_json_alloc(map) {
+          // process json_alloc
+          // let value = alloc_to_val(json_alloc);
+          // update Item { key: ..., kind: MonoItemStatic(...) }
+          if needs_id_remap {
+            map["key"] = serde_json::to_value("temp").unwrap();
+            let mut obj_map = serde_json::Map::<String,serde_json::Value>::with_capacity(1);
+            obj_map["MonoItemAllocation"] = serde_json::Value::Null;
+            map["kind"] = serde_json::Value::Object(obj_map);
+          // update allocation
+          } else {
+            map["kind"] = serde_json::Value::Null;
+          }
       } else {
         for val in map.values_mut() {
           process_json(val, proc);
@@ -750,20 +774,20 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
 
   let local_crate = stable_mir::local_crate();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
-  let json_crate_id = serde_json::to_value(&crate_id).unwrap();
-  process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id, tcx });
+  // let json_crate_id = serde_json::to_value(&crate_id).unwrap();
+  // process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id, tcx });
 
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
     serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
-    "temp", // serde_json::to_string(&visited_alloc_ids()).expect("serde_json global allocs to json failed"),
-    "temp", // serde_json::to_string(&called_functions.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
-    "temp", // serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
+    serde_json::to_string(&interned_values.1).expect("serde_json global allocs to json failed"),
+    serde_json::to_string(&interned_values.0.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
+    serde_json::to_string("temp").unwrap(), // serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
     serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-      "temp", // serde_json::to_string(&called_functions.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
+      "temp", // serde_json::to_string(&interned_values.0.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
       "temp", // serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
       serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
     ).expect("Failed to write JSON to file");
