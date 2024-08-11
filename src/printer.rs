@@ -163,6 +163,10 @@ pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Sym
    tcx.has_attr(rustc_internal::internal(tcx,item), attr)
 }
 
+fn inst_name(tcx: TyCtxt<'_>, inst: &Instance) -> String {
+  mono_item_name(tcx, &stable_mir::mir::mono::MonoItem::Fn(*inst))
+}
+
 fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
   if let MonoItem::GlobalAsm(data) = item {
     hash(data).to_string()
@@ -272,33 +276,38 @@ impl Serialize for Item {
   }
 }
 
+fn def_id_to_inst(tcx: TyCtxt<'_>, id: stable_mir::DefId) -> Instance {
+  let internal_id = rustc_internal::internal(tcx,id);
+  let internal_inst = rustc_middle::ty::Instance::mono(tcx, internal_id);
+  rustc_internal::stable(internal_inst)
+}
+
+fn mk_item_helper(tcx: TyCtxt<'_>, item: MonoItem, inst: &Instance, sym_name: String) -> Item {
+   let id = inst.def.def_id();
+   let name = inst.name();
+   let internal_id = rustc_internal::internal(tcx,id);
+   Item {
+     key: ItemKey::Symbol(sym_name),
+     kind: MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)),
+     item,
+     details: get_item_details(tcx, internal_id, Some(*inst), Some(name), Some(id)),
+   }
+}
+
 fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
   match item {
     MonoItem::Fn(inst) => {
-      let id = inst.def.def_id();
-      let name = inst.name();
-      let internal_id = rustc_internal::internal(tcx,id);
-      Item {
-        key: ItemKey::Symbol(sym_name),
-        kind: MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)),
-        item,
-        details: get_item_details(tcx, internal_id, Some(inst), Some(name), Some(id)),
-      }
-    },
+      assert!(inst.mangled_name() == sym_name);
+      mk_item_helper(tcx, item, &inst, sym_name)
+    }
     MonoItem::Static(static_def) => {
       let id = static_def.def_id();
       let name = static_def.name();
-      let internal_id = rustc_internal::internal(tcx,id);
-      let internal_inst = rustc_middle::ty::Instance::mono(tcx, internal_id);
-      let inst = rustc_internal::stable(internal_inst);
+      let inst = def_id_to_inst(tcx, id);
       assert!(inst.name() == name);
-      assert!(inst_name_int(tcx, &internal_inst) == sym_name);
-      Item {
-        key: ItemKey::Symbol(sym_name),
-        kind: MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)),
-        item,
-        details: get_item_details(tcx, internal_id, None, Some(name), Some(id)),
-      }
+      assert!(inst_name(tcx, &inst) == sym_name);
+      assert!(inst.mangled_name() == sym_name);
+      mk_item_helper(tcx, item, &inst, sym_name)
     },
     MonoItem::GlobalAsm(ref asm) => {
       let asm = format!("{:#?}", asm);
@@ -391,6 +400,7 @@ struct InternedValueCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
   locals: &'local [LocalDecl],
   link_map: &'local mut LinkMap<'tcx>,
+  alloc_tys: &'local mut HashMap<u64, stable_mir::ty::Ty>,
   visited_allocs: &'local mut HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
   visited_tys: &'local mut HashMap<stable_mir::ty::Ty, stable_mir::ty::TyKind>,
 }
@@ -552,6 +562,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 
 fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>) -> InternedValues<'tcx> {
   let mut calls_map = HashMap::new();
+  let mut alloc_tys = HashMap::new();
   let mut visited_tys = HashMap::new();
   let mut visited_allocs = HashMap::new();
   if link_items_enabled() {
@@ -569,23 +580,23 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
              tcx,
              locals: body.locals(),
              link_map: &mut calls_map,
+             alloc_tys: &mut alloc_tys,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
            }.visit_body(&body)
          }
       }
       MonoItem::Static(def) => {
-         let alloc = def.eval_initializer().unwrap();
-         let mut val_collector = InternedValueCollector {
-           tcx,
-           locals: &[],
-           link_map: &mut calls_map,
-           visited_tys: &mut visited_tys,
-           visited_allocs: &mut visited_allocs,
-         };
-         alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
-           collect_alloc(&mut val_collector, prov.0);
-         });
+         for body in get_bodies(tcx, &def_id_to_inst(tcx, def.def_id())).into_iter() {
+           InternedValueCollector {
+             tcx,
+             locals: &[],
+             link_map: &mut calls_map,
+             alloc_tys: &mut alloc_tys,
+             visited_tys: &mut visited_tys,
+             visited_allocs: &mut visited_allocs,
+           }.visit_body(&body)
+         }
       }
       MonoItem::GlobalAsm(_) => {}
     }
@@ -706,13 +717,17 @@ struct RemapData<'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 
-fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>, bool)> {
+// fn alloc_to_value(tcx: TyCtxt<'_>, ty: stable_mir::ty::Ty, bytes: Vec<u8>) {
+  
+// }
+
+fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>)> {
   let ty_alloc = match (map.get("ty"), map.get("kind")) {
     (Some(ty_val), Some(kind_val)) => {
       let ty_val = ty_val.as_u64();
       let kind_val = kind_val.get("Allocated").map(|v| v.as_object()).flatten();
       if let (Some(ty_val),Some(alloc_val)) = (ty_val,kind_val) {
-        Some((ty_val,alloc_val.clone(),false))
+        Some((ty_val,alloc_val.clone()))
       } else {
         None
       }
@@ -725,7 +740,7 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
     },
     _ => None,
   };
-  ty_alloc.as_ref().map(|(_ty, alloc, needs_id_remap)| {
+  ty_alloc.as_ref().map(|(_ty, alloc)| {
     assert!(alloc.contains_key("bytes")      &&
             alloc.contains_key("provenance") &&
             alloc.contains_key("align")      &&
@@ -737,19 +752,8 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
 fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
   match val {
     serde_json::Value::Object(ref mut map) => {
-      if let Some((ty_idx,json_alloc,needs_id_remap)) = get_json_alloc(map) {
-          // process json_alloc
-          // let value = alloc_to_val(json_alloc);
-          // update Item { key: ..., kind: MonoItemStatic(...) }
-          if needs_id_remap {
-            map["key"] = serde_json::to_value("temp").unwrap();
-            let mut obj_map = serde_json::Map::<String,serde_json::Value>::with_capacity(1);
-            obj_map["MonoItemAllocation"] = serde_json::Value::Null;
-            map["kind"] = serde_json::Value::Object(obj_map);
-          // update allocation
-          } else {
-            map["kind"] = serde_json::Value::Null;
-          }
+      if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
+        map["kind"] = serde_json::Value::Null;
       } else {
         for val in map.values_mut() {
           process_json(val, proc);
