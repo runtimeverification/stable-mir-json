@@ -667,6 +667,11 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
   (unevaluated_consts, processed_items.drain().map(|(_name,item)| item).collect())
 }
 
+fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, allocs: &HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>, tys: &HashMap<u64, stable_mir::ty::TyKind>) -> Vec<Item> {
+  // TODO: create alloc items for referenced allocs
+  vec![]
+}
+
 // Core item collection logic
 // ==========================
 
@@ -768,13 +773,15 @@ fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
 
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
 
+  let local_crate = stable_mir::local_crate();
+  let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+
   let items = collect_items(tcx);
   let (uneval_consts, items) = collect_unevaluated_constant_items(tcx, items);
   let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.item).collect::<Vec<_>>());
+  let alloc_items = create_alloc_items(tcx, crate_id, &interned_values.1, &interned_values.2);
   let mut json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
 
-  let local_crate = stable_mir::local_crate();
-  let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
   // let json_crate_id = serde_json::to_value(&crate_id).unwrap();
   // process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id, tcx });
 
