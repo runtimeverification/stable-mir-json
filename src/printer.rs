@@ -400,14 +400,13 @@ struct InternedValueCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
   locals: &'local [LocalDecl],
   link_map: &'local mut LinkMap<'tcx>,
-  alloc_tys: &'local mut HashMap<u64, stable_mir::ty::Ty>,
   visited_allocs: &'local mut HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
-  visited_tys: &'local mut HashMap<stable_mir::ty::Ty, stable_mir::ty::TyKind>,
+  visited_tys: &'local mut HashMap<u64, stable_mir::ty::TyKind>,
 }
 
 type InternedValues<'tcx> = (LinkMap<'tcx>,
                              HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
-                             HashMap<stable_mir::ty::Ty, stable_mir::ty::TyKind>);
+                             HashMap<u64, stable_mir::ty::TyKind>);
 
 fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
@@ -445,7 +444,7 @@ fn collect_alloc(val_collector: &mut InternedValueCollector, val: stable_mir::mi
         }
         GlobalAlloc::Static(ref def) => {
             // TODO: get MIR for this static using rustc_middle::ty::Instance::mono(tcx, def_id)
-            val_collector.visited_tys.insert(def.ty(), def.ty().kind());
+            val_collector.visited_tys.insert(hash(def.ty()), def.ty().kind());
             let alloc = def.eval_initializer().unwrap();
             println!("Debug static alloc {:?}:{:?}:{:?}", mono_item_name(val_collector.tcx, &MonoItem::Static(*def)), def, alloc);
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
@@ -476,7 +475,7 @@ fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty
 
 fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
     use stable_mir::ty::{GenericArgKind::*, RigidTy::*, TyConst, TyConstKind::*, TyKind::RigidTy};
-    if val_collector.visited_tys.insert(val, val.kind()).is_some() {
+    if val_collector.visited_tys.insert(hash(val), val.kind()).is_some() {
         match val.kind() {
             RigidTy(Array(ty, _) | Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
                 collect_ty(val_collector, ty)
@@ -562,7 +561,6 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 
 fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>) -> InternedValues<'tcx> {
   let mut calls_map = HashMap::new();
-  let mut alloc_tys = HashMap::new();
   let mut visited_tys = HashMap::new();
   let mut visited_allocs = HashMap::new();
   if link_items_enabled() {
@@ -580,7 +578,6 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
              tcx,
              locals: body.locals(),
              link_map: &mut calls_map,
-             alloc_tys: &mut alloc_tys,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
            }.visit_body(&body)
@@ -592,7 +589,6 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
              tcx,
              locals: &[],
              link_map: &mut calls_map,
-             alloc_tys: &mut alloc_tys,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
            }.visit_body(&body)
@@ -717,9 +713,10 @@ struct RemapData<'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 
-// fn alloc_to_value(tcx: TyCtxt<'_>, ty: stable_mir::ty::Ty, bytes: Vec<u8>) {
-  
-// }
+fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, proc: &RemapData) -> Value {
+  // TODO: properly lookup value ty and construct value
+  Value::Scalar(0,0,true)
+}
 
 fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>)> {
   let ty_alloc = match (map.get("ty"), map.get("kind")) {
@@ -753,7 +750,8 @@ fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
   match val {
     serde_json::Value::Object(ref mut map) => {
       if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
-        map["kind"] = serde_json::Value::Null;
+        let bytes: Vec<Option<u8>> = serde_json::from_value(json_alloc["bytes"].clone()).unwrap();
+        val["kind"]["Allocated"] = serde_json::to_value(alloc_to_value(ty_idx, bytes, proc)).unwrap();
       } else {
         for val in map.values_mut() {
           process_json(val, proc);
