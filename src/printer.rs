@@ -171,6 +171,10 @@ fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
   }
 }
 
+fn inst_name_int<'a>(tcx: TyCtxt<'a>, inst: &rustc_middle::ty::Instance<'a>) -> String {
+  mono_item_name_int(tcx, &rustc_middle::mir::mono::MonoItem::Fn(*inst))
+}
+
 fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
   item.symbol_name(tcx).name.into()
 }
@@ -231,7 +235,6 @@ enum Value {
 #[derive(Serialize)]
 enum MonoItemKind {
   MonoItemFn(Vec<Body>),
-  MonoItemStatic(stable_mir::ty::Ty, Allocation),
   MonoItemGlobalAsm(String),
   MonoItemAllocation(Value), // new MonoItem --- used for post-processed Statics/Consts
 }
@@ -286,10 +289,13 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
       let id = static_def.def_id();
       let name = static_def.name();
       let internal_id = rustc_internal::internal(tcx,id);
-      let alloc = static_def.eval_initializer().expect(format!("StaticDef({:#?}).eval_initializer() failed", static_def).as_str());
+      let internal_inst = rustc_middle::ty::Instance::mono(tcx, internal_id);
+      let inst = rustc_internal::stable(internal_inst);
+      assert!(inst.name() == name);
+      assert!(inst_name_int(tcx, &internal_inst) == sym_name);
       Item {
         key: ItemKey::Symbol(sym_name),
-        kind: MonoItemKind::MonoItemStatic(static_def.ty(), alloc),
+        kind: MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)),
         item,
         details: get_item_details(tcx, internal_id, None, Some(name), Some(id)),
       }
@@ -712,17 +718,10 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
       }
     },
     (None, Some(kind_val)) => {
-      let opt_array = if let Some(kind) = kind_val.get("Value") {
-        panic!("Unexpected TyConst::Value")
-      } else if let Some(kind) = kind_val.get("MonoItemStatic") {
-        kind.as_array()
-      } else {
-        None
+      if kind_val.as_object().map_or(false, |o| o.contains_key("Value")) {
+        panic!("Unexpected TyConst::Value");
       };
-      opt_array.map(|array| {
-        assert!(array.len() == 2 && array[0].as_u64().is_some() && array[1].as_object().is_some());
-        (array[0].as_u64().unwrap(), array[1].as_object().unwrap().clone(),true)
-      })
+      None
     },
     _ => None,
   };
