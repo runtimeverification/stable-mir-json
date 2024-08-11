@@ -781,13 +781,13 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
     serde_json::to_string(&interned_values.1).expect("serde_json global allocs to json failed"),
     serde_json::to_string(&interned_values.0.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>()).expect("serde_json functions to json failed"),
-    serde_json::to_string("temp").unwrap(), // serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
+    serde_json::to_string(&uneval_consts).expect("serde_json unevaluated consts to json failed"),
     serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
   ).expect("Failed to write JSON to file");
   if debug_enabled() {
     write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-      "temp", // serde_json::to_string(&interned_values.0.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
-      "temp", // serde_json::to_string(&visited_tys()).expect("serde_json tys failed"),
+      serde_json::to_string(&interned_values.0.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>()).expect("serde_json functions failed"),
+      serde_json::to_string(&interned_values.2).expect("serde_json tys failed"),
       serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
     ).expect("Failed to write JSON to file");
   } else {
