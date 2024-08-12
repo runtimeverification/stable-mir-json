@@ -442,16 +442,9 @@ fn collect_alloc(val_collector: &mut InternedValueCollector, val: stable_mir::mi
                 collect_alloc(val_collector, prov.0);
             });
         }
-        GlobalAlloc::Static(ref def) => {
-            // TODO: get MIR for this static using rustc_middle::ty::Instance::mono(tcx, def_id)
-            val_collector.visited_tys.insert(hash(def.ty()), def.ty().kind());
-            let alloc = def.eval_initializer().unwrap();
-            println!("Debug static alloc {:?}:{:?}:{:?}", mono_item_name(val_collector.tcx, &MonoItem::Static(*def)), def, alloc);
-            alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
-                collect_alloc(val_collector, prov.0);
-            });
-        },
-        _ => {}
+        GlobalAlloc::Static(_def) => {},
+        GlobalAlloc::Function(_inst) => {},
+        GlobalAlloc::VTable(_ty, _traitref) => {},
     };
 }
 
