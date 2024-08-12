@@ -398,8 +398,11 @@ type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 
 struct InternedValueCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
+  sym: String,
   locals: &'local [LocalDecl],
   link_map: &'local mut LinkMap<'tcx>,
+  inline_alloc_count: &'local mut usize,
+  inline_alloc_tys: &'local mut HashMap<(String,usize),stable_mir::ty::TyKind>,
   visited_allocs: &'local mut HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
   visited_tys: &'local mut HashMap<u64, stable_mir::ty::TyKind>,
 }
@@ -536,6 +539,8 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     use stable_mir::ty::{ConstantKind, TyConst, TyConstKind};
     match constant.kind() {
       ConstantKind::Allocated(alloc) => {
+        self.inline_alloc_tys.insert( ( self.sym.clone(), *self.inline_alloc_count ), constant.ty().kind());
+        *self.inline_alloc_count += 1;
         alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, prov.0));
       },
       ConstantKind::Ty(ty_const) => {
@@ -556,6 +561,8 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
   let mut calls_map = HashMap::new();
   let mut visited_tys = HashMap::new();
   let mut visited_allocs = HashMap::new();
+  let mut inline_alloc_tys = HashMap::new();
+  let mut inline_alloc_count = 0usize;
   if link_items_enabled() {
     for item in items.iter() {
       if let MonoItem::Fn ( inst ) = item {
@@ -569,18 +576,25 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
          for body in get_bodies(tcx, inst).into_iter() {
            InternedValueCollector {
              tcx,
+             sym: inst.mangled_name(),
              locals: body.locals(),
              link_map: &mut calls_map,
+             inline_alloc_count: &mut inline_alloc_count,
+             inline_alloc_tys: &mut inline_alloc_tys,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
            }.visit_body(&body)
          }
       }
       MonoItem::Static(def) => {
-         for body in get_bodies(tcx, &def_id_to_inst(tcx, def.def_id())).into_iter() {
+         let inst = def_id_to_inst(tcx, def.def_id());
+         for body in get_bodies(tcx, &inst).into_iter() {
            InternedValueCollector {
              tcx,
+             sym: inst.mangled_name(),
              locals: &[],
+             inline_alloc_count: &mut inline_alloc_count,
+             inline_alloc_tys: &mut inline_alloc_tys,
              link_map: &mut calls_map,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
@@ -661,6 +675,10 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
 }
 
 fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, allocs: &HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>, tys: &HashMap<u64, stable_mir::ty::TyKind>) -> Vec<Item> {
+  // for (alloc_id, alloc) in allocs.into_iter() {
+
+  // }
+  // let ty_kind = 
   // TODO: create alloc items for referenced allocs
   vec![]
 }
