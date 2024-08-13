@@ -1,8 +1,11 @@
+#![feature(f16)]
+#![feature(f128)]
 #![feature(rustc_private)]
 use std::env;
 pub mod driver;
 pub mod printer;
 pub mod kani_lib;
+pub mod parse_bytes;
 use driver::stable_mir_driver;
 use printer::emit_smir;
 

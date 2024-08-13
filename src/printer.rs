@@ -18,6 +18,7 @@ use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind}}; // Symbol
 use serde::{Serialize, Serializer, ser::{SerializeStruct}};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
+use crate::parse_bytes::{read_u128, read_i128, read_float};
 
 // Structs for serializing extra details about mono items
 // ======================================================
@@ -231,8 +232,12 @@ enum Address {
 
 #[derive(Serialize)]
 enum Value {
-  Scalar(u128, u8, bool),
-  Float(f64, u8),
+  Uscalar(u128, u8),
+  Iscalar(i128, u8),
+  Float32(f32),
+  Float64(f64),
+  // Float16(f16),   // serde serialization is missing for float16
+  // Float128(f128), // serde serialization is missing for float128
   Ptr(Address, Option<Box<Value>>),
 }
 
@@ -737,8 +742,32 @@ struct RemapData<'tcx> {
 }
 
 fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, proc: &RemapData) -> Value {
-  // TODO: properly lookup value ty and construct value
-  Value::Scalar(0,0,true)
+  use stable_mir::ty::{RigidTy,FloatTy::*,IntTy::*,UintTy::*};
+
+  let kind = proc.interned_values.2[&ty].rigid().expect("alloc_to_value: cannot allocate value for non-rigid type");
+  let bytes: Vec<_> = bytes.into_iter().map(|b| b.expect("alloc_to_value: cannot allocate value with uninitialized bytes")).collect();
+  let len: u8 = bytes.len().try_into().expect("alloc_to_value: allocated constant has unexpected size");
+  match kind {
+    RigidTy::Bool        if len == 1   => Value::Uscalar((bytes[0] != 0) as u128, len),
+    RigidTy::Uint(U8)    if len == 8   => Value::Uscalar(read_u128(bytes), len),
+    RigidTy::Uint(U16)   if len == 16  => Value::Uscalar(read_u128(bytes), len),
+    RigidTy::Uint(U32)   if len == 32  => Value::Uscalar(read_u128(bytes), len),
+    RigidTy::Uint(U64)   if len == 64  => Value::Uscalar(read_u128(bytes), len),
+    RigidTy::Uint(U128)  if len == 128 => Value::Uscalar(read_u128(bytes), len),
+    RigidTy::Uint(Usize) if len == 128 => Value::Uscalar(read_u128(bytes), len),
+    RigidTy::Int(I8)     if len == 8   => Value::Iscalar(read_i128(bytes), len),
+    RigidTy::Int(I16)    if len == 16  => Value::Iscalar(read_i128(bytes), len),
+    RigidTy::Int(I32)    if len == 32  => Value::Iscalar(read_i128(bytes), len),
+    RigidTy::Int(I64)    if len == 64  => Value::Iscalar(read_i128(bytes), len),
+    RigidTy::Int(I128)   if len == 128 => Value::Iscalar(read_i128(bytes), len),
+    RigidTy::Float(F32)  if len == 32  => Value::Float32(read_float::<f32>(bytes)),
+    RigidTy::Float(F64)  if len == 64  => Value::Float64(read_float::<f64>(bytes)),
+    RigidTy::Float(F16)  if len == 16  => unimplemented!("Serde serialization is missing for float16"),
+    RigidTy::Float(F128) if len == 128 => unimplemented!("Serde serialization is missing for float128"),
+    // RigidTy::Float(F16)  if len == 16  => Value::Float16(read_float::<f16>(bytes)),
+    // RigidTy::Float(F128) if len == 128 => Value::Float128(read_float::<f128>(bytes)),
+    _                                  => { panic!("alloc_to_value: cannot allocate value for non-scalar"); }
+  }
 }
 
 fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u64, serde_json::Map<String,serde_json::Value>)> {
@@ -774,7 +803,7 @@ fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
     serde_json::Value::Object(ref mut map) => {
       if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
         let bytes: Vec<Option<u8>> = serde_json::from_value(json_alloc["bytes"].clone()).unwrap();
-        // val["kind"]["Allocated"] = serde_json::to_value(alloc_to_value(ty_idx, bytes, proc)).unwrap();
+        val["kind"]["Allocated"] = serde_json::to_value(alloc_to_value(ty_idx, bytes, proc)).unwrap();
       } else {
         for val in map.values_mut() {
           process_json(val, proc);
