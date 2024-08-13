@@ -401,15 +401,13 @@ struct InternedValueCollector<'tcx, 'local> {
   sym: String,
   locals: &'local [LocalDecl],
   link_map: &'local mut LinkMap<'tcx>,
-  inline_alloc_count: &'local mut usize,
-  inline_alloc_tys: &'local mut HashMap<(String,usize),stable_mir::ty::TyKind>,
-  visited_allocs: &'local mut HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
+  visited_allocs: &'local mut HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::TyKind, stable_mir::mir::alloc::GlobalAlloc)>,
   visited_tys: &'local mut HashMap<u64, stable_mir::ty::TyKind>,
 }
 
 type InternedValues<'tcx> = (LinkMap<'tcx>,
-                             HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>,
-                             HashMap<u64, stable_mir::ty::TyKind>);
+                             HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::TyKind, stable_mir::mir::alloc::GlobalAlloc)>,
+                             HashMap<u64,stable_mir::ty::TyKind>);
 
 fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
   if fn_sym.is_none() { return }
@@ -432,22 +430,26 @@ fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<
   }
 }
 
-fn collect_alloc(val_collector: &mut InternedValueCollector, val: stable_mir::mir::alloc::AllocId) {
+fn collect_alloc(val_collector: &mut InternedValueCollector, kind: stable_mir::ty::TyKind, val: stable_mir::mir::alloc::AllocId) {
     use stable_mir::mir::alloc::GlobalAlloc;
     println!("DEBUG: called collect_alloc");
     let entry = val_collector.visited_allocs.entry(val);
     if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) { return; }
     let global_alloc = GlobalAlloc::from(val);
-    entry.or_insert(global_alloc.clone());
+    entry.or_insert((kind.clone(), global_alloc.clone()));
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
+            let pointed_kind = kind.builtin_deref(true).expect(format!("Allocated pointer is not a built-in pointer type: {:?}", kind).as_str()).ty.kind();
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
-                collect_alloc(val_collector, prov.0);
+                collect_alloc(val_collector, pointed_kind.clone(), prov.0);
             });
         }
-        GlobalAlloc::Static(_def) => {},
-        GlobalAlloc::Function(_inst) => {},
-        GlobalAlloc::VTable(_ty, _traitref) => {},
+        GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
+            assert!(kind.builtin_deref(true).is_some(), "Allocated pointer is not a built-in pointer type: {:?}", kind);
+        },
+        GlobalAlloc::Function(_inst) => {
+            assert!(kind.is_fn_ptr());
+        },
     };
 }
 
@@ -535,13 +537,11 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     self.super_rvalue(rval, loc);
   }
 
-  fn visit_mir_const(&mut self, constant: &stable_mir::ty::MirConst, _location: stable_mir::mir::visit::Location) {
+  fn visit_mir_const(&mut self, constant: &stable_mir::ty::MirConst, loc: stable_mir::mir::visit::Location) {
     use stable_mir::ty::{ConstantKind, TyConst, TyConstKind};
     match constant.kind() {
       ConstantKind::Allocated(alloc) => {
-        self.inline_alloc_tys.insert( ( self.sym.clone(), *self.inline_alloc_count ), constant.ty().kind());
-        *self.inline_alloc_count += 1;
-        alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, prov.0));
+        alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, constant.ty().kind(), prov.0));
       },
       ConstantKind::Ty(ty_const) => {
         if let TyConstKind::Value(..) = ty_const.kind() {
@@ -550,6 +550,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
       },
       ConstantKind::Unevaluated(_) | ConstantKind::Param(_) | ConstantKind::ZeroSized => {}
     }
+    self.super_mir_const(constant, loc);
   }
 
   fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
@@ -561,8 +562,6 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
   let mut calls_map = HashMap::new();
   let mut visited_tys = HashMap::new();
   let mut visited_allocs = HashMap::new();
-  let mut inline_alloc_tys = HashMap::new();
-  let mut inline_alloc_count = 0usize;
   if link_items_enabled() {
     for item in items.iter() {
       if let MonoItem::Fn ( inst ) = item {
@@ -579,8 +578,6 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
              sym: inst.mangled_name(),
              locals: body.locals(),
              link_map: &mut calls_map,
-             inline_alloc_count: &mut inline_alloc_count,
-             inline_alloc_tys: &mut inline_alloc_tys,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
            }.visit_body(&body)
@@ -593,8 +590,6 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
              tcx,
              sym: inst.mangled_name(),
              locals: &[],
-             inline_alloc_count: &mut inline_alloc_count,
-             inline_alloc_tys: &mut inline_alloc_tys,
              link_map: &mut calls_map,
              visited_tys: &mut visited_tys,
              visited_allocs: &mut visited_allocs,
@@ -674,10 +669,22 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
   (unevaluated_consts, processed_items.drain().map(|(_name,item)| item).collect())
 }
 
-fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, allocs: &HashMap<stable_mir::mir::alloc::AllocId, stable_mir::mir::alloc::GlobalAlloc>, tys: &HashMap<u64, stable_mir::ty::TyKind>) -> Vec<Item> {
-  // for (alloc_id, alloc) in allocs.into_iter() {
+fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, allocs: &HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::TyKind, stable_mir::mir::alloc::GlobalAlloc)>) -> Vec<Item> {
+  use stable_mir::mir::alloc::GlobalAlloc;
+  for (alloc_id, (kind, alloc)) in allocs.into_iter() {
+    match &alloc {
+      GlobalAlloc::Memory(alloc) => {
+        let pointed_kind = kind.builtin_deref(true).expect("Alloc item is referenced by non-built-in pointer constant").ty.kind();
+      }
+      GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
 
-  // }
+      },
+      GlobalAlloc::Function(_inst) => {
+        // NO-OP --- we assume this instance has already been collected by the monomorphization
+        // pass + transitive closure
+      }
+    }
+  }
   // let ty_kind = 
   // TODO: create alloc items for referenced allocs
   vec![]
@@ -767,7 +774,7 @@ fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
     serde_json::Value::Object(ref mut map) => {
       if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
         let bytes: Vec<Option<u8>> = serde_json::from_value(json_alloc["bytes"].clone()).unwrap();
-        val["kind"]["Allocated"] = serde_json::to_value(alloc_to_value(ty_idx, bytes, proc)).unwrap();
+        // val["kind"]["Allocated"] = serde_json::to_value(alloc_to_value(ty_idx, bytes, proc)).unwrap();
       } else {
         for val in map.values_mut() {
           process_json(val, proc);
@@ -790,7 +797,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let items = collect_items(tcx);
   let (uneval_consts, items) = collect_unevaluated_constant_items(tcx, items);
   let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.item).collect::<Vec<_>>());
-  let alloc_items = create_alloc_items(tcx, crate_id, &interned_values.1, &interned_values.2);
+  let alloc_items = create_alloc_items(tcx, crate_id, &interned_values.1);
   let mut json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
 
   // let json_crate_id = serde_json::to_value(&crate_id).unwrap();
