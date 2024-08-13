@@ -736,14 +736,17 @@ struct RemapData<'tcx> {
 }
 
 fn alloc_ptr_value(ty: u64, bytes: Vec<u8>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
+  assert!(prov.len() <= 2, "Provenance for ptr was larger than 2 {:?}", prov);
   Value::Ptr(0, None)
 }
 
 fn alloc_ref_value(ty: u64, bytes: Vec<u8>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
+  assert!(prov.len() <= 2, "Provenance for ref was larger than 2: {:?}", prov);
   Value::Ptr(0, None)
 }
 
 fn alloc_fnptr_value(bytes: Vec<u8>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
+  assert!(prov.len() == 1, "Provenance for fn pointer was larger than 1: {:?}", prov);
   Value::Ptr(0, None)
 }
 
