@@ -741,6 +741,18 @@ struct RemapData<'tcx> {
   tcx: TyCtxt<'tcx>,
 }
 
+fn alloc_ptr_value(ty: u64, bytes: Vec<u8>, proc: &RemapData) -> Value {
+  Value::Uscalar(0128, 0)
+}
+
+fn alloc_ref_value(ty: u64, bytes: Vec<u8>, proc: &RemapData) -> Value {
+  Value::Uscalar(0128, 0)
+}
+
+fn alloc_fnptr_value(bytes: Vec<u8>, proc: &RemapData) -> Value {
+  Value::Uscalar(0128, 0)
+}
+
 fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, proc: &RemapData) -> Value {
   use stable_mir::ty::{RigidTy,FloatTy::*,IntTy::*,UintTy::*};
 
@@ -764,6 +776,9 @@ fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, proc: &RemapData) -> Value {
     RigidTy::Float(F64)  if len == 64  => Value::Float64(read_float::<f64>(bytes)),
     RigidTy::Float(F16)  if len == 16  => unimplemented!("Serde serialization is missing for float16"),
     RigidTy::Float(F128) if len == 128 => unimplemented!("Serde serialization is missing for float128"),
+    RigidTy::RawPtr(ty,_)              => alloc_ptr_value(hash(ty), bytes, proc),
+    RigidTy::Ref(_,ty,_)               => alloc_ref_value(hash(ty), bytes, proc),
+    RigidTy::FnPtr(_)                  => alloc_fnptr_value(bytes, proc),
     // RigidTy::Float(F16)  if len == 16  => Value::Float16(read_float::<f16>(bytes)),
     // RigidTy::Float(F128) if len == 128 => Value::Float128(read_float::<f128>(bytes)),
     _                                  => { panic!("alloc_to_value: cannot allocate value for non-scalar"); }
