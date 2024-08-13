@@ -728,9 +728,9 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 // JSON Post-processing
 // ====================
 
-struct RemapData<'tcx> {
-  uneval_consts: HashMap<stable_mir::ty::ConstDef,String>,
-  interned_values: InternedValues<'tcx>,
+struct RemapData<'tcx,'local> {
+  uneval_consts: &'local HashMap<stable_mir::ty::ConstDef,String>,
+  interned_values: &'local InternedValues<'tcx>,
   crate_id: serde_json::Value,
   tcx: TyCtxt<'tcx>,
 }
@@ -837,13 +837,14 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
   let items = collect_items(tcx);
-  let (uneval_consts, items) = collect_unevaluated_constant_items(tcx, items);
+  let (uneval_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
   let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.item).collect::<Vec<_>>());
   let alloc_items = create_alloc_items(tcx, crate_id, &interned_values.1);
+  items.extend(alloc_items);
   let mut json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
 
-  // let json_crate_id = serde_json::to_value(&crate_id).unwrap();
-  // process_json(&mut json_items, &RemapData{ uneval_consts, interned_values, crate_id: json_crate_id, tcx });
+  let json_crate_id = serde_json::to_value(&crate_id).unwrap();
+  process_json(&mut json_items, &RemapData{ uneval_consts: &uneval_consts, interned_values: &interned_values, crate_id: json_crate_id, tcx });
 
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),

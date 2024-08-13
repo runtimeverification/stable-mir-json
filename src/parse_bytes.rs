@@ -43,7 +43,7 @@ pub fn read_i128(bytes: Vec<u8>) -> i128 {
   }
 }
 
-trait FromBits { fn from_bits(v: u128) -> Self; }
+pub trait FromBits { fn from_bits(v: u128) -> Self; }
 impl FromBits for f16  { fn from_bits(v: u128) -> Self { f16::from_bits(v as u16) } }
 impl FromBits for f32  { fn from_bits(v: u128) -> Self { f32::from_bits(v as u32) } }
 impl FromBits for f64  { fn from_bits(v: u128) -> Self { f64::from_bits(v as u64) } }
