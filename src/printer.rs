@@ -16,7 +16,7 @@ use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind}}; // Symbol
-use serde::{Serialize, Serializer, ser::{SerializeStruct, SerializeStructVariant}};
+use serde::{Serialize, Serializer, ser::{SerializeStruct, SerializeTupleVariant}};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 use crate::parse_bytes::{read_u128, read_i128, read_float};
 
@@ -224,6 +224,13 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 // Structs for serializing critical details about mono items
 // =========================================================
 
+#[derive(Serialize)]
+struct GlobalAddr(u64, [u64; 0]);
+impl GlobalAddr {
+    fn new(addr: u64) -> Self {
+      GlobalAddr(addr, [0u64; 0])
+    }
+}
 enum Value {
   Uscalar(u128, u8),
   Iscalar(i128, u8),
@@ -231,7 +238,7 @@ enum Value {
   Float64(f64),
   // Float16(f16),   // serde serialization is missing for float16
   // Float128(f128), // serde serialization is missing for float128
-  Ptr(u64, Option<Box<Value>>),
+  Ptr(GlobalAddr, Option<Box<Value>>),
 }
 
 impl Serialize for Value {
@@ -239,7 +246,40 @@ impl Serialize for Value {
   where
       S: Serializer,
   {
-    let mut state = serializer.serialize_struct_variant("Value", )
+    match self {
+      Value::Uscalar(v,l) => {
+          let mut s = serializer.serialize_tuple_variant("Value", 0, "Scalar", 3)?;
+          s.serialize_field(v)?;
+          s.serialize_field(l)?;
+          s.serialize_field(&false)?;
+          s.end()
+      }
+      Value::Iscalar(v,l) => {
+          let mut s = serializer.serialize_tuple_variant("Value", 0, "Scalar", 3)?;
+          s.serialize_field(v)?;
+          s.serialize_field(l)?;
+          s.serialize_field(&true)?;
+          s.end()
+      }
+      Value::Float32(v) => {
+          let mut s = serializer.serialize_tuple_variant("Value", 1, "Float", 2)?;
+          s.serialize_field(v)?;
+          s.serialize_field(&4)?;
+          s.end()
+      }
+      Value::Float64(v) => {
+          let mut s = serializer.serialize_tuple_variant("Value", 1, "Float", 2)?;
+          s.serialize_field(v)?;
+          s.serialize_field(&8)?;
+          s.end()
+      }
+      Value::Ptr(v, m) => {
+          let mut s = serializer.serialize_tuple_variant("Value", 1, "Ptr", 2)?;
+          s.serialize_field(v)?;
+          s.serialize_field(m)?;
+          s.end()
+      }
+    }
   }
 }
 
@@ -751,17 +791,17 @@ struct RemapData<'tcx,'local> {
 
 fn alloc_ptr_value(ty: u64, bytes: Vec<u8>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
   assert!(prov.ptrs.len() <= 2, "Provenance for ptr was larger than 2 {:?}", prov);
-  Value::Ptr(0, None)
+  Value::Ptr(GlobalAddr::new(0), None)
 }
 
 fn alloc_ref_value(ty: u64, bytes: Vec<u8>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
   assert!(prov.ptrs.len() <= 2, "Provenance for ref was larger than 2: {:?}", prov);
-  Value::Ptr(0, None)
+  Value::Ptr(GlobalAddr::new(0), None)
 }
 
 fn alloc_fnptr_value(bytes: Vec<u8>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
   assert!(prov.ptrs.len() == 1, "Provenance for fn pointer was larger than 1: {:?}", prov);
-  Value::Ptr(0, None)
+  Value::Ptr(GlobalAddr::new(0), None)
 }
 
 fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
