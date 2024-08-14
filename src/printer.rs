@@ -16,7 +16,7 @@ use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
 use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind}}; // Symbol
-use serde::{Serialize, Serializer, ser::{SerializeStruct}};
+use serde::{Serialize, Serializer, ser::{SerializeStruct, SerializeStructVariant}};
 use crate::kani_lib::kani_collector::{filter_crate_items, collect_all_mono_items};
 use crate::parse_bytes::{read_u128, read_i128, read_float};
 
@@ -224,7 +224,6 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 // Structs for serializing critical details about mono items
 // =========================================================
 
-#[derive(Serialize)]
 enum Value {
   Uscalar(u128, u8),
   Iscalar(i128, u8),
@@ -234,6 +233,16 @@ enum Value {
   // Float128(f128), // serde serialization is missing for float128
   Ptr(u64, Option<Box<Value>>),
 }
+
+impl Serialize for Value {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+      S: Serializer,
+  {
+    let mut state = serializer.serialize_struct_variant("Value", )
+  }
+}
+
 
 #[derive(Serialize)]
 enum MonoItemKind {
