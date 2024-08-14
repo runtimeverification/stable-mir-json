@@ -239,6 +239,7 @@ enum Value {
   // Float16(f16),   // serde serialization is missing for float16
   // Float128(f128), // serde serialization is missing for float128
   Ptr(GlobalAddr, Option<Box<Value>>),
+  Range(Vec<Value>),
 }
 
 impl Serialize for Value {
@@ -279,6 +280,7 @@ impl Serialize for Value {
           s.serialize_field(m)?;
           s.end()
       }
+      Value::Range(_) => todo!(),
     }
   }
 }
@@ -478,25 +480,39 @@ fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<
   }
 }
 
-fn collect_alloc(val_collector: &mut InternedValueCollector, kind: stable_mir::ty::TyKind, val: stable_mir::mir::alloc::AllocId) {
+fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mir::ty::TyKind> {
+  use stable_mir::ty::RigidTy;
+  // check for pointers
+  let kind = if let Some(kind) = maybe_kind { kind } else { return None };
+  if let Some(ty) = kind.builtin_deref(true) {
+    return ty.ty.kind().into();
+  }
+  match kind.rigid().expect("Non-rigid-ty allocation found!") {
+    RigidTy::Array(ty, _) | RigidTy::Slice(ty) => ty.kind().into(),
+    RigidTy::FnPtr(_) => None,
+    _ => todo!(),
+  }
+}
+
+fn collect_alloc(val_collector: &mut InternedValueCollector, kind: Option<stable_mir::ty::TyKind>, val: stable_mir::mir::alloc::AllocId) {
     use stable_mir::mir::alloc::GlobalAlloc;
-    println!("DEBUG: called collect_alloc");
     let entry = val_collector.visited_allocs.entry(val);
     if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) { return; }
     let global_alloc = GlobalAlloc::from(val);
-    entry.or_insert((kind.clone(), global_alloc.clone()));
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_kind = kind.builtin_deref(true).expect(format!("Allocated pointer is not a built-in pointer type: {:?}", kind).as_str()).ty.kind();
+            let pointed_kind = get_prov_type(kind);
+            println!("DEBUG: called collect_alloc: {:?}:{:?}:{:?}", val, pointed_kind, global_alloc);
+            entry.or_insert((pointed_kind.clone().unwrap(), global_alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_kind.clone(), prov.0);
             });
         }
         GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
-            assert!(kind.builtin_deref(true).is_some(), "Allocated pointer is not a built-in pointer type: {:?}", kind);
+            assert!(kind.clone().unwrap().builtin_deref(true).is_some(), "Allocated pointer is not a built-in pointer type: {:?}", kind);
         },
         GlobalAlloc::Function(_inst) => {
-            assert!(kind.is_fn_ptr());
+            assert!(kind.unwrap().is_fn_ptr());
         },
     };
 }
@@ -589,7 +605,8 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     use stable_mir::ty::{ConstantKind, TyConst, TyConstKind};
     match constant.kind() {
       ConstantKind::Allocated(alloc) => {
-        alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, constant.ty().kind(), prov.0));
+        println!("visited_mir_const::Allocated({:?}) as {:?}", alloc, constant.ty().kind());
+        alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, Some(constant.ty().kind()), prov.0));
       },
       ConstantKind::Ty(ty_const) => {
         if let TyConstKind::Value(..) = ty_const.kind() {
@@ -720,14 +737,15 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
 fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, proc: &RemapData) -> Vec<Item> {
   use stable_mir::mir::alloc::GlobalAlloc;
   use stable_mir::ty::IndexedVal;
-  let mut items = Vec::new();
+  let mut items: Vec<Item> = Vec::new();
   for (alloc_id, (kind, alloc)) in proc.interned_values.1.iter() {
     let alloc_id: u64 = IndexedVal::to_index(alloc_id) as u64;
     match &alloc {
       GlobalAlloc::Memory(alloc) => {
-        let pointed_ty = kind.builtin_deref(true).expect("Alloc item is referenced by non-built-in pointer constant").ty;
-        let value = alloc_to_value(hash(pointed_ty), alloc.bytes.clone(), alloc.provenance.clone(), proc);
-        items.push(Item { key: ItemKey::Index(crate_id, alloc_id), kind: MonoItemKind::MonoItemAllocation(value), item: None, details: None });
+        println!("create_alloc_items: {:?}:{:?}:{:?}", alloc_id, kind, alloc);
+        // let pointed_ty = kind.builtin_deref(true).expect("Alloc item is referenced by non-built-in pointer constant").ty;
+        // let value = alloc_to_value(hash(pointed_ty), alloc.bytes.clone(), alloc.provenance.clone(), proc);
+        // items.push(Item { key: ItemKey::Index(crate_id, alloc_id), kind: MonoItemKind::MonoItemAllocation(value), item: None, details: None });
       }
       GlobalAlloc::VTable(_, _) => {
         unimplemented!("VTable allocation is not supported yet!");
@@ -830,9 +848,10 @@ fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, prov: stable_mir::ty::Provena
     RigidTy::RawPtr(ty,_)              => alloc_ptr_value(hash(ty), bytes, prov, proc),
     RigidTy::Ref(_,ty,_)               => alloc_ref_value(hash(ty), bytes, prov, proc),
     RigidTy::FnPtr(_)                  => alloc_fnptr_value(bytes, prov, proc),
+    RigidTy::Str                       => Value::Range(vec![]),
     // RigidTy::Float(F16)  if len == 16  => Value::Float16(read_float::<f16>(bytes)),
     // RigidTy::Float(F128) if len == 128 => Value::Float128(read_float::<f128>(bytes)),
-    _                                  => { panic!("alloc_to_value: cannot allocate value for non-scalar"); }
+    _                                  => { panic!("alloc_to_value: cannot allocate value for non-scalar: {:?}:{:?}:{:?}", kind, bytes, prov); }
   }
 }
 
