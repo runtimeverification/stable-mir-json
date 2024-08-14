@@ -251,7 +251,7 @@ enum ItemKey {
 struct Item {
   key: ItemKey,
   kind: MonoItemKind,
-  item: MonoItem,
+  item: Option<MonoItem>,
   details: Option<ItemDetails>
 }
 
@@ -288,7 +288,7 @@ fn mk_item_helper(tcx: TyCtxt<'_>, item: MonoItem, inst: &Instance, sym_name: St
    Item {
      key: ItemKey::Symbol(sym_name),
      kind: MonoItemKind::MonoItemFn(get_bodies(tcx, &inst)),
-     item,
+     item: Some(item),
      details: get_item_details(tcx, internal_id, Some(*inst), Some(name), Some(id)),
    }
 }
@@ -313,7 +313,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
       Item {
         key: ItemKey::Symbol(sym_name),
         kind: MonoItemKind::MonoItemGlobalAsm(asm),
-        item,
+        item: Some(item),
         details: None,
       }
     }
@@ -668,19 +668,24 @@ fn collect_unevaluated_constant_items(tcx: TyCtxt<'_>, items: HashMap<String,Ite
   (unevaluated_consts, processed_items.drain().map(|(_name,item)| item).collect())
 }
 
-fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, allocs: &HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::TyKind, stable_mir::mir::alloc::GlobalAlloc)>) -> Vec<Item> {
+fn create_alloc_items(tcx: TyCtxt<'_>, crate_id: u64, proc: &RemapData) -> Vec<Item> {
   use stable_mir::mir::alloc::GlobalAlloc;
-  for (alloc_id, (kind, alloc)) in allocs.into_iter() {
+  use stable_mir::ty::IndexedVal;
+  let mut items = Vec::new();
+  for (alloc_id, (kind, alloc)) in proc.interned_values.1.iter() {
+    let alloc_id: u64 = IndexedVal::to_index(alloc_id) as u64;
     match &alloc {
       GlobalAlloc::Memory(alloc) => {
-        let pointed_kind = kind.builtin_deref(true).expect("Alloc item is referenced by non-built-in pointer constant").ty.kind();
+        let pointed_ty = kind.builtin_deref(true).expect("Alloc item is referenced by non-built-in pointer constant").ty;
+        let value = alloc_to_value(hash(pointed_ty), alloc.bytes.clone(), alloc.provenance.clone(), proc);
+        items.push(Item { key: ItemKey::Index(crate_id, alloc_id), kind: MonoItemKind::MonoItemAllocation(value), item: None, details: None });
       }
-      GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
-
+      GlobalAlloc::VTable(_, _) => {
+        unimplemented!("VTable allocation is not supported yet!");
+        // items.push(Item { key: ItemKey::Index(crate_id, alloc_id), kind: MonoItemKind::MonoItemAllocation(Value::Uscalar(0,0)), item: None, details: None });
       },
-      GlobalAlloc::Function(_inst) => {
-        // NO-OP --- we assume this instance has already been collected by the monomorphization
-        // pass + transitive closure
+      GlobalAlloc::Static(_) | GlobalAlloc::Function(_) => {
+        // NO-OP --- we assume this instance has already been collected and processed
       }
     }
   }
@@ -735,22 +740,22 @@ struct RemapData<'tcx,'local> {
   tcx: TyCtxt<'tcx>,
 }
 
-fn alloc_ptr_value(ty: u64, bytes: Vec<u8>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
-  assert!(prov.len() <= 2, "Provenance for ptr was larger than 2 {:?}", prov);
+fn alloc_ptr_value(ty: u64, bytes: Vec<u8>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
+  assert!(prov.ptrs.len() <= 2, "Provenance for ptr was larger than 2 {:?}", prov);
   Value::Ptr(0, None)
 }
 
-fn alloc_ref_value(ty: u64, bytes: Vec<u8>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
-  assert!(prov.len() <= 2, "Provenance for ref was larger than 2: {:?}", prov);
+fn alloc_ref_value(ty: u64, bytes: Vec<u8>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
+  assert!(prov.ptrs.len() <= 2, "Provenance for ref was larger than 2: {:?}", prov);
   Value::Ptr(0, None)
 }
 
-fn alloc_fnptr_value(bytes: Vec<u8>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
-  assert!(prov.len() == 1, "Provenance for fn pointer was larger than 1: {:?}", prov);
+fn alloc_fnptr_value(bytes: Vec<u8>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
+  assert!(prov.ptrs.len() == 1, "Provenance for fn pointer was larger than 1: {:?}", prov);
   Value::Ptr(0, None)
 }
 
-fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, prov: HashMap<usize,usize>, proc: &RemapData) -> Value {
+fn alloc_to_value(ty: u64, bytes: Vec<Option<u8>>, prov: stable_mir::ty::ProvenanceMap, proc: &RemapData) -> Value {
   use stable_mir::ty::{RigidTy,FloatTy::*,IntTy::*,UintTy::*};
 
   let kind = proc.interned_values.2[&ty].rigid().expect("alloc_to_value: cannot allocate value for non-rigid type");
@@ -811,11 +816,13 @@ fn get_json_alloc(map: &serde_json::Map<String,serde_json::Value>) -> Option<(u6
 }
 
 fn process_json(val: &mut serde_json::Value, proc: &RemapData) {
+  use stable_mir::ty::{IndexedVal, ProvenanceMap, Prov};
   match val {
     serde_json::Value::Object(ref mut map) => {
       if let Some((ty_idx,json_alloc)) = get_json_alloc(map) {
         let bytes: Vec<Option<u8>> = serde_json::from_value(json_alloc["bytes"].clone()).unwrap();
-        let prov: HashMap<usize,usize> = serde_json::from_value(json_alloc["provenance"].clone()).unwrap();
+        let prov: Vec<(usize,usize)> = serde_json::from_value(json_alloc["provenance"].clone()).unwrap();
+        let prov = ProvenanceMap { ptrs: prov.into_iter().map(|(k,v)| (k,Prov(IndexedVal::to_val(v)))).collect() };
         val["kind"]["Allocated"] = serde_json::to_value(alloc_to_value(ty_idx, bytes, prov, proc)).unwrap();
       } else {
         for val in map.values_mut() {
@@ -838,13 +845,14 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
 
   let items = collect_items(tcx);
   let (uneval_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-  let interned_values = collect_interned_values(tcx, items.iter().map(|i| &i.item).collect::<Vec<_>>());
-  let alloc_items = create_alloc_items(tcx, crate_id, &interned_values.1);
+  let interned_values = collect_interned_values(tcx, items.iter().map(|i| i.item.as_ref().unwrap()).collect::<Vec<_>>());
+  let json_crate_id = serde_json::to_value(&crate_id).unwrap();
+  let remap_data = RemapData{ uneval_consts: &uneval_consts, interned_values: &interned_values, crate_id: json_crate_id, tcx };
+
+  let alloc_items = create_alloc_items(tcx, crate_id, &remap_data);
   items.extend(alloc_items);
   let mut json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
-
-  let json_crate_id = serde_json::to_value(&crate_id).unwrap();
-  process_json(&mut json_items, &RemapData{ uneval_consts: &uneval_consts, interned_values: &interned_values, crate_id: json_crate_id, tcx });
+  process_json(&mut json_items, &remap_data);
 
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
