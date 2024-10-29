@@ -372,11 +372,11 @@ fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<
       panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
     curr_val.0.0 |= new_val.0.0;
-    if check_collision && debug_enabled() {
+    if check_collision || debug_enabled() {
       println!("Regenerated link map entry: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
   } else {
-    if check_collision && debug_enabled() {
+    if check_collision || debug_enabled() {
       println!("Generated link map entry from call: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
     link_map.insert(key.clone(), new_val);
