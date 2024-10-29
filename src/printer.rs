@@ -362,21 +362,21 @@ struct LinkNameCollector<'tcx, 'local> {
   locals: &'local [LocalDecl],
 }
 
-fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource, check_collision: bool) {
+fn update_link_map<'tcx>(link_map: &mut LinkMap<'tcx>, fn_sym: Option<FnSymInfo<'tcx>>, source: ItemSource) {
   if fn_sym.is_none() { return }
   let (ty, kind, name) = fn_sym.unwrap();
   let new_val = (source, name);
   let key = if link_instance_enabled() { LinkMapKey(ty, Some(kind)) } else { LinkMapKey(ty, None) };
   if let Some(curr_val) = link_map.get_mut(&key.clone()) {
     if curr_val.1 != new_val.1 {
-      panic!("Checking collisions: {}, Added inconsistent entries into link map! {:?} -> {:?}, {:?}", check_collision, (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
+      panic!("Added inconsistent entries into link map! {:?} -> {:?}, {:?}", (ty, ty.kind().fn_def(), &kind), curr_val.1, new_val.1);
     }
     curr_val.0.0 |= new_val.0.0;
-    if check_collision && debug_enabled() {
+    if debug_enabled() {
       println!("Regenerated link map entry: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
   } else {
-    if check_collision && debug_enabled() {
+    if debug_enabled() {
       println!("Generated link map entry from call: {:?}:{:?} -> {:?}", &key, key.0.kind().fn_def(), new_val);
     }
     link_map.insert(key.clone(), new_val);
@@ -400,7 +400,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       }
       _ => None
     };
-    update_link_map(self.link_map, fn_sym, ItemSource(TERM), true);
+    update_link_map(self.link_map, fn_sym, ItemSource(TERM));
     self.super_terminator(term, loc);
   }
 
@@ -410,7 +410,7 @@ impl MirVisitor for LinkNameCollector<'_, '_> {
       Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
         let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false).expect("ReifyFnPointer Cast operand type does not resolve to an instance");
         let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));
-        update_link_map(self.link_map, fn_sym, ItemSource(FPTR), true);
+        update_link_map(self.link_map, fn_sym, ItemSource(FPTR));
       }
       _ => {}
     };
@@ -423,7 +423,7 @@ fn collect_fn_calls<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local MonoItem>
   if link_items_enabled() {
     for item in items.iter() {
       if let MonoItem::Fn ( inst ) = item {
-         update_link_map(&mut hash_map, fn_inst_sym(tcx, None, Some(inst)), ItemSource(ITEM), false)
+         update_link_map(&mut hash_map, fn_inst_sym(tcx, None, Some(inst)), ItemSource(ITEM))
       }
     }
   }
