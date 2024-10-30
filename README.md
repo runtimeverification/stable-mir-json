@@ -46,7 +46,7 @@ There are a few environment variables that can be set to control the tools outpu
 3.  `DEBUG` - serialize additional data in the JSON file and dump logs to stdout
 
 ### Usage For std-lib
-To generate the stable MIR output for the entire standard libary, the most simple way is using the `cargo` option `build-std` on a new project while pointing the `RUSTC` environment variable to `run.sh`. For example:
+To generate the stable MIR output for the entire standard libary, the most simple way is using the [cargo option build-std](https://doc.rust-lang.org/cargo/reference/unstable.html#build-std) on a new project while pointing the `RUSTC` environment variable to `run.sh`. For example:
 ```
 cargo new example
 cd example
