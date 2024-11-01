@@ -21,7 +21,7 @@ use serde::{Serialize, Serializer};
 // Structs for serializing extra details about mono items
 // ======================================================
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct BodyDetails {
     pp: String,
 }
@@ -32,7 +32,7 @@ fn get_body_details(body: &Body) -> BodyDetails {
   BodyDetails { pp: str::from_utf8(&v).unwrap().into() }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct GenericData(Vec<(String,String)>); // Alternatively, GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
@@ -49,7 +49,7 @@ fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
      return GenericData(v);
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct ItemDetails {
     // these fields only defined for fn items
     fn_instance_kind: Option<InstanceKind>,
@@ -215,7 +215,7 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 // Structs for serializing critical details about mono items
 // =========================================================
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 enum MonoItemKind {
     MonoItemFn {
       name: String,
@@ -231,7 +231,7 @@ enum MonoItemKind {
       asm: String,
     },
 }
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 struct Item {
     #[serde(skip)]
     mono_item: MonoItem,
@@ -360,7 +360,7 @@ impl Serialize for ItemSource {
 }
 
 #[derive(Serialize)]
-enum AllocInfo {
+pub enum AllocInfo {
     Function(stable_mir::mir::mono::Instance),
     VTable(stable_mir::ty::Ty, Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>),
     Static(stable_mir::mir::mono::StaticDef),
@@ -424,7 +424,7 @@ fn collect_alloc(val_collector: &mut InternedValueCollector, kind: Option<stable
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
             let pointed_kind = get_prov_type(kind);
-            println!("DEBUG: called collect_alloc: {:?}:{:?}:{:?}", val, pointed_kind, global_alloc);
+            if debug_enabled() { println!("DEBUG: called collect_alloc: {:?}:{:?}:{:?}", val, pointed_kind, global_alloc); }
             entry.or_insert(AllocInfo::Memory(pointed_kind.clone().unwrap(), alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_kind.clone(), prov.0);
@@ -533,7 +533,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     use stable_mir::ty::{ConstantKind, TyConst, TyConstKind};
     match constant.kind() {
       ConstantKind::Allocated(alloc) => {
-        println!("visited_mir_const::Allocated({:?}) as {:?}", alloc, constant.ty().kind());
+        if debug_enabled() { println!("visited_mir_const::Allocated({:?}) as {:?}", alloc, constant.ty().kind()); }
         alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| collect_alloc(self, Some(constant.ty().kind()), prov.0));
       },
       ConstantKind::Ty(ty_const) => {
