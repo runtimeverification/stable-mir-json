@@ -688,8 +688,22 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let local_crate = stable_mir::local_crate();
   let items = collect_items(tcx);
-  let (unevaluated_consts, items) = collect_unevaluated_constant_items(tcx, items);
+  let items_clone = items.clone();
+  let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
   let (calls_map, visited_allocs, visited_tys) = collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
+
+  // FIXME: We dump extra static items here --- this should be handled better
+  for (_, alloc) in visited_allocs.iter() {
+      if let AllocInfo::Static(def) = alloc {
+          let mono_item = stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
+          let item_name = &mono_item_name(tcx, &mono_item);
+          if !items_clone.contains_key(item_name) {
+            println!("Items missing static with id {:?} and name {:?}", def, item_name);
+            items.push(mk_item(tcx, mono_item, item_name.clone()));
+          }
+      }
+  }
+
   let called_functions = calls_map.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
   let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
