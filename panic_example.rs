@@ -1,3 +1,1 @@
-fn main() {
-    panic!()
-}
+tests/integration/programs/panic_example.rs
