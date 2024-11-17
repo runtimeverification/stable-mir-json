@@ -79,6 +79,12 @@ rust_set_toolchain: ${RUST_LIB_DIR}
 	rustup override set "${TOOLCHAIN_NAME}"
 	echo ${STAGE} > ${STAGE_FILE}
 
+.PHONY: rustup-clear-toolchain
+rustup-clear-toolchain:
+	rustup override unset
+	rustup override unset --nonexistent
+	rustup toolchain uninstall "${TOOLCHAIN_NAME}"
+
 generate_ui_tests:
 	mkdir -p "${RUST_DIR}"/tests
 	cd "${RUST_SRC}"; ./get_runpass.sh tests/ui > "${RUST_DIR}"/tests_ui_sources
