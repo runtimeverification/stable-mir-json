@@ -1,1 +1,1 @@
-tests/integration/programs/panic_example.rs
+tests/integration/failing/panic_example.rs
