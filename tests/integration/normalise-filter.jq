@@ -2,8 +2,6 @@
     ( [ .allocs[] ]
 # sort allocs by their ID
         | sort_by(.[0])
-# TODO this should be removed
-        | map ( select( .[1] | has("Static") | not ) )
     ),
   functions:
     ( [ .functions[] ]
