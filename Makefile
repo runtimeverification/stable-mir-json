@@ -24,6 +24,8 @@ ifeq (${TARGET}, release)
 RELEASE_FLAG=--release
 endif
 
+default: build
+
 build_all: rust_build rust_set_toolchain build
 
 setup: rust_clone
