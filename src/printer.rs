@@ -364,7 +364,7 @@ pub enum AllocInfo {
     Function(stable_mir::mir::mono::Instance),
     VTable(stable_mir::ty::Ty, Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>),
     Static(stable_mir::mir::mono::StaticDef),
-    Memory(stable_mir::ty::TyKind, stable_mir::ty::Allocation),
+    Memory(/* stable_mir::ty::TyKind, */ stable_mir::ty::Allocation),
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
@@ -425,7 +425,7 @@ fn collect_alloc(val_collector: &mut InternedValueCollector, kind: Option<stable
         GlobalAlloc::Memory(ref alloc) => {
             let pointed_kind = get_prov_type(kind);
             if debug_enabled() { println!("DEBUG: called collect_alloc: {:?}:{:?}:{:?}", val, pointed_kind, global_alloc); }
-            entry.or_insert(AllocInfo::Memory(pointed_kind.clone().unwrap(), alloc.clone()));
+            entry.or_insert(AllocInfo::Memory(alloc.clone())); // pointed_kind.clone().unwrap(), alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_kind.clone(), prov.0);
             });
@@ -705,12 +705,13 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   }
 
   let called_functions = calls_map.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
+  let allocs = visited_allocs.iter().collect::<Vec<_>>();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
   let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
   write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
     serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
     serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
-    serde_json::to_string(&visited_allocs).expect("serde_json global allocs to json failed"),
+    serde_json::to_string(&allocs).expect("serde_json global allocs to json failed"),
     serde_json::to_string(&called_functions).expect("serde_json functions to json failed"),
     serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
     serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
