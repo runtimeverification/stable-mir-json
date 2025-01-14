@@ -60,7 +60,9 @@ prebuild_clean: ${RUST_SRC}
 
 # NOTE: a deeper clone depth is needed for the build process
 rust_clone:
-	git clone --depth 70 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}"
+	git clone --depth 70 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}" && \
+	cd "${RUST_SRC}" && \
+	git checkout ${RUST_COMMIT}
 
 
 # rust_build for linking against custom rustc is involved
