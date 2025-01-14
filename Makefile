@@ -16,8 +16,13 @@ RUST_LIB_DIR=${RUST_INSTALL_DIR}/lib
 RUST_DEP_DIR=${RUST_BUILD_DIR}/stage1-rustc/${RUST_ARCH}/release/deps
 TARGET_DEP_DIR=${CURDIR}/target/${TARGET}/deps
 TEMP_DIR=${RUST_DIR}/temp
-RUST_REPO=https://github.com/runtimeverification/rust
-RUST_BRANCH=master
+#############################################
+# depend on the rust compiler
+RUST_REPO=https://github.com/rust-lang/rust
+# tip of the `beta` branch on 2025-01-14
+RUST_BRANCH=beta
+RUST_COMMIT=fe9b975
+#############################################
 TOOLCHAIN_NAME=smir_pretty
 RELEASE_FLAG=
 ifeq (${TARGET}, release)
@@ -31,7 +36,7 @@ build_all: rust_build rust_set_toolchain build
 setup: rust_clone
 
 update: ${RUST_SRC}
-	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
+	cd "${RUST_SRC}"; git fetch origin; git checkout ${RUST_COMMIT}
 
 build:
 	cargo build ${RELEASE_FLAG}
