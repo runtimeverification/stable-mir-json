@@ -11,7 +11,7 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, ParamEnv}; //, Binder, Generics, GenericPredicates
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, TypingEnv}; //, Binder, Generics, GenericPredicates
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
 use rustc_smir::rustc_internal;
@@ -67,7 +67,8 @@ fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBi
   where T: TypeFoldable<TyCtxt<'tcx>>
 {
   let v_copy = v.clone();
-  match tcx.try_instantiate_and_normalize_erasing_regions(GenericArgs::identity_for_item(tcx, id), tcx.param_env(id), v) {
+  let body = tcx.optimized_mir(id);
+  match tcx.try_instantiate_and_normalize_erasing_regions(GenericArgs::identity_for_item(tcx, id), body.typing_env(tcx), v) {
       Ok(res) => return res,
       Err(err) => { println!("{:?}", err); v_copy.skip_binder() }
   }
@@ -80,7 +81,8 @@ fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>
     // since FnDef doesn't contain signature, lookup actual function type
     // via getting fn signature with parameters and resolving those parameters
     let sig0 = tcx.fn_sig(fun_id);
-    let sig1 = match tcx.try_instantiate_and_normalize_erasing_regions(args, tcx.param_env(fun_id), sig0) {
+    let body = tcx.optimized_mir(id);
+    let sig1 = match tcx.try_instantiate_and_normalize_erasing_regions(args, body.typing_env(tcx), sig0) {
       Ok(res) => res,
       Err(err) => { println!("{:?}", err); sig0.skip_binder() }
     };
@@ -372,7 +374,7 @@ type TyMap = HashMap<u64, (stable_mir::ty::TyKind, Option<stable_mir::abi::Layou
 
 struct InternedValueCollector<'tcx, 'local> {
   tcx: TyCtxt<'tcx>,
-  sym: String,
+  _sym: String,
   locals: &'local [LocalDecl],
   link_map: &'local mut LinkMap<'tcx>,
   visited_allocs: &'local mut AllocMap,
@@ -450,7 +452,7 @@ fn collect_vec_tys(collector: &mut InternedValueCollector, tys: Vec<stable_mir::
 }
 
 fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty::GenericArgs) {
-    use stable_mir::ty::{GenericArgKind::*, TyConst, TyConstKind::*};
+    use stable_mir::ty::{GenericArgKind::*, TyConstKind::*}; // TyConst
     for arg in args.0.iter() {
         match arg {
             Type(ty) => collect_ty(collector, *ty),
@@ -464,7 +466,7 @@ fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty
 }
 
 fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
-    use stable_mir::ty::{GenericArgKind::*, RigidTy::*, TyConst, TyConstKind::*, TyKind::RigidTy};
+    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy}; // GenericArgKind::*, TyConst, TyConstKind::*
     if val_collector.visited_tys.insert(hash(val), (val.kind(), val.layout().map(|l| l.shape()).ok())).is_some() {
         match val.kind() {
             RigidTy(Array(ty, _) | Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
@@ -530,7 +532,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
   }
 
   fn visit_mir_const(&mut self, constant: &stable_mir::ty::MirConst, loc: stable_mir::mir::visit::Location) {
-    use stable_mir::ty::{ConstantKind, TyConst, TyConstKind};
+    use stable_mir::ty::{ConstantKind, TyConstKind}; // TyConst
     match constant.kind() {
       ConstantKind::Allocated(alloc) => {
         if debug_enabled() { println!("visited_mir_const::Allocated({:?}) as {:?}", alloc, constant.ty().kind()); }
@@ -568,7 +570,7 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
          for body in get_bodies(tcx, inst).into_iter() {
            InternedValueCollector {
              tcx,
-             sym: inst.mangled_name(),
+             _sym: inst.mangled_name(),
              locals: body.locals(),
              link_map: &mut calls_map,
              visited_tys: &mut visited_tys,
@@ -581,7 +583,7 @@ fn collect_interned_values<'tcx,'local>(tcx: TyCtxt<'tcx>, items: Vec<&'local Mo
          for body in get_bodies(tcx, &inst).into_iter() {
            InternedValueCollector {
              tcx,
-             sym: inst.mangled_name(),
+             _sym: inst.mangled_name(),
              locals: &[],
              link_map: &mut calls_map,
              visited_tys: &mut visited_tys,
@@ -612,7 +614,7 @@ impl MirVisitor for UnevaluatedConstCollector<'_,'_> {
     if let stable_mir::ty::ConstantKind::Unevaluated(uconst) = constant.kind() {
       let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
       let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
-      let maybe_inst = rustc_middle::ty::Instance::try_resolve(self.tcx, ParamEnv::reveal_all(), internal_def, internal_args);
+      let maybe_inst = rustc_middle::ty::Instance::try_resolve(self.tcx, TypingEnv::post_analysis(self.tcx, internal_def), internal_def, internal_args);
       let inst = maybe_inst.ok().flatten().expect(format!("Failed to resolve mono item for {:?}", uconst).as_str());
       let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
       let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
