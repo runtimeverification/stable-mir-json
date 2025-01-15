@@ -7,11 +7,13 @@
     ( [ .allocs[] ]
 # sort allocs by their ID
         | sort_by(.[0])
+        | map(del(.[0]))
     ),
   functions:
     ( [ .functions[] ]
 # sort functions by their ID (int, first in list)
         | sort_by(.[0])
+        | map(del(.[0]))
     ),
   items:
     ( [ .items[] ]
