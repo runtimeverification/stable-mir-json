@@ -1,3 +1,8 @@
+# Remove the hashes at the end of mangled names
+.functions = ( [ .functions[] | if .[1].NormalSym then .[1].NormalSym = .[1].NormalSym[:-17] else .  end ] )
+    | .items = ( [ .items[] | if .symbol_name then .symbol_name = .symbol_name[:-17] else .  end ] )
+    |
+# Apply the normalisation filter
 { allocs:
     ( [ .allocs[] ]
 # sort allocs by their ID
