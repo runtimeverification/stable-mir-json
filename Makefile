@@ -105,6 +105,8 @@ TESTDIR=$(CURDIR)/tests/integration/programs
 .PHONY: integration-test
 integration-test: TESTS     ?= $(shell find $(TESTDIR) -type f -name "*.rs")
 integration-test: SMIR      ?= $(CURDIR)/run.sh -Z no-codegen
+# before comparison we want to clean the files up
+integration-test: PRE_FILTER ?= jq -e -f $(TESTDIR)/../pre-filter.jq
 # override this to tweak how expectations are formatted
 integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
 # override this to re-make golden files
@@ -115,13 +117,15 @@ integration-test: build
 	for rust in ${TESTS}; do \
 		target=$${rust%.rs}.smir.json; \
 		dir=$$(dirname $${rust}); \
+		${PRE_FILTER} $${target}.expected > temp.json; \
 		echo "$$rust"; \
 		${SMIR} --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
 		[ -f $${target} ] \
-			&& ${NORMALIZE} $${target} ${DIFF} $${target}.expected \
+			&& ${PRE_FILTER} $${target} | ${NORMALIZE} ${DIFF} temp.json \
 			&& rm $${target} \
 			|| report "$$rust" "Unexpected json output"; \
 		done; \
+		rm -rf temp.json;
 	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
 
 

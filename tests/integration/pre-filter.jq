@@ -1,0 +1,1 @@
+.functions = ( [ .functions[] | if .[1].NormalSym then .[1].NormalSym = (.[1].NormalSym | sub("17h.*$"; "HASH")) else .  end ] )
