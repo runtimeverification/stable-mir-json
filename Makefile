@@ -16,20 +16,27 @@ RUST_LIB_DIR=${RUST_INSTALL_DIR}/lib
 RUST_DEP_DIR=${RUST_BUILD_DIR}/stage1-rustc/${RUST_ARCH}/release/deps
 TARGET_DEP_DIR=${CURDIR}/target/${TARGET}/deps
 TEMP_DIR=${RUST_DIR}/temp
-RUST_REPO=https://github.com/runtimeverification/rust
-RUST_BRANCH=smir_serde_derive_intern_scripts
-TOOLCHAIN_NAME=smir_serde_derive_intern_scripts
+#############################################
+# depend on the rust compiler
+RUST_REPO=https://github.com/rust-lang/rust
+# tip of the `beta` branch on 2025-01-14
+RUST_BRANCH=beta
+RUST_COMMIT=fe9b975
+#############################################
+TOOLCHAIN_NAME=smir_pretty
 RELEASE_FLAG=
 ifeq (${TARGET}, release)
 RELEASE_FLAG=--release
 endif
+
+default: build
 
 build_all: rust_build rust_set_toolchain build
 
 setup: rust_clone
 
 update: ${RUST_SRC}
-	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
+	cd "${RUST_SRC}"; git fetch origin; git checkout ${RUST_COMMIT}
 
 build:
 	cargo build ${RELEASE_FLAG}
@@ -53,7 +60,9 @@ prebuild_clean: ${RUST_SRC}
 
 # NOTE: a deeper clone depth is needed for the build process
 rust_clone:
-	git clone --depth 70 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}"
+	git clone --depth 70 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}" && \
+	cd "${RUST_SRC}" && \
+	git checkout ${RUST_COMMIT}
 
 
 # rust_build for linking against custom rustc is involved
