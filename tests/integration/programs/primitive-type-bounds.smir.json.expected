@@ -1470,6 +1470,73 @@
               "arg_count": 2,
               "blocks": [
                 {
+                  "statements": [],
+                  "terminator": {
+                    "kind": {
+                      "Call": {
+                        "args": [],
+                        "destination": {
+                          "local": 0,
+                          "projection": []
+                        },
+                        "func": {
+                          "Move": {
+                            "local": 1,
+                            "projection": []
+                          }
+                        },
+                        "target": 1,
+                        "unwind": "Continue"
+                      }
+                    },
+                    "span": 40
+                  }
+                },
+                {
+                  "statements": [],
+                  "terminator": {
+                    "kind": "Return",
+                    "span": 40
+                  }
+                }
+              ],
+              "locals": [
+                {
+                  "mutability": "Mut",
+                  "span": 40,
+                  "ty": 1
+                },
+                {
+                  "mutability": "Not",
+                  "span": 40,
+                  "ty": 7
+                },
+                {
+                  "mutability": "Not",
+                  "span": 40,
+                  "ty": 1
+                }
+              ],
+              "span": 40,
+              "spread_arg": 2,
+              "var_debug_info": []
+            }
+          ],
+          "id": 3,
+          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
+        }
+      },
+      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": [
+            {
+              "arg_count": 2,
+              "blocks": [
+                {
                   "statements": [
                     {
                       "kind": {
@@ -1616,73 +1683,6 @@
           ],
           "id": 3,
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
-        }
-      },
-      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": [
-            {
-              "arg_count": 2,
-              "blocks": [
-                {
-                  "statements": [],
-                  "terminator": {
-                    "kind": {
-                      "Call": {
-                        "args": [],
-                        "destination": {
-                          "local": 0,
-                          "projection": []
-                        },
-                        "func": {
-                          "Move": {
-                            "local": 1,
-                            "projection": []
-                          }
-                        },
-                        "target": 1,
-                        "unwind": "Continue"
-                      }
-                    },
-                    "span": 40
-                  }
-                },
-                {
-                  "statements": [],
-                  "terminator": {
-                    "kind": "Return",
-                    "span": 40
-                  }
-                }
-              ],
-              "locals": [
-                {
-                  "mutability": "Mut",
-                  "span": 40,
-                  "ty": 1
-                },
-                {
-                  "mutability": "Not",
-                  "span": 40,
-                  "ty": 7
-                },
-                {
-                  "mutability": "Not",
-                  "span": 40,
-                  "ty": 1
-                }
-              ],
-              "span": 40,
-              "spread_arg": 2,
-              "var_debug_info": []
-            }
-          ],
-          "id": 3,
-          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
       "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"

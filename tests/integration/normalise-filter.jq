@@ -17,7 +17,7 @@
     ),
   items:
     ( [ .items[] ]
-# sort items by symbol name they refer to
-        | sort_by(.symbol_name)
+# sort items by symbol name they refer to and by the function name for functions
+        | sort_by(.symbol_name, .mono_item_kind.MonoItemFn.name)
     )
 }
