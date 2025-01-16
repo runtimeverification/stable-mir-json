@@ -11,11 +11,18 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, TypingEnv}; //, Binder, Generics, GenericPredicates
+use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, TypeFoldable, TypingEnv};
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol}; // DUMMY_SP, symbol::sym::test;
+use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol};
 use rustc_smir::rustc_internal;
-use stable_mir::{CrateItem,CrateDef,ItemKind,mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},ty::{Allocation,ForeignItemKind},mir::mono::{MonoItem,Instance,InstanceKind}}; // Symbol
+use stable_mir::{ 
+  CrateItem,
+  CrateDef,
+  ItemKind,
+  mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},
+  ty::{Allocation,ForeignItemKind},
+  mir::mono::{MonoItem,Instance,InstanceKind}
+};
 use serde::{Serialize, Serializer};
 
 // Structs for serializing extra details about mono items
@@ -366,7 +373,7 @@ pub enum AllocInfo {
     Function(stable_mir::mir::mono::Instance),
     VTable(stable_mir::ty::Ty, Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>),
     Static(stable_mir::mir::mono::StaticDef),
-    Memory(/* stable_mir::ty::TyKind, */ stable_mir::ty::Allocation),
+    Memory(stable_mir::ty::Allocation), // TODO include stable_mir::ty::TyKind?
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
@@ -427,7 +434,7 @@ fn collect_alloc(val_collector: &mut InternedValueCollector, kind: Option<stable
         GlobalAlloc::Memory(ref alloc) => {
             let pointed_kind = get_prov_type(kind);
             if debug_enabled() { println!("DEBUG: called collect_alloc: {:?}:{:?}:{:?}", val, pointed_kind, global_alloc); }
-            entry.or_insert(AllocInfo::Memory(alloc.clone())); // pointed_kind.clone().unwrap(), alloc.clone()));
+            entry.or_insert(AllocInfo::Memory(alloc.clone())); // TODO: include pointed_kind.clone().unwrap() ?
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_kind.clone(), prov.0);
             });
