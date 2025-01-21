@@ -473,8 +473,33 @@ fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty
 }
 
 fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
-    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy}; // GenericArgKind::*, TyConst, TyConstKind::*
-    if val_collector.visited_tys.insert(hash(val), (val.kind(), val.layout().map(|l| l.shape()).ok())).is_some() {
+    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy, AdtDef};
+
+    // HACK: std::fmt::Arguments has escaping bounds and will error if trying to get the layout.
+    // We will just ban producing the layout for now see, this issue for more info
+    // https://github.com/runtimeverification/smir_pretty/issues/27
+    let maybe_layout = match val.kind() {
+      stable_mir::ty::TyKind::RigidTy(Adt(AdtDef(def_id_stable), _)) => {
+        let def_id_internal = rustc_internal::internal(val_collector.tcx, def_id_stable);
+        let name = rustc_middle::ty::print::with_no_trimmed_paths!(val_collector.tcx.def_path_str(def_id_internal));
+        if String::from("std::fmt::Arguments") == name {
+          None
+        } else {
+          Some(val.layout())
+        }
+      },
+      _ => {
+        Some(val.layout())
+      }
+    };
+    
+    let maybe_layout_shape = if let Some(Ok(layout)) = maybe_layout {
+      Some(layout.shape())
+    } else {
+      None
+    };
+
+    if val_collector.visited_tys.insert(hash(val), (val.kind(), maybe_layout_shape)).is_some() {
         match val.kind() {
             RigidTy(Array(ty, _) | Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
                 collect_ty(val_collector, ty)
