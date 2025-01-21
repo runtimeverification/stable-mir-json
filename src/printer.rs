@@ -473,7 +473,7 @@ fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty
 }
 
 fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
-    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy, AdtDef}; // GenericArgKind::*, TyConst, TyConstKind::*
+    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy, AdtDef};
 
     // HACK: std::fmt::Arguments has escaping bounds and will error if trying to get the layout.
     // We will just ban producing the layout for now see, this issue for more info
