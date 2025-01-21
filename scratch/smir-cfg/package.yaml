@@ -1,0 +1,78 @@
+name:                smir-cfg
+version:             0.1.0.0
+# github:              "runtimeverification/smir_pretty/blob/master/scratch/smir-cfg"
+license:             BSD-3-Clause
+author:              "Jost Berthold"
+maintainer:          "jost.berthold@runtimeverification.com"
+copyright:           "2025 Runtimeverification Inc."
+
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub
+
+dependencies:
+- aeson
+- base
+- bytestring
+- containers
+- text
+
+default-extensions:
+  DeriveAnyClass
+  DeriveGeneric
+  DerivingStrategies
+  DerivingVia
+  DuplicateRecordFields
+  EmptyCase
+  FlexibleInstances
+  FunctionalDependencies
+  ImportQualifiedPost
+  LambdaCase
+  OverloadedRecordDot
+  OverloadedStrings
+  TupleSections
+  TypeApplications
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+
+executables:
+  smir-cfg-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - smir-cfg
+
+tests:
+  smir-cfg-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - smir-cfg
