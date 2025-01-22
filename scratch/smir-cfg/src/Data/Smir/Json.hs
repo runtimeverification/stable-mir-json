@@ -1,8 +1,8 @@
 {-# OPTIONS -Wno-partial-fields #-}
 {-# OPTIONS -Wno-incomplete-patterns #-}
 
-module SmirCfg (
-
+module Data.Smir.Json (
+  module Data.Smir.Json,
 ) where
 
 import Data.Aeson as JSON
@@ -13,7 +13,7 @@ import Data.Text (Text)
 import GHC.Generics
 
 -- data model of Stable-MIR json
-data Smir = Smir 
+data Smir = Smir
     { name :: Text
     , crate_id :: Integer
     , allocs :: Map Int Allocation
@@ -24,7 +24,7 @@ data Smir = Smir
     deriving (Eq, Show, Generic)
 
 instance FromJSON Smir where
-    parseJSON = withObject "Smir" $ \o -> (Smir 
+    parseJSON = withObject "Smir" $ \o -> (Smir
         <$> o .: "name"
         <*> o .: "crate_id"
         <*> (o .: "allocs" >>= toIntMap)
@@ -32,7 +32,7 @@ instance FromJSON Smir where
         <*> o .: "items")
 
 instance ToJSON Smir where
-    toJSON smir = object 
+    toJSON smir = object
         [ "name" .= smir.name
         , "crate_id" .= smir.crate_id
         , "allocs" .= Map.assocs smir.allocs
@@ -68,7 +68,7 @@ instance FromJSON Symbol where
 instance ToJSON Symbol where
     toJSON = genericToJSON objectEncoding
 
-data Item = Item 
+data Item = Item
     { mono_item_kind :: MonoItemKind
     -- , details :: ()
     , symbol_name :: Text
@@ -76,7 +76,7 @@ data Item = Item
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data MonoItemKind
-    = MonoItemFn 
+    = MonoItemFn
         { body :: [Body]
         , id :: Int
         , name :: Text
@@ -91,7 +91,7 @@ instance ToJSON MonoItemKind where
     toJSON = genericToJSON objectEncoding
 
 objectEncoding :: JSON.Options
-objectEncoding = 
+objectEncoding =
     JSON.defaultOptions { sumEncoding = ObjectWithSingleField }
 
 data Body = Body
@@ -114,26 +114,26 @@ data TerminatorKind = TerminatorKind { kind :: Terminator, span :: Int }
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
 data Terminator
-    = Drop 
+    = Drop
         { place :: Place
         , target :: Maybe Int -- fake maybe
         , unwind :: Unwind
         }
-    | Assert 
+    | Assert
         { cond :: Operand
         , expected :: Bool
         -- , msg :: SomethingSpecial
         , target :: Maybe Int -- fake maybe
         , unwind :: Unwind
         }
-    | Call 
+    | Call
         { args :: [Operand]
         , destination :: Place
         , func :: Operand
         , target :: Maybe Int
         , unwind :: Unwind
         }
-    | Goto 
+    | Goto
         { target :: Maybe Int -- fake maybe
         }
     | SwitchInt {discr :: Operand, targets :: Targets}
@@ -157,7 +157,7 @@ instance ToJSON Terminator where
 data Operand
     = Move Place
     | Copy Place
-    | Constant 
+    | Constant
         { const_ :: Const
         , span :: Int
         }
@@ -169,9 +169,9 @@ instance FromJSON Operand where
 instance ToJSON Operand where
     toJSON = genericToJSON objectEncoding
 
-data Const = Const 
+data Const = Const
     { id :: Int
-    -- , kind :: Text
+    -- , kind :: ActualData
     , ty :: Int
     }
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
@@ -182,7 +182,7 @@ data Targets = Targets
     }
     deriving (Eq, Show, Generic, FromJSON, ToJSON)
 
-data Place = Place 
+data Place = Place
     { local :: Int
     , projection :: [Projection]
     }

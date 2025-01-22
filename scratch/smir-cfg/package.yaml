@@ -23,6 +23,7 @@ dependencies:
 - base
 - bytestring
 - containers
+- hashable
 - text
 
 default-extensions:
@@ -36,6 +37,7 @@ default-extensions:
   FunctionalDependencies
   ImportQualifiedPost
   LambdaCase
+  NamedFieldPuns
   OverloadedRecordDot
   OverloadedStrings
   TupleSections

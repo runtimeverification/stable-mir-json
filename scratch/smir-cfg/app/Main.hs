@@ -1,7 +1,6 @@
 module Main (main) where
 
-import SmirCfg
+import Data.Smir.Json ()
 
 main :: IO ()
 main = undefined
-
