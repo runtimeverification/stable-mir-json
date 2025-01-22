@@ -25,6 +25,10 @@ construct smir = Cfg { name = smir.name, items = Map.fromList $ map processItem 
         let (fName, fBody) =
                 case i.mono_item_kind of
                     MonoItemFn{name, body = [b]} -> (name, b)
+                    -- FIXME this is a hack to deal with more or less than one function body
+                    MonoItemFn{name, body = []} -> (name, Body 0 [])
+                    MonoItemFn{name, body = bs} ->
+                        (name, (head bs){Json.blocks = concatMap (.blocks) bs})
                     other -> error $ "unexpected item kind " <> show other
         in (i.symbol_name, CfgItem { humanName = fName, blocks = map processBlock $ fBody.blocks })
 
