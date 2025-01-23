@@ -16,20 +16,27 @@ RUST_LIB_DIR=${RUST_INSTALL_DIR}/lib
 RUST_DEP_DIR=${RUST_BUILD_DIR}/stage1-rustc/${RUST_ARCH}/release/deps
 TARGET_DEP_DIR=${CURDIR}/target/${TARGET}/deps
 TEMP_DIR=${RUST_DIR}/temp
-RUST_REPO=https://github.com/runtimeverification/rust
-RUST_BRANCH=smir_serde_derive_intern_scripts
-TOOLCHAIN_NAME=smir_serde_derive_intern_scripts
+#############################################
+# depend on the rust compiler
+RUST_REPO=https://github.com/rust-lang/rust
+# tip of the `beta` branch on 2025-01-14
+RUST_BRANCH=beta
+RUST_COMMIT=fe9b975
+#############################################
+TOOLCHAIN_NAME=smir_pretty
 RELEASE_FLAG=
 ifeq (${TARGET}, release)
 RELEASE_FLAG=--release
 endif
+
+default: build
 
 build_all: rust_build rust_set_toolchain build
 
 setup: rust_clone
 
 update: ${RUST_SRC}
-	cd "${RUST_SRC}"; git fetch origin; git reset --hard origin/${RUST_BRANCH}
+	cd "${RUST_SRC}"; git fetch origin; git checkout ${RUST_COMMIT}
 
 build:
 	cargo build ${RELEASE_FLAG}
@@ -53,7 +60,9 @@ prebuild_clean: ${RUST_SRC}
 
 # NOTE: a deeper clone depth is needed for the build process
 rust_clone:
-	git clone --depth 70 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}"
+	git clone --depth 70 --single-branch --branch "${RUST_BRANCH}" "${RUST_REPO}" "${RUST_SRC}" && \
+	cd "${RUST_SRC}" && \
+	git checkout ${RUST_COMMIT}
 
 
 # rust_build for linking against custom rustc is involved
@@ -79,8 +88,42 @@ rust_set_toolchain: ${RUST_LIB_DIR}
 	rustup override set "${TOOLCHAIN_NAME}"
 	echo ${STAGE} > ${STAGE_FILE}
 
+.PHONY: rustup-clear-toolchain
+rustup-clear-toolchain:
+	rustup override unset
+	rustup override unset --nonexistent
+	rustup toolchain uninstall "${TOOLCHAIN_NAME}"
+
 generate_ui_tests:
 	mkdir -p "${RUST_DIR}"/tests
 	cd "${RUST_SRC}"; ./get_runpass.sh tests/ui > "${RUST_DIR}"/tests_ui_sources
 	-cd "${RUST_SRC}"; ./ui_compiletest.sh "${RUST_SRC}" "${RUST_DIR}"/tests/ui/upstream "${RUST_DIR}"/tests_ui_sources --pass check --force-rerun 2>&1 > "${RUST_DIR}"/tests_ui_upstream.log
 	-cd "${RUST_SRC}"; RUST_BIN="${PWD}"/run.sh ./ui_compiletest.sh "${RUST_SRC}" "${RUST_DIR}"/tests/ui/smir "${RUST_DIR}"/tests_ui_sources --pass check --force-rerun 2>&1 > "${RUST_DIR}"/tests_ui_smir.log
+
+TESTDIR=$(CURDIR)/tests/integration/programs
+
+.PHONY: integration-test
+integration-test: TESTS     ?= $(shell find $(TESTDIR) -type f -name "*.rs")
+integration-test: SMIR      ?= $(CURDIR)/run.sh -Z no-codegen
+# override this to tweak how expectations are formatted
+integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
+# override this to re-make golden files
+integration-test: DIFF      ?= | diff -
+integration-test: build
+	errors=""; \
+	report() { echo "$$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
+	for rust in ${TESTS}; do \
+		target=$${rust%.rs}.smir.json; \
+		dir=$$(dirname $${rust}); \
+		echo "$$rust"; \
+		${SMIR} --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
+		[ -f $${target} ] \
+			&& ${NORMALIZE} $${target} ${DIFF} $${target}.expected \
+			&& rm $${target} \
+			|| report "$$rust" "Unexpected json output"; \
+		done; \
+	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
+
+
+golden:
+	make integration-test DIFF=">"

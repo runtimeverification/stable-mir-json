@@ -24,7 +24,7 @@ extern crate rustc_smir;
 extern crate rustc_session;
 use rustc_middle::ty::TyCtxt;
 use rustc_driver::Compilation;
-use rustc_interface::{interface::Compiler, Queries};
+use rustc_interface::interface::Compiler;
 use rustc_smir::rustc_internal;
 
 struct StableMirCallbacks {
@@ -35,16 +35,10 @@ impl rustc_driver::Callbacks for StableMirCallbacks {
     fn after_analysis<'tcx>(
         &mut self,
         _compiler: &Compiler,
-        queries: &'tcx Queries<'tcx>,
+        tcx: TyCtxt<'tcx>,
     ) -> Compilation {
 
-        let _q = queries
-            .global_ctxt()
-            .unwrap()
-            .get_mut()
-            .enter(|tcx| {
-                let _ = rustc_internal::run(tcx, || (self.callback_fn)(tcx));
-            });
+        let _ = rustc_internal::run(tcx, || (self.callback_fn)(tcx));
 
         Compilation::Continue
     }
