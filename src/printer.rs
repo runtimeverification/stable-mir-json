@@ -16,7 +16,7 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol};
 use rustc_smir::rustc_internal;
-use stable_mir::{ 
+use stable_mir::{
   CrateItem,
   CrateDef,
   ItemKind,
@@ -493,7 +493,7 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
         Some(val.layout())
       }
     };
-    
+
     let maybe_layout_shape = if let Some(Ok(layout)) = maybe_layout {
       Some(layout.shape())
     } else {
@@ -743,8 +743,10 @@ fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
   let local_crate = stable_mir::local_crate();
   let items = collect_items(tcx);
   let items_clone = items.clone();
-  let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-  let (calls_map, visited_allocs, visited_tys) = collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
+  let (unevaluated_consts, mut items) =
+    collect_unevaluated_constant_items(tcx, items);
+  let (calls_map, visited_allocs, visited_tys) =
+    collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
 
   // FIXME: We dump extra static items here --- this should be handled better
   for (_, alloc) in visited_allocs.iter() {
@@ -758,10 +760,10 @@ fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
       }
   }
 
-  let calls_clone = calls_map.clone();
   let debug: Option<SmirJsonDebugInfo> =
     if debug_enabled() {
-      let fn_sources = calls_clone.into_iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
+      let fn_sources =
+        calls_map.clone().into_iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
       Some(SmirJsonDebugInfo { fn_sources, types: visited_tys, foreign_modules: get_foreign_module_details()})
     // write!(writer, "{{ \"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
     //   serde_json::to_string(&fn_sources).expect("serde_json functions failed"),
@@ -772,9 +774,12 @@ fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
       None
     };
 
-  let called_functions = calls_map.into_iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
-  let allocs = visited_allocs.into_iter().collect::<Vec<_>>();
-  let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+  let called_functions =
+    calls_map.into_iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
+  let allocs =
+    visited_allocs.into_iter().collect::<Vec<_>>();
+  let crate_id =
+    tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
   SmirJson {
     name: local_crate.name,
@@ -793,9 +798,14 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
   let smir_json = serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");
 
   match tcx.output_filenames(()).path(OutputType::Mir) {
-    OutFileName::Stdout => { write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json"); }
+    OutFileName::Stdout => {
+      write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json");
+    }
     OutFileName::Real(path) => {
-      let mut b = io::BufWriter::new(File::create(&path.with_extension("smir.json")).expect("Failed to create {path}.smir.json output file"));
+      let mut b =
+        io::BufWriter::new(
+          File::create(&path.with_extension("smir.json"))
+            .expect("Failed to create {path}.smir.json output file"));
       write!(b, "{}", smir_json).expect("Failed to write smir.json");
     }
   }
