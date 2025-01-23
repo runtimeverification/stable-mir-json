@@ -19,8 +19,8 @@ use stable_mir::{
   CrateItem,
   CrateDef,
   ItemKind,
-  mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},
-  ty::{Allocation,ForeignItemKind},
+  mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,alloc::AllocId,visit::MirVisitor},
+  ty::{Allocation,ConstDef,ForeignItemKind},
   mir::mono::{MonoItem,Instance,InstanceKind}
 };
 use serde::{Serialize, Serializer};
@@ -716,6 +716,25 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
   }).collect::<HashMap<_,_>>()
 }
 
+/// the serialised data structure as a whole
+#[derive(Serialize)]
+pub struct SmirJson<'t> {
+  name: String,
+  crate_id: u64,
+  allocs: Vec<(AllocId,AllocInfo)>,
+  functions: Vec<(LinkMapKey<'t>, FnSymType)>,
+  uneval_consts: Vec<(ConstDef, String)>,
+  items: Vec<Item>,
+  debug: Option<SmirJsonDebugInfo<'t>>
+}
+
+#[derive(Serialize)]
+struct SmirJsonDebugInfo<'t> {
+  fn_sources: Vec<(LinkMapKey<'t>,ItemSource)>,
+  types: TyMap,
+  foreign_modules: Vec<(String, Vec<ForeignModule>)>
+}
+
 // Serialization Entrypoint
 // ========================
 
@@ -738,28 +757,36 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
       }
   }
 
-  let called_functions = calls_map.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
-  let allocs = visited_allocs.iter().collect::<Vec<_>>();
+  let calls_clone = calls_map.clone();
+  let debug: Option<SmirJsonDebugInfo> =
+    if debug_enabled() {
+      let fn_sources = calls_clone.into_iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
+      Some(SmirJsonDebugInfo { fn_sources, types: visited_tys, foreign_modules: get_foreign_module_details()})
+    // write!(writer, "{{ \"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
+    //   serde_json::to_string(&fn_sources).expect("serde_json functions failed"),
+    //   serde_json::to_string(&visited_tys).expect("serde_json tys failed"),
+    //   serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
+    // ).expect("Failed to write JSON to file");
+    } else {
+      None
+    };
+
+  let called_functions = calls_map.into_iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
+  let allocs = visited_allocs.into_iter().collect::<Vec<_>>();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
-  let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
-  write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
-    serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
-    serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
-    serde_json::to_string(&allocs).expect("serde_json global allocs to json failed"),
-    serde_json::to_string(&called_functions).expect("serde_json functions to json failed"),
-    serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
-    serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
-  ).expect("Failed to write JSON to file");
-  if debug_enabled() {
-    let fn_sources = calls_map.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
-    write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-      serde_json::to_string(&fn_sources).expect("serde_json functions failed"),
-      serde_json::to_string(&visited_tys).expect("serde_json tys failed"),
-      serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
-    ).expect("Failed to write JSON to file");
-  } else {
-    write!(writer, "}}").expect("Failed to write JSON to file");
-  }
+
+  let result: SmirJson = SmirJson {
+    name: local_crate.name,
+    crate_id: crate_id,
+    allocs,
+    functions: called_functions,
+    uneval_consts: unevaluated_consts.into_iter().collect(),
+    items,
+    debug
+  };
+
+  write!(writer, "{}", serde_json::to_string(&result).expect("serde_json failed to write result")).unwrap();
+
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
