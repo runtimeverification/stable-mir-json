@@ -16,3 +16,9 @@ tracing = "0.1"
 [package.metadata.rust-analyzer]
 # This package uses rustc crates.
 rustc_private=true
+
+[[bin]]
+name = "mk-graph"
+path = "src/mk_graph.rs"
+test = false
+doc = false
