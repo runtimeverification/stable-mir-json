@@ -720,13 +720,13 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 /// the serialised data structure as a whole
 #[derive(Serialize)]
 pub struct SmirJson<'t> {
-  name: String,
-  crate_id: u64,
-  allocs: Vec<(AllocId,AllocInfo)>,
-  functions: Vec<(LinkMapKey<'t>, FnSymType)>,
-  uneval_consts: Vec<(ConstDef, String)>,
-  items: Vec<Item>,
-  debug: Option<SmirJsonDebugInfo<'t>>
+  pub name: String,
+  pub crate_id: u64,
+  pub allocs: Vec<(AllocId,AllocInfo)>,
+  pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
+  pub uneval_consts: Vec<(ConstDef, String)>,
+  pub items: Vec<Item>,
+  pub debug: Option<SmirJsonDebugInfo<'t>>
 }
 
 #[derive(Serialize)]
