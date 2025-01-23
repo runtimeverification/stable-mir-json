@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::{collections::HashMap,fs::File,io,iter::Iterator,vec::Vec,str,};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
@@ -738,7 +739,7 @@ struct SmirJsonDebugInfo<'t> {
 // Serialization Entrypoint
 // ========================
 
-fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
+fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
   let local_crate = stable_mir::local_crate();
   let items = collect_items(tcx);
   let items_clone = items.clone();
@@ -775,7 +776,7 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
   let allocs = visited_allocs.into_iter().collect::<Vec<_>>();
   let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
-  let result: SmirJson = SmirJson {
+  SmirJson {
     name: local_crate.name,
     crate_id: crate_id,
     allocs,
@@ -783,21 +784,19 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
     uneval_consts: unevaluated_consts.into_iter().collect(),
     items,
     debug
-  };
-
-  write!(writer, "{}", serde_json::to_string(&result).expect("serde_json failed to write result")).unwrap();
+  }
 
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
+
+  let smir_json = serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");
+
   match tcx.output_filenames(()).path(OutputType::Mir) {
-    OutFileName::Stdout => {
-        let mut f = io::stdout();
-        emit_smir_internal(tcx, &mut f);
-    }
+    OutFileName::Stdout => { write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json"); }
     OutFileName::Real(path) => {
-        let mut f = io::BufWriter::new(File::create(&path.with_extension("smir.json")).expect("Failed to create SMIR output file"));
-        emit_smir_internal(tcx, &mut f);
+      let mut b = io::BufWriter::new(File::create(&path.with_extension("smir.json")).expect("Failed to create {path}.smir.json output file"));
+      write!(b, "{}", smir_json).expect("Failed to write smir.json");
     }
   }
 }
