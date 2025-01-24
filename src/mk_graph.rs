@@ -71,7 +71,7 @@ impl SmirJson<'_> {
         if ! item_names.contains(f) {
           graph
             .node_named(block_name(f, 0))
-            .set_label(f)
+            .set_label(&name_lines(f))
             .set_color(Color::Red);
         }
       }
@@ -80,7 +80,7 @@ impl SmirJson<'_> {
         match item.mono_item_kind {
           MonoItemKind::MonoItemFn{ name, body, id: _} => {
             let mut c = graph.cluster();
-            c.set_label(&name[..]);
+            c.set_label(&name_lines(&name));
 
             // Cannot define local functions that capture env. variables. Instead we define _closures_.
             let process_block = |cluster:&mut Scope<'_,'_>, node_id: usize, b: &BasicBlock | {
@@ -297,6 +297,15 @@ fn function_string(f: FnSymType) -> String {
     FnSymType::NoOpSym(name) => format!("NoOp: {name}"),
     FnSymType::IntrinsicSym(name) => format!("Intr: {name}"),
   }
+}
+
+fn name_lines(name: &String) -> String {
+  name
+    .split_inclusive(" ")
+    .flat_map(|s| s.split_inclusive("::"))
+    .map(|s| s.to_string())
+    .collect::<Vec<String>>()
+    .join("\\n")
 }
 
 /// consistently naming function clusters
