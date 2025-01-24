@@ -24,11 +24,11 @@ jobs:
           # Check out pull request HEAD instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
-
-      - name: 'Install rustup'
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh
-          sh install.sh -y
+      
+      - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
       - name: 'Build smir_pretty'
         run: |
