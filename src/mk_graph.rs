@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet}, fs::File, hash::{DefaultHasher, Hash, Hasher}, io::{self, Write}};
 
-use dot_writer::{Attributes, Color, DotWriter, Scope};
+use dot_writer::{Attributes, Color, DotWriter, Scope, Style};
 
 extern crate rustc_middle;
 use rustc_middle::ty::TyCtxt;
@@ -81,6 +81,10 @@ impl SmirJson<'_> {
           MonoItemKind::MonoItemFn{ name, body, id: _} => {
             let mut c = graph.cluster();
             c.set_label(&name_lines(&name));
+            if is_unqualified(&name) {
+              c.set_style(Style::Filled);
+              c.set_color(Color::LightGrey);
+            }
 
             // Cannot define local functions that capture env. variables. Instead we define _closures_.
             let process_block = |cluster:&mut Scope<'_,'_>, node_id: usize, b: &BasicBlock | {
@@ -289,6 +293,10 @@ fn show_op(op: &Operand) -> String {
 
 fn show_place(p: &Place) -> String {
   format!("_{}{}", p.local, if p.projection.len() > 0 { "(...)"} else {""})
+}
+
+fn is_unqualified(name: &String) -> bool {
+  ! name.contains("::")
 }
 
 fn function_string(f: FnSymType) -> String {
