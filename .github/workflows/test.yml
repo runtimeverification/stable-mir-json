@@ -25,36 +25,12 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
-      - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2024-08-28
-
-      - name: 'Set up tree for rust dependency'
-        run: make setup
-
-      - name: 'Cache smir_pretty and rustc'
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            .
-            deps/rust/src
-          cache-directories: |
-            target
-            deps/rust/src/build
-            deps/rust/src/target
-
-      - name: 'Build smir_pretty and its rustc dependency'
+      - name: 'Build smir_pretty'
         run: | # rustc bootstrap checks this and refuses stage 1 in "CI"
           export GITHUB_ACTIONS="in denial" && \
           echo "GITHUB_ACTIONS = ${GITHUB_ACTIONS}" && \
-          make build_all
+          cargo build
 
       - name: 'Run smir integration tests'
         run: |
           make integration-test
-
-      - name: 'Clean up toolchain'
-        if: always()
-        run: |
-          make rustup-clear-toolchain

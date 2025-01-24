@@ -10,7 +10,7 @@ cargo build
 
 NOTE: requries [rustup](https://www.rust-lang.org/tools/install)
 
-The `build.rs` script will ensure that the correct version of rust and the required components are installed and defaulted.
+The `build.rs` script will ensure that the correct version of rust and the required components are installed and defaulted. What `rustup` commands are run can be seen by adding verbosity flag `-vv` to `cargo`.
 
 ## Usage
 
@@ -19,7 +19,7 @@ The options that this tool accepts are identical to `rustc`.
 To generate stable MIR output without building a binary, you can invoke the tool as follows:
 
 ```shell
-cargo run <crate_root>
+cargo run -- <rustc_flags> <path_from_crate_root>
 ```
 
 There are a few environment variables that can be set to control the tools output:
