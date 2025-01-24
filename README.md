@@ -4,14 +4,9 @@ This package provides a program that will emit a JSON serialisation of the Stabl
 
 ## Building
 
-For first-time builds, run: (requries [rustup](https://www.rust-lang.org/tools/install))
+NOTE: requries [rustup](https://www.rust-lang.org/tools/install)
 
-```shell
-rustup install nightly-2024-11-29;
-rustup default nightly-2024-11-29;
-rustup component add rustc-dev;
-rustup component add llvm-dev;
-```
+The `build.rs` script will ensure that the correct version of rust and the required components are installed and defaulted.
 
 ## Usage
 
