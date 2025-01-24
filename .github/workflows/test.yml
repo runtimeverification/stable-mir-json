@@ -25,9 +25,14 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
+      - name: 'Install rustup'
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh
+          sh install.sh -y
+
       - name: 'Build smir_pretty'
         run: |
-          cargo build
+          cargo build -vv
 
       - name: 'Run smir integration tests'
         run: |
