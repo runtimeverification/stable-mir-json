@@ -132,7 +132,7 @@ impl SmirJson<'_> {
                   cluster
                     .edge(&this_block, block_name(name, *target));
                 },
-                Call{func, args, destination, target, unwind} => {
+                Call{func: _, args: _, destination, target, unwind} => {
                   n.set_label(&format!("Call()"));
                   drop(n);
                   if let UnwindAction::Cleanup(t) = unwind {
@@ -149,35 +149,8 @@ impl SmirJson<'_> {
                       .set_label(&dest);
                   }
 
-                  drop(cluster); // done within cluster, call edge outside of cluster
-
-                  let e = match func {
-                    Operand::Constant(ConstOperand{const_, ..}) => {
-                      if let Some(callee) = func_map.get(&const_.ty()) {
-                        // if ! item_names.contains(callee) {
-                        //   graph
-                        //     .node_named(block_name(callee, 0))
-                        //     .set_label(callee);
-                        // }
-                        graph
-                          .edge(&this_block, block_name(callee, 0))
-                      } else {
-                        let unknown = format!("{}", const_.ty());
-                        // graph.node_named(&unknown);
-                        graph
-                          .edge(&this_block, unknown)
-                      }
-                    },
-                    Operand::Copy(place) => {
-                      graph.edge(&this_block, format!("{}: {}", &this_block, show_place(place)))
-                    },
-                    Operand::Move(place) => {
-                      graph.edge(&this_block,  format!("{}: {}", &this_block, show_place(place)))
-                    },
-                  };
-                  let arg_str = args.into_iter().map(show_op).collect::<Vec<String>>().join(",");
-                  e.attributes().set_label(&arg_str);
-
+                  // The call edge has to be drawn outside the cluster, and therefore outside this function!
+                  // I have to separate this code into its own second function.
                 },
                 Assert{target, ..} => {
                   n.set_label("Assert");
@@ -210,7 +183,7 @@ impl SmirJson<'_> {
               }
             };
 
-            match body.len() {
+            match &body.len() {
               0 => {
                 c.node_auto().set_label("<empty body>");
               },
@@ -219,9 +192,68 @@ impl SmirJson<'_> {
               }
               _more => {
                 let mut curr: usize = 0;
-                for b in body {
+                for b in &body {
                   let mut cc = c.cluster();
                   process_blocks(&mut cc, curr, &b.blocks);
+                  curr += b.blocks.len();
+                }
+              }
+            }
+            drop(c); // so we can borrow graph again
+
+            // call edges have to be added _outside_ the cluster of blocks for one function
+            // because they go between different clusters. Due to a scope/borrow issue, we have
+            // to make a 2nd pass over the bodies of the item.
+            let add_call_edges = | graph: &mut Scope<'_,'_>, offset: usize, bs: &Vec<BasicBlock> | {
+              for (i, b) in bs.iter().enumerate() {
+                let this_block = block_name(&item.symbol_name, offset + i);
+                
+                match &b.terminator.kind {
+                  TerminatorKind::Call{func, args, ..} => {
+                    let e = match func {
+                      Operand::Constant(ConstOperand{const_, ..}) => {
+                        if let Some(callee) = func_map.get(&const_.ty()) {
+                          // if ! item_names.contains(callee) {
+                          //   graph
+                          //     .node_named(block_name(callee, 0))
+                          //     .set_label(callee);
+                          // }
+                          graph
+                            .edge(&this_block, block_name(callee, 0))
+                        } else {
+                          let unknown = format!("{}", const_.ty());
+                          // graph.node_named(&unknown);
+                          graph
+                            .edge(&this_block, unknown)
+                        }
+                      },
+                      Operand::Copy(place) => {
+                        graph.edge(&this_block, format!("{}: {}", &this_block, show_place(place)))
+                      },
+                      Operand::Move(place) => {
+                        graph.edge(&this_block,  format!("{}: {}", &this_block, show_place(place)))
+                      },
+                    };
+                    let arg_str = args.into_iter().map(show_op).collect::<Vec<String>>().join(",");
+                    e.attributes().set_label(&arg_str);
+
+                  },
+                  _other => {
+                    // nothing to do
+                  },
+                }
+              }
+            };
+
+            match &body.len() {
+              0 => {},
+              1 => {
+                add_call_edges(&mut graph, 0, &body[0].blocks);
+              }
+              _more => {
+                let mut curr: usize = 0;
+                for b in &body {
+                  add_call_edges(&mut graph, curr, &b.blocks);
                   curr += b.blocks.len();
                 }
               }
