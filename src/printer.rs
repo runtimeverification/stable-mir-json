@@ -226,7 +226,7 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 // =========================================================
 
 #[derive(Serialize, Clone)]
-enum MonoItemKind {
+pub enum MonoItemKind {
     MonoItemFn {
       name: String,
       id: stable_mir::DefId,
@@ -242,11 +242,11 @@ enum MonoItemKind {
     },
 }
 #[derive(Serialize, Clone)]
-struct Item {
+pub struct Item {
     #[serde(skip)]
     mono_item: MonoItem,
-    symbol_name: String,
-    mono_item_kind: MonoItemKind,
+    pub symbol_name: String,
+    pub mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
 }
 
@@ -300,7 +300,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
 // ==========================
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-enum FnSymType {
+pub enum FnSymType {
     NoOpSym(String),
     IntrinsicSym(String),
     NormalSym(String),
@@ -330,7 +330,7 @@ fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, ty: Option<stable_mir::ty::Ty>, inst: Op
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct LinkMapKey<'tcx>(stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
+pub struct LinkMapKey<'tcx>(pub stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
 
 impl Serialize for LinkMapKey<'_> {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -730,7 +730,7 @@ pub struct SmirJson<'t> {
 }
 
 #[derive(Serialize)]
-struct SmirJsonDebugInfo<'t> {
+pub struct SmirJsonDebugInfo<'t> {
   fn_sources: Vec<(LinkMapKey<'t>,ItemSource)>,
   types: TyMap,
   foreign_modules: Vec<(String, Vec<ForeignModule>)>
