@@ -4,6 +4,10 @@ This package provides a program that will emit a JSON serialisation of the Stabl
 
 ## Building
 
+```shell
+cargo build
+```
+
 NOTE: requries [rustup](https://www.rust-lang.org/tools/install)
 
 The `build.rs` script will ensure that the correct version of rust and the required components are installed and defaulted.
