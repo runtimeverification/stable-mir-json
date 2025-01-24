@@ -3,7 +3,15 @@ use std::{collections::HashMap, hash::{DefaultHasher, Hash, Hasher}};
 extern crate stable_mir;
 
 use stable_mir::ty::Ty;
-use stable_mir::mir::{BasicBlock, Statement, TerminatorKind};
+use stable_mir::mir::{
+  BasicBlock,
+  ConstOperand,
+  Operand,
+  Place,
+  Statement,
+  TerminatorKind,
+  UnwindAction,
+};
 
 use crate::{printer::{FnSymType, SmirJson}, MonoItemKind};
 
@@ -25,7 +33,7 @@ impl SmirJson<'_> {
       let func_map: HashMap<Ty, String> = 
         self.functions
           .into_iter()
-          .map(|(k,v)| (k.0, mk_string(v)))
+          .map(|(k,v)| (k.0, function_string(v)))
           .collect();
 
       for item in self.items {
@@ -34,48 +42,137 @@ impl SmirJson<'_> {
             let mut c = graph.cluster();
             c.set_label(&name[..]);
 
-            fn process_block<'a,'b>(name: &String, cluster:&mut Scope<'a,'b>, node_id: usize, b: &BasicBlock) {
-              let mut n = cluster.node_named(block_name(name, node_id));
+            // Cannot define local functions that capture env. variables. Instead we define _closures_.
+            let process_block = |cluster:&mut Scope<'_,'_>, node_id: usize, b: &BasicBlock | {
+              let name = &item.symbol_name;
+            //fn process_block<'a,'b>(name: &String, cluster:&mut Scope<'a,'b>, node_id: usize, b: &BasicBlock) {
+              let this_block = block_name(name, node_id);
+              let mut n = cluster.node_named(&this_block);
               // TODO: render statements and terminator as text label (with line breaks)
-              n.set_label("the Terminator");
               // switch on terminator kind, add inner and out-edges according to terminator
               use TerminatorKind::*;
-              match b.terminator.kind {
+              match &b.terminator.kind {
 
-                Goto{target: _} => {},
-                SwitchInt{discr:_, targets: _} => {},
-                Resume{} => {},
-                Abort{} => {},
-                Return{} => {},
-                Unreachable{} => {},
-                TerminatorKind::Drop{place: _, target: _, unwind: _} => {},
-                Call{func: _, args: _, destination: _, target: _, unwind: _} => {},
-                Assert{target: _, ..} => {},
-                InlineAsm{destination: _, ..} => {}
+                Goto{target} => {
+                  n.set_label("Goto");
+                  drop(n); // so we can borro `cluster` again below
+                  cluster.edge(&this_block, block_name(name, *target));
+                },
+                SwitchInt{discr:_, targets} => {
+                  n.set_label("SwitchInt");
+                  drop(n); // so we can borrow `cluster` again below
+                  for (d,t) in targets.clone().branches() {
+                    cluster
+                      .edge(&this_block, block_name(name, t))
+                      .attributes()
+                      .set_label(&format!("{d}"));
+                  }
+                },
+                Resume{} => {
+                  n.set_label("Resume"); 
+                },
+                Abort{} => {
+                  n.set_label("Abort");
+                },
+                Return{} => {
+                  n.set_label("Return");
+                },
+                Unreachable{} => {
+                  n.set_label("Unreachable");
+                },
+                TerminatorKind::Drop{place, target, unwind} => {
+                  n.set_label(&format!("Drop {}", show_place(place)));
+                  drop(n);
+                  if let UnwindAction::Cleanup(t) = unwind {
+                    cluster
+                      .edge(&this_block, block_name(name, *t))
+                      .attributes()
+                      .set_label("Cleanup");
+                  }
+                  cluster
+                    .edge(&this_block, block_name(name, *target));
+                },
+                Call{func, args, destination, target, unwind} => {
+                  n.set_label(&format!("Call()"));
+                  drop(n);
+                  if let UnwindAction::Cleanup(t) = unwind {
+                    cluster
+                      .edge(&this_block, block_name(name, *t))
+                      .attributes()
+                      .set_label("Cleanup");
+                  }
+                  if let Some(t) = target {
+                    let dest = show_place(destination);
+                    cluster
+                      .edge(&this_block, block_name(name, *t))
+                      .attributes()
+                      .set_label(&dest);
+                  }
+                  let e = match func {
+                    Operand::Constant(ConstOperand{const_, ..}) => {
+                      if let Some(callee) = func_map.get(&const_.ty()) {
+                        cluster
+                          .edge(&this_block, block_name(callee, 0))
+                      } else {
+                        let unknown = format!("{}", const_.ty());
+                        cluster
+                          .edge(&this_block, unknown)
+                      }
+                    },
+                    Operand::Copy(place) => {
+                      cluster.edge(&this_block, format!("{}: {}", &this_block, show_place(place)))
+                    },
+                    Operand::Move(place) => {
+                      cluster.edge(&this_block,  format!("{}: {}", &this_block, show_place(place)))
+                    },
+                  };
+                  let arg_str = args.into_iter().map(show_op).collect::<Vec<String>>().join(",");
+                  e.attributes().set_label(&arg_str);
+
+                },
+                Assert{target, ..} => {
+                  n.set_label("Assert");
+                  drop(n);
+                  cluster
+                    .edge(&this_block, block_name(name, *target));
+                },
+                InlineAsm{destination, unwind,..} => {
+                  n.set_label("Inline ASM");
+                  drop(n);
+                  if let Some(t) = destination {
+                    cluster
+                    .edge(&this_block, block_name(name, *t));
+                  }
+                  if let UnwindAction::Cleanup(t) = unwind {
+                    cluster
+                      .edge(&this_block, block_name(name, *t))
+                      .attributes()
+                      .set_label("Cleanup");
+                  }
+                }
               }
-            }
+            };
 
-            fn process_blocks<'a,'b>(name: &String, cluster:&mut Scope<'a,'b>, offset: usize, blocks: &Vec<BasicBlock>) {
-              let mut n = offset;
+            let process_blocks = |cluster:&mut Scope<'_,'_>, offset, blocks: &Vec<BasicBlock>| {
+              let mut n:usize = offset;
               for b in blocks {
-                process_block(name, cluster, n, b);
+                process_block(cluster, n, b);
                 n += 1;
               }
-            }
-
+            };
 
             match body.len() {
               0 => {
                 c.node_auto().set_label("<empty body>");
               },
               1 => {
-                process_blocks(&item.symbol_name, &mut c, 0, &body[0].blocks);
+                process_blocks(&mut c, 0, &body[0].blocks);
               }
               _more => {
                 let mut curr: usize = 0;
                 for b in body {
                   let mut cc = c.cluster();
-                  process_blocks(&item.symbol_name, &mut cc, curr, &b.blocks);
+                  process_blocks(&mut cc, curr, &b.blocks);
                   curr += b.blocks.len();
                 }
               }
@@ -101,7 +198,19 @@ impl SmirJson<'_> {
 
 }
 
-fn mk_string(f: FnSymType) -> String {
+fn show_op(op: &Operand) -> String {
+  match op {
+    Operand::Constant(ConstOperand{const_, ..}) => format!("const :: {}", const_.ty()),
+    Operand::Copy(place) => show_place(place),
+    Operand::Move(place) => show_place(place),
+  }
+}
+
+fn show_place(p: &Place) -> String {
+  format!("_{}{}", p.local, if p.projection.len() > 0 { "(...)"} else {""})
+}
+
+fn function_string(f: FnSymType) -> String {
   match f {
     FnSymType::NormalSym(name) => name,
     FnSymType::NoOpSym(name) => format!("NoOp: {name}"),
@@ -121,38 +230,4 @@ fn block_name(function_name: &String, id: usize) -> String {
   let mut h = DefaultHasher::new();
   function_name.hash(&mut h);
   format!("X{:x}_{}", h.finish(), id)
-}
-
-
-#[test]
-fn test_graphviz() {
-
-  use std::io;
-
-  let name = "fubar";
-
-  let mut w = io::stdout();
-
-  let mut writer: DotWriter = DotWriter::from(&mut w);
-
-  writer.set_pretty_print(true);
-
-  let mut digraph = writer.digraph();
-  
-  digraph
-    .node_attributes()
-    .set_shape(Shape::Rectangle)
-    .set_label(name);
-
-  digraph.node_auto().set_label(name);
-
-  let mut cluster = digraph.cluster();
-
-  cluster
-    .set_label("cluck cluck")
-    .set_color(Color::Blue);
-  cluster.node_named(short_name("cluck_1".to_string()));
-  cluster.node_named(block_name("cluck_2".to_string(), 2));
-  cluster.edge(short_name("cluck_1".to_string()), block_name("cluck_2".to_string(), 2));
-
 }
