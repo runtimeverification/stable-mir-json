@@ -1,6 +1,6 @@
-use std::{io, io::Write, collections::HashMap, fs::File, hash::{DefaultHasher, Hash, Hasher}};
+use std::{collections::{HashMap, HashSet}, fs::File, hash::{DefaultHasher, Hash, Hasher}, io::{self, Write}};
 
-use dot_writer::{DotWriter, Attributes, Scope};
+use dot_writer::{Attributes, Color, DotWriter, Scope};
 
 extern crate rustc_middle;
 use rustc_middle::ty::TyCtxt;
@@ -59,6 +59,22 @@ impl SmirJson<'_> {
           .into_iter()
           .map(|(k,v)| (k.0, function_string(v)))
           .collect();
+
+      let item_names: HashSet<String> =
+        self.items
+          .iter()
+          .map(|i| i.symbol_name.clone())
+          .collect();
+
+      // first create all nodes for functions not in the items list
+      for f  in func_map.values() {
+        if ! item_names.contains(f) {
+          graph
+            .node_named(block_name(f, 0))
+            .set_label(f)
+            .set_color(Color::Red);
+        }
+      }
 
       for item in self.items {
         match item.mono_item_kind {
@@ -132,22 +148,31 @@ impl SmirJson<'_> {
                       .attributes()
                       .set_label(&dest);
                   }
+
+                  drop(cluster); // done within cluster, call edge outside of cluster
+
                   let e = match func {
                     Operand::Constant(ConstOperand{const_, ..}) => {
                       if let Some(callee) = func_map.get(&const_.ty()) {
-                        cluster
+                        // if ! item_names.contains(callee) {
+                        //   graph
+                        //     .node_named(block_name(callee, 0))
+                        //     .set_label(callee);
+                        // }
+                        graph
                           .edge(&this_block, block_name(callee, 0))
                       } else {
                         let unknown = format!("{}", const_.ty());
-                        cluster
+                        // graph.node_named(&unknown);
+                        graph
                           .edge(&this_block, unknown)
                       }
                     },
                     Operand::Copy(place) => {
-                      cluster.edge(&this_block, format!("{}: {}", &this_block, show_place(place)))
+                      graph.edge(&this_block, format!("{}: {}", &this_block, show_place(place)))
                     },
                     Operand::Move(place) => {
-                      cluster.edge(&this_block,  format!("{}: {}", &this_block, show_place(place)))
+                      graph.edge(&this_block,  format!("{}: {}", &this_block, show_place(place)))
                     },
                   };
                   let arg_str = args.into_iter().map(show_op).collect::<Vec<String>>().join(",");
