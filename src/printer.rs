@@ -739,7 +739,7 @@ pub struct SmirJsonDebugInfo<'t> {
 // Serialization Entrypoint
 // ========================
 
-fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
   let local_crate = stable_mir::local_crate();
   let items = collect_items(tcx);
   let items_clone = items.clone();

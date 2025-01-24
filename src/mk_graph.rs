@@ -1,7 +1,14 @@
-use std::{collections::HashMap, hash::{DefaultHasher, Hash, Hasher}};
+use std::{io, io::Write, collections::HashMap, fs::File, hash::{DefaultHasher, Hash, Hasher}};
+
+use dot_writer::{DotWriter, Attributes, Scope};
+
+extern crate rustc_middle;
+use rustc_middle::ty::TyCtxt;
 
 extern crate stable_mir;
+use rustc_session::config::{OutFileName, OutputType};
 
+extern crate rustc_session;
 use stable_mir::ty::Ty;
 use stable_mir::mir::{
   BasicBlock,
@@ -13,9 +20,26 @@ use stable_mir::mir::{
   UnwindAction,
 };
 
-use crate::{printer::{FnSymType, SmirJson}, MonoItemKind};
+use crate::{printer::{FnSymType, SmirJson, collect_smir}, MonoItemKind};
 
-use dot_writer::{DotWriter, Attributes, Scope};
+// entry point to write the dot file
+pub fn emit_dotfile(tcx: TyCtxt<'_>) {
+
+  let smir_dot = collect_smir(tcx).to_dot_file();
+
+  match tcx.output_filenames(()).path(OutputType::Mir) {
+    OutFileName::Stdout => {
+      write!(io::stdout(), "{}", smir_dot).expect("Failed to write smir.dot");
+    }
+    OutFileName::Real(path) => {
+      let mut b =
+        io::BufWriter::new(
+          File::create(&path.with_extension("smir.dot"))
+            .expect("Failed to create {path}.smir.dot output file"));
+      write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
+    }
+  }
+}
 
 impl SmirJson<'_> {
 
