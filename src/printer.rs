@@ -765,11 +765,6 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
       let fn_sources =
         calls_map.clone().into_iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
       Some(SmirJsonDebugInfo { fn_sources, types: visited_tys, foreign_modules: get_foreign_module_details()})
-    // write!(writer, "{{ \"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-    //   serde_json::to_string(&fn_sources).expect("serde_json functions failed"),
-    //   serde_json::to_string(&visited_tys).expect("serde_json tys failed"),
-    //   serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
-    // ).expect("Failed to write JSON to file");
     } else {
       None
     };
