@@ -89,7 +89,6 @@ impl SmirJson<'_> {
             // Cannot define local functions that capture env. variables. Instead we define _closures_.
             let process_block = |cluster:&mut Scope<'_,'_>, node_id: usize, b: &BasicBlock | {
               let name = &item.symbol_name;
-            //fn process_block<'a,'b>(name: &String, cluster:&mut Scope<'a,'b>, node_id: usize, b: &BasicBlock) {
               let this_block = block_name(name, node_id);
               let mut n = cluster.node_named(&this_block);
               // TODO: render statements and terminator as text label (with line breaks)
