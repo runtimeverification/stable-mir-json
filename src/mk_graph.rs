@@ -152,8 +152,8 @@ impl SmirJson<'_> {
                       .set_label(&dest);
                   }
 
-                  // The call edge has to be drawn outside the cluster, and therefore outside this function!
-                  // I have to separate this code into its own second function.
+                  // The call edge has to be drawn outside the cluster, outside this function (cluster borrows &mut graph)!
+                  // Code for that is therefore separated into its own second function below.
                 },
                 Assert{target, ..} => {
                   n.set_label("Assert");
@@ -216,16 +216,13 @@ impl SmirJson<'_> {
                     let e = match func {
                       Operand::Constant(ConstOperand{const_, ..}) => {
                         if let Some(callee) = func_map.get(&const_.ty()) {
-                          // if ! item_names.contains(callee) {
-                          //   graph
-                          //     .node_named(block_name(callee, 0))
-                          //     .set_label(callee);
-                          // }
+                          // callee node/body will be added when its body is added, missing ones added before
                           graph
                             .edge(&this_block, block_name(callee, 0))
                         } else {
                           let unknown = format!("{}", const_.ty());
-                          // graph.node_named(&unknown);
+                          // pathological case, could panic! instead.
+                          // all unknown callees will be collapsed into one `unknown` node
                           graph
                             .edge(&this_block, unknown)
                         }
