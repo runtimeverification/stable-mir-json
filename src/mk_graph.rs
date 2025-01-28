@@ -109,7 +109,11 @@ impl SmirJson<'_> {
                       .edge(&this_block, block_name(name, t))
                       .attributes()
                       .set_label(&format!("{d}"));
-                  }
+                  };
+                  cluster
+                    .edge(&this_block, block_name(name, targets.otherwise()))
+                    .attributes()
+                    .set_label("other");
                 },
                 Resume{} => {
                   n.set_label("Resume"); 
