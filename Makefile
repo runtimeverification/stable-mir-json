@@ -1,3 +1,20 @@
+RELEASE_FLAG=
+TOOLCHAIN_NAME=''
+
+default: build
+
+build:
+	cargo build ${RELEASE_FLAG}
+
+clean: rustup-clear-toolchain
+	cargo clean
+
+.PHONY: rustup-clear-toolchain
+rustup-clear-toolchain:
+	rustup override unset
+	rustup override unset --nonexistent
+	rustup toolchain uninstall "${TOOLCHAIN_NAME}"
+
 TESTDIR=$(CURDIR)/tests/integration/programs
 
 .PHONY: integration-test
