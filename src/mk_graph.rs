@@ -98,7 +98,7 @@ impl SmirJson<'_> {
 
                 Goto{target} => {
                   n.set_label("Goto");
-                  drop(n); // so we can borro `cluster` again below
+                  drop(n); // so we can borrow `cluster` again below
                   cluster.edge(&this_block, block_name(name, *target));
                 },
                 SwitchInt{discr:_, targets} => {

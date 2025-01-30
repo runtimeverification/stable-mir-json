@@ -14,7 +14,7 @@ fn main() {
             stable_mir_driver(&args, emit_smir), // backward compatibility
         Some(arg) if arg == "--json" => {
             args.remove(1);
-            stable_mir_driver(  &args, emit_smir)
+            stable_mir_driver(&args, emit_smir)
         }
         Some(arg) if arg == "--dot" => {
             args.remove(1);
