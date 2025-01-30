@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::{collections::HashMap,fs::File,io,iter::Iterator,vec::Vec,str,};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
@@ -15,12 +16,12 @@ use rustc_middle::ty::{TyCtxt, Ty, TyKind, EarlyBinder, FnSig, GenericArgs, Type
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{def_id::{DefId, LOCAL_CRATE}, symbol};
 use rustc_smir::rustc_internal;
-use stable_mir::{ 
+use stable_mir::{
   CrateItem,
   CrateDef,
   ItemKind,
-  mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,visit::MirVisitor},
-  ty::{Allocation,ForeignItemKind},
+  mir::{Body,LocalDecl,Terminator,TerminatorKind,Rvalue,alloc::AllocId,visit::MirVisitor},
+  ty::{Allocation,ConstDef,ForeignItemKind},
   mir::mono::{MonoItem,Instance,InstanceKind}
 };
 use serde::{Serialize, Serializer};
@@ -225,7 +226,7 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 // =========================================================
 
 #[derive(Serialize, Clone)]
-enum MonoItemKind {
+pub enum MonoItemKind {
     MonoItemFn {
       name: String,
       id: stable_mir::DefId,
@@ -241,11 +242,11 @@ enum MonoItemKind {
     },
 }
 #[derive(Serialize, Clone)]
-struct Item {
+pub struct Item {
     #[serde(skip)]
     mono_item: MonoItem,
-    symbol_name: String,
-    mono_item_kind: MonoItemKind,
+    pub symbol_name: String,
+    pub mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
 }
 
@@ -299,7 +300,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
 // ==========================
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-enum FnSymType {
+pub enum FnSymType {
     NoOpSym(String),
     IntrinsicSym(String),
     NormalSym(String),
@@ -329,7 +330,7 @@ fn fn_inst_sym<'tcx>(tcx: TyCtxt<'tcx>, ty: Option<stable_mir::ty::Ty>, inst: Op
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct LinkMapKey<'tcx>(stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
+pub struct LinkMapKey<'tcx>(pub stable_mir::ty::Ty, Option<middle::ty::InstanceKind<'tcx>>);
 
 impl Serialize for LinkMapKey<'_> {
   fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -492,7 +493,7 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
         Some(val.layout())
       }
     };
-    
+
     let maybe_layout_shape = if let Some(Ok(layout)) = maybe_layout {
       Some(layout.shape())
     } else {
@@ -716,15 +717,36 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
   }).collect::<HashMap<_,_>>()
 }
 
+/// the serialised data structure as a whole
+#[derive(Serialize)]
+pub struct SmirJson<'t> {
+  pub name: String,
+  pub crate_id: u64,
+  pub allocs: Vec<(AllocId,AllocInfo)>,
+  pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
+  pub uneval_consts: Vec<(ConstDef, String)>,
+  pub items: Vec<Item>,
+  pub debug: Option<SmirJsonDebugInfo<'t>>
+}
+
+#[derive(Serialize)]
+pub struct SmirJsonDebugInfo<'t> {
+  fn_sources: Vec<(LinkMapKey<'t>,ItemSource)>,
+  types: TyMap,
+  foreign_modules: Vec<(String, Vec<ForeignModule>)>
+}
+
 // Serialization Entrypoint
 // ========================
 
-fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
+pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
   let local_crate = stable_mir::local_crate();
   let items = collect_items(tcx);
   let items_clone = items.clone();
-  let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-  let (calls_map, visited_allocs, visited_tys) = collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
+  let (unevaluated_consts, mut items) =
+    collect_unevaluated_constant_items(tcx, items);
+  let (calls_map, visited_allocs, visited_tys) =
+    collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
 
   // FIXME: We dump extra static items here --- this should be handled better
   for (_, alloc) in visited_allocs.iter() {
@@ -738,39 +760,48 @@ fn emit_smir_internal(tcx: TyCtxt<'_>, writer: &mut dyn io::Write) {
       }
   }
 
-  let called_functions = calls_map.iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
-  let allocs = visited_allocs.iter().collect::<Vec<_>>();
-  let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
-  let json_items = serde_json::to_value(&items).expect("serde_json mono items to value failed");
-  write!(writer, "{{\"name\": {}, \"crate_id\": {}, \"allocs\": {},  \"functions\": {},  \"uneval_consts\": {}, \"items\": {}",
-    serde_json::to_string(&local_crate.name).expect("serde_json string to json failed"),
-    serde_json::to_string(&crate_id).expect("serde_json number to json failed"),
-    serde_json::to_string(&allocs).expect("serde_json global allocs to json failed"),
-    serde_json::to_string(&called_functions).expect("serde_json functions to json failed"),
-    serde_json::to_string(&unevaluated_consts).expect("serde_json unevaluated consts to json failed"),
-    serde_json::to_string(&json_items).expect("serde_json mono items to json failed"),
-  ).expect("Failed to write JSON to file");
-  if debug_enabled() {
-    let fn_sources = calls_map.iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
-    write!(writer, ",\"fn_sources\": {}, \"types\": {}, \"foreign_modules\": {}}}",
-      serde_json::to_string(&fn_sources).expect("serde_json functions failed"),
-      serde_json::to_string(&visited_tys).expect("serde_json tys failed"),
-      serde_json::to_string(&get_foreign_module_details()).expect("foreign_module serialization failed"),
-    ).expect("Failed to write JSON to file");
-  } else {
-    write!(writer, "}}").expect("Failed to write JSON to file");
+  let debug: Option<SmirJsonDebugInfo> =
+    if debug_enabled() {
+      let fn_sources =
+        calls_map.clone().into_iter().map(|(k,(source,_))| (k,source)).collect::<Vec<_>>();
+      Some(SmirJsonDebugInfo { fn_sources, types: visited_tys, foreign_modules: get_foreign_module_details()})
+    } else {
+      None
+    };
+
+  let called_functions =
+    calls_map.into_iter().map(|(k,(_,name))| (k,name)).collect::<Vec<_>>();
+  let allocs =
+    visited_allocs.into_iter().collect::<Vec<_>>();
+  let crate_id =
+    tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+
+  SmirJson {
+    name: local_crate.name,
+    crate_id: crate_id,
+    allocs,
+    functions: called_functions,
+    uneval_consts: unevaluated_consts.into_iter().collect(),
+    items,
+    debug
   }
+
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
+
+  let smir_json = serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");
+
   match tcx.output_filenames(()).path(OutputType::Mir) {
     OutFileName::Stdout => {
-        let mut f = io::stdout();
-        emit_smir_internal(tcx, &mut f);
+      write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json");
     }
     OutFileName::Real(path) => {
-        let mut f = io::BufWriter::new(File::create(&path.with_extension("smir.json")).expect("Failed to create SMIR output file"));
-        emit_smir_internal(tcx, &mut f);
+      let mut b =
+        io::BufWriter::new(
+          File::create(&path.with_extension("smir.json"))
+            .expect("Failed to create {path}.smir.json output file"));
+      write!(b, "{}", smir_json).expect("Failed to write smir.json");
     }
   }
 }

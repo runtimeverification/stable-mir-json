@@ -39,6 +39,14 @@ To generate stable MIR output without building a binary, you can invoke the tool
 ./run.sh -Z no-codegen <crate_root>
 ```
 
+There is experimental support for rendering the Stable-MIR items and their basic blocks as a 
+call graph in graphviz' dot format. 
+
+To produce a dot file `*.smir.dot` (instead of `*.smir.json`), one can invoke the driver with
+_first_ argument `--dot`. When using `--json` as the first argument, the `*.smir.json` file
+will be written. Any other strings given as first argument will be passed to the compiler 
+(like all subsequent arguments).
+
 There are a few environment variables that can be set to control the tools output:
 
 1.  `LINK_ITEMS` - add entries to the link-time `functions` map for each monomorphic item in the crate;
