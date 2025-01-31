@@ -31,6 +31,7 @@ jobs:
 
       - name: "Check `cargo clippy`"
         run: |
+          rustup component add clippy
           cargo clippy -- -Dwarnings
 
   integration-tests:
