@@ -32,10 +32,10 @@ struct StableMirCallbacks {
 }
 
 impl rustc_driver::Callbacks for StableMirCallbacks {
-    fn after_analysis<'tcx>(
+    fn after_analysis(
         &mut self,
         _compiler: &Compiler,
-        tcx: TyCtxt<'tcx>,
+        tcx: TyCtxt,
     ) -> Compilation {
 
         let _ = rustc_internal::run(tcx, || (self.callback_fn)(tcx));
@@ -44,7 +44,7 @@ impl rustc_driver::Callbacks for StableMirCallbacks {
     }
 }
 
-pub fn stable_mir_driver(args_outer: &Vec<String>, callback_fn: fn (TyCtxt) -> ()) {
+pub fn stable_mir_driver(args_outer: &[String], callback_fn: fn (TyCtxt) -> ()) {
     let mut callbacks = StableMirCallbacks { callback_fn };
     let early_dcx = rustc_session::EarlyDiagCtxt::new(rustc_session::config::ErrorOutputType::default());
     rustc_driver::init_rustc_env_logger(&early_dcx);

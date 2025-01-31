@@ -15,7 +15,6 @@ use stable_mir::mir::{
   ConstOperand,
   Operand,
   Place,
-  Statement,
   TerminatorKind,
   UnwindAction,
 };
@@ -34,7 +33,7 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
     OutFileName::Real(path) => {
       let mut b =
         io::BufWriter::new(
-          File::create(&path.with_extension("smir.dot"))
+          File::create(path.with_extension("smir.dot"))
             .expect("Failed to create {path}.smir.dot output file"));
       write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
     }
@@ -140,7 +139,7 @@ impl SmirJson<'_> {
                     .edge(&this_block, block_name(name, *target));
                 },
                 Call{func: _, args: _, destination, target, unwind} => {
-                  n.set_label(&format!("Call()"));
+                  n.set_label("Call()");
                   drop(n);
                   if let UnwindAction::Cleanup(t) = unwind {
                     cluster
@@ -238,7 +237,7 @@ impl SmirJson<'_> {
                         graph.edge(&this_block,  format!("{}: {}", &this_block, show_place(place)))
                       },
                     };
-                    let arg_str = args.into_iter().map(show_op).collect::<Vec<String>>().join(",");
+                    let arg_str = args.iter().map(show_op).collect::<Vec<String>>().join(",");
                     e.attributes().set_label(&arg_str);
 
                   },
@@ -292,10 +291,10 @@ fn show_op(op: &Operand) -> String {
 }
 
 fn show_place(p: &Place) -> String {
-  format!("_{}{}", p.local, if p.projection.len() > 0 { "(...)"} else {""})
+  format!("_{}{}", p.local, if !p.projection.is_empty() { "(...)"} else {""})
 }
 
-fn is_unqualified(name: &String) -> bool {
+fn is_unqualified(name: &str) -> bool {
   ! name.contains("::")
 }
 
@@ -307,7 +306,7 @@ fn function_string(f: FnSymType) -> String {
   }
 }
 
-fn name_lines(name: &String) -> String {
+fn name_lines(name: &str) -> String {
   name
     .split_inclusive(" ")
     .flat_map(|s| s.split_inclusive("::"))
