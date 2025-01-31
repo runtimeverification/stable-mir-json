@@ -32,7 +32,7 @@ jobs:
 
       - name: 'Build smir_pretty'
         run: |
-          cargo build -vv
+          -RUSTFLAGS'--deny warning' cargo build -vv
 
       - name: 'Run smir integration tests'
         run: |
