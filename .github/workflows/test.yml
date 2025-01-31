@@ -52,7 +52,7 @@ jobs:
 
       - name: 'Build smir_pretty'
         run: | # Warning check should be redundant
-          -RUSTFLAGS'--deny warnings' cargo build -vv
+          RUSTFLAGS'--deny warnings' cargo build -vv
 
       - name: 'Run smir integration tests'
         run: |
