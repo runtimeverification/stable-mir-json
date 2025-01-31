@@ -13,6 +13,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  code-quality:
+    name: "Code Quality"
+    runs-on: [self-hosted, linux, normal]
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          # Check out pull request HEAD instead of merge commit.
+          ref: ${{ github.event.pull_request.head.sha }}
+          submodules: recursive
+
+      - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
+
+      - name: "Check `cargo clippy`"
+        run: |
+          cargo clippy -- -Dwarnings
 
   integration-tests:
     name: "Integration tests"
@@ -31,7 +50,7 @@ jobs:
           toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
       - name: 'Build smir_pretty'
-        run: |
+        run: | # Warning check should be redundant
           -RUSTFLAGS'--deny warning' cargo build -vv
 
       - name: 'Run smir integration tests'
