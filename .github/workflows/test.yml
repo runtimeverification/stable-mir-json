@@ -29,10 +29,19 @@ jobs:
         with:
           toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
+      - name: 'Build smir_pretty' # rustfmt documentation claims it is unstable on code that doesn't build
+        run: |
+          cargo build -vv
+
       - name: "Check `cargo clippy`"
         run: |
           rustup component add clippy
           cargo clippy -- -Dwarnings
+
+      - name: "Check `cargo fmt`"
+        run: |
+          rustup component add rustfmt
+          cargo fmt --check
 
   integration-tests:
     name: "Integration tests"
