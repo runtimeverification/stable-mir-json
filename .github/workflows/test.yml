@@ -44,6 +44,7 @@ jobs:
           cargo fmt --check
 
   integration-tests:
+    needs: code-quality
     name: "Integration tests"
     runs-on: [self-hosted, linux, normal]
     steps:
@@ -60,7 +61,7 @@ jobs:
           toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
       - name: 'Build smir_pretty'
-        run: | # Warning check should be redundant
+        run: | # Warning check should be redundant since code-quality runs first
           RUSTFLAGS='--deny warnings' cargo build -vv
 
       - name: 'Run smir integration tests'
