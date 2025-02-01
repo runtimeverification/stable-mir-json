@@ -7,9 +7,15 @@ pub fn get_resource_path(components: Vec<&str>) -> String {
         pathbuf.push(component);
     }
     let path = pathbuf.as_path();
-    if ! path.exists() {
-        panic!("Test resource file is not found or not readable: {}", path.display());
+    if !path.exists() {
+        panic!(
+            "Test resource file is not found or not readable: {}",
+            path.display()
+        );
     }
 
-    return path.to_str().expect("test path was not a valid string").into();
+    return path
+        .to_str()
+        .expect("test path was not a valid string")
+        .into();
 }

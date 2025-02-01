@@ -36,6 +36,10 @@ There are a few environment variables that can be set to control the tools outpu
 2.  `LINK_INST`  - use a richer key-structure for the link-time `functions` map which uses keys that are pairs of a function type (`Ty`) _and_ an function instance kind (`InstanceKind`)
 3.  `DEBUG` - serialize additional data in the JSON file and dump logs to stdout
 
+## Development
+
+To ensure code quality, all code is required to pass `cargo clippy` and `cargo fmt` without warning to pass CI.
+
 ## Tests
 
 ### Running the Tests
