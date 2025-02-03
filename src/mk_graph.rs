@@ -345,8 +345,8 @@ fn function_string(f: FnSymType) -> String {
 
 fn name_lines(name: &str) -> String {
     name.split_inclusive(" ")
-        .flat_map(|s| s.split_inclusive("::"))
-        .map(|s| s.to_string())
+        .flat_map(|s| s.as_bytes().chunks(25))
+        .map(|bs| core::str::from_utf8(bs).unwrap().to_string())
         .collect::<Vec<String>>()
         .join("\\n")
 }
