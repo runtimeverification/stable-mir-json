@@ -77,8 +77,10 @@ impl SmirJson<'_> {
                     MonoItemKind::MonoItemFn { name, body, id: _ } => {
                         let mut c = graph.cluster();
                         c.set_label(&name_lines(&name));
+                        c.set_style(Style::Filled);
                         if is_unqualified(&name) {
-                            c.set_style(Style::Filled);
+                            c.set_color(Color::PaleGreen);
+                        } else {
                             c.set_color(Color::LightGrey);
                         }
 
@@ -87,7 +89,6 @@ impl SmirJson<'_> {
                             |cluster: &mut Scope<'_, '_>, node_id: usize, b: &BasicBlock| {
                                 let name = &item.symbol_name;
                                 let this_block = block_name(name, node_id);
-                                let mut n = cluster.node_named(&this_block);
 
                                 let mut label_strs: Vec<String> = b.statements.iter().map(|s| render_stmt(s)).collect();
                                 // TODO: render statements and terminator as text label (with line breaks)
@@ -96,14 +97,10 @@ impl SmirJson<'_> {
                                 match &b.terminator.kind {
                                     Goto { target } => {
                                         label_strs.push("Goto".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
-                                        drop(n); // so we can borrow `cluster` again below
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     SwitchInt { discr: _, targets } => {
                                         label_strs.push("SwitchInt".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
-                                        drop(n); // so we can borrow `cluster` again below
                                         for (d, t) in targets.clone().branches() {
                                             cluster
                                                 .edge(&this_block, block_name(name, t))
@@ -120,19 +117,15 @@ impl SmirJson<'_> {
                                     }
                                     Resume {} => {
                                         label_strs.push("Resume".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     Abort {} => {
                                         label_strs.push("Abort".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     Return {} => {
                                         label_strs.push("Return".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     Unreachable {} => {
                                         label_strs.push("Unreachable".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     TerminatorKind::Drop {
                                         place,
@@ -140,8 +133,6 @@ impl SmirJson<'_> {
                                         unwind,
                                     } => {
                                         label_strs.push(format!("Drop {}", show_place(place)));
-                                        n.set_label(&label_strs.join("\\l"));
-                                        drop(n);
                                         if let UnwindAction::Cleanup(t) = unwind {
                                             cluster
                                                 .edge(&this_block, block_name(name, *t))
@@ -158,8 +149,6 @@ impl SmirJson<'_> {
                                         unwind,
                                     } => {
                                         label_strs.push("Call".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
-                                        drop(n);
                                         if let UnwindAction::Cleanup(t) = unwind {
                                             cluster
                                                 .edge(&this_block, block_name(name, *t))
@@ -179,8 +168,6 @@ impl SmirJson<'_> {
                                     }
                                     Assert { target, .. } => {
                                         label_strs.push(format!("Assert {}", "..."));
-                                        n.set_label(&label_strs.join("\\l"));
-                                        drop(n);
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     InlineAsm {
@@ -189,8 +176,6 @@ impl SmirJson<'_> {
                                         ..
                                     } => {
                                         label_strs.push("Inline ASM".to_string());
-                                        n.set_label(&label_strs.join("\\l"));
-                                        drop(n);
                                         if let Some(t) = destination {
                                             cluster.edge(&this_block, block_name(name, *t));
                                         }
@@ -202,6 +187,8 @@ impl SmirJson<'_> {
                                         }
                                     }
                                 }
+                                let mut n = cluster.node_named(&this_block);
+                                n.set_label(&label_strs.join("\\l"));
                             };
 
                         let process_blocks =
