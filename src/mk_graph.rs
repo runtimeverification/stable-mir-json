@@ -5,7 +5,7 @@ use std::{
     io::{self, Write},
 };
 
-use dot_writer::{Attributes, Color, DotWriter, Scope, Style};
+use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
 
 extern crate rustc_middle;
 use rustc_middle::ty::TyCtxt;
@@ -14,7 +14,7 @@ extern crate stable_mir;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::mir::{BasicBlock, ConstOperand, Operand, Place, TerminatorKind, UnwindAction};
+use stable_mir::mir::{BasicBlock, ConstOperand, Operand, Place, Statement, StatementKind, TerminatorKind, UnwindAction};
 use stable_mir::ty::Ty;
 
 use crate::{
@@ -51,6 +51,7 @@ impl SmirJson<'_> {
 
             let mut graph = writer.digraph();
             graph.set_label(&self.name[..]);
+            graph.node_attributes().set_shape(Shape::Rectangle);
 
             let func_map: HashMap<Ty, String> = self
                 .functions
@@ -87,17 +88,21 @@ impl SmirJson<'_> {
                                 let name = &item.symbol_name;
                                 let this_block = block_name(name, node_id);
                                 let mut n = cluster.node_named(&this_block);
+
+                                let mut label_strs: Vec<String> = b.statements.iter().map(|s| render_stmt(s)).collect();
                                 // TODO: render statements and terminator as text label (with line breaks)
                                 // switch on terminator kind, add inner and out-edges according to terminator
                                 use TerminatorKind::*;
                                 match &b.terminator.kind {
                                     Goto { target } => {
-                                        n.set_label("Goto");
+                                        label_strs.push("Goto".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                         drop(n); // so we can borrow `cluster` again below
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     SwitchInt { discr: _, targets } => {
-                                        n.set_label("SwitchInt");
+                                        label_strs.push("SwitchInt".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                         drop(n); // so we can borrow `cluster` again below
                                         for (d, t) in targets.clone().branches() {
                                             cluster
@@ -114,23 +119,28 @@ impl SmirJson<'_> {
                                             .set_label("other");
                                     }
                                     Resume {} => {
-                                        n.set_label("Resume");
+                                        label_strs.push("Resume".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     Abort {} => {
-                                        n.set_label("Abort");
+                                        label_strs.push("Abort".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     Return {} => {
-                                        n.set_label("Return");
+                                        label_strs.push("Return".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     Unreachable {} => {
-                                        n.set_label("Unreachable");
+                                        label_strs.push("Unreachable".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                     }
                                     TerminatorKind::Drop {
                                         place,
                                         target,
                                         unwind,
                                     } => {
-                                        n.set_label(&format!("Drop {}", show_place(place)));
+                                        label_strs.push(format!("Drop {}", show_place(place)));
+                                        n.set_label(&label_strs.join("\\l"));
                                         drop(n);
                                         if let UnwindAction::Cleanup(t) = unwind {
                                             cluster
@@ -147,7 +157,8 @@ impl SmirJson<'_> {
                                         target,
                                         unwind,
                                     } => {
-                                        n.set_label("Call()");
+                                        label_strs.push("Call".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                         drop(n);
                                         if let UnwindAction::Cleanup(t) = unwind {
                                             cluster
@@ -167,7 +178,8 @@ impl SmirJson<'_> {
                                         // Code for that is therefore separated into its own second function below.
                                     }
                                     Assert { target, .. } => {
-                                        n.set_label("Assert");
+                                        label_strs.push(format!("Assert {}", "..."));
+                                        n.set_label(&label_strs.join("\\l"));
                                         drop(n);
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
@@ -176,7 +188,8 @@ impl SmirJson<'_> {
                                         unwind,
                                         ..
                                     } => {
-                                        n.set_label("Inline ASM");
+                                        label_strs.push("Inline ASM".to_string());
+                                        n.set_label(&label_strs.join("\\l"));
                                         drop(n);
                                         if let Some(t) = destination {
                                             cluster.edge(&this_block, block_name(name, *t));
@@ -363,4 +376,24 @@ fn block_name(function_name: &String, id: usize) -> String {
     let mut h = DefaultHasher::new();
     function_name.hash(&mut h);
     format!("X{:x}_{}", h.finish(), id)
+}
+
+fn render_stmt(s: &Statement) -> String {
+    use StatementKind::*;
+    match &s.kind {
+        Assign(p, _v) => format!("{} <- {}", show_place(&p), ""),
+        FakeRead(_cause, p) => format!("Fake-Read {}", show_place(&p)),
+        SetDiscriminant { place, variant_index: _ } => format!("set discriminant {}({})", show_place(&place), "..."),
+        Deinit(p) => format!("Deinit {}", show_place(&p)),
+        StorageLive(l) => format!("Storage Live _{}", &l),
+        StorageDead(l) => format!("Storage Dead _{}", &l),
+        Retag(_retag_kind, p) => format!("Retag {}", show_place(&p)),
+        PlaceMention(p) => format!("Mention {}", show_place(&p)),
+        AscribeUserType {place, projections:  _, variance: _} => 
+            format!("Ascribe {}: {}, {}", show_place(&place), "proj", "variance"),
+        Coverage(_) => format!("Coverage"),
+        Intrinsic(_intr) => format!("Intrinsic {}", "non-diverging-intrinsic"),
+        ConstEvalCounter{} => "ConstEvalCounter".to_string(),
+        Nop{}=> "Nop".to_string(),
+    }
 }
