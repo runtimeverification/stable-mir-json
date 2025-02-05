@@ -14,7 +14,10 @@ extern crate stable_mir;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::mir::{BasicBlock, ConstOperand, Operand, Place, Statement, StatementKind, TerminatorKind, UnwindAction};
+use stable_mir::mir::{
+    BasicBlock, ConstOperand, Operand, Place, Statement, StatementKind, TerminatorKind,
+    UnwindAction,
+};
 use stable_mir::ty::Ty;
 
 use crate::{
@@ -90,7 +93,8 @@ impl SmirJson<'_> {
                                 let name = &item.symbol_name;
                                 let this_block = block_name(name, node_id);
 
-                                let mut label_strs: Vec<String> = b.statements.iter().map(|s| render_stmt(s)).collect();
+                                let mut label_strs: Vec<String> =
+                                    b.statements.iter().map(render_stmt).collect();
                                 // TODO: render statements and terminator as text label (with line breaks)
                                 // switch on terminator kind, add inner and out-edges according to terminator
                                 use TerminatorKind::*;
@@ -368,19 +372,25 @@ fn block_name(function_name: &String, id: usize) -> String {
 fn render_stmt(s: &Statement) -> String {
     use StatementKind::*;
     match &s.kind {
-        Assign(p, _v) => format!("{} <- {}", show_place(&p), ""),
-        FakeRead(_cause, p) => format!("Fake-Read {}", show_place(&p)),
-        SetDiscriminant { place, variant_index: _ } => format!("set discriminant {}({})", show_place(&place), "..."),
-        Deinit(p) => format!("Deinit {}", show_place(&p)),
+        Assign(p, _v) => format!("{} <- {}", show_place(p), ""),
+        FakeRead(_cause, p) => format!("Fake-Read {}", show_place(p)),
+        SetDiscriminant {
+            place,
+            variant_index: _,
+        } => format!("set discriminant {}({})", show_place(place), "..."),
+        Deinit(p) => format!("Deinit {}", show_place(p)),
         StorageLive(l) => format!("Storage Live _{}", &l),
         StorageDead(l) => format!("Storage Dead _{}", &l),
-        Retag(_retag_kind, p) => format!("Retag {}", show_place(&p)),
-        PlaceMention(p) => format!("Mention {}", show_place(&p)),
-        AscribeUserType {place, projections:  _, variance: _} => 
-            format!("Ascribe {}: {}, {}", show_place(&place), "proj", "variance"),
-        Coverage(_) => format!("Coverage"),
+        Retag(_retag_kind, p) => format!("Retag {}", show_place(p)),
+        PlaceMention(p) => format!("Mention {}", show_place(p)),
+        AscribeUserType {
+            place,
+            projections: _,
+            variance: _,
+        } => format!("Ascribe {}: {}, {}", show_place(place), "proj", "variance"),
+        Coverage(_) => "Coverage".to_string(),
         Intrinsic(_intr) => format!("Intrinsic {}", "non-diverging-intrinsic"),
-        ConstEvalCounter{} => "ConstEvalCounter".to_string(),
-        Nop{}=> "Nop".to_string(),
+        ConstEvalCounter {} => "ConstEvalCounter".to_string(),
+        Nop {} => "Nop".to_string(),
     }
 }
