@@ -605,7 +605,7 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
 
     // HACK: std::fmt::Arguments has escaping bounds and will error if trying to get the layout.
     // We will just ban producing the layout for now see, this issue for more info
-    // https://github.com/runtimeverification/smir_pretty/issues/27
+    // https://github.com/runtimeverification/stable-mir-json/issues/27
     let maybe_layout = match val.kind() {
         stable_mir::ty::TyKind::RigidTy(Adt(AdtDef(def_id_stable), _)) => {
             let def_id_internal = rustc_internal::internal(val_collector.tcx, def_id_stable);
