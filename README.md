@@ -42,38 +42,25 @@ To ensure code quality, all code is required to pass `cargo clippy` and `cargo f
 
 ## Tests
 
+Integration tests for `stable-mir-pretty` consist of compiling a number of (small)
+programs with the wrapper compiler, and checking the output against expected JSON
+data ("golden" tests).
+
+The tests are stored [in `src/tests/integration/programs`](./src/tests/integration/programs).
+
+To compensate for any non-determinism in the output, the JSON file is first processed
+to sort the array contents and remove data which changes with dependencies (such as 
+the crate hash suffix in the symbol names).
+
+The JSON post-processing is performed [with `jq` using the script in `src/tests/integration/normalise-filter.jq`](./src/tests/integration/normalise-filter.jq).
+
+Some tests have non-deterministic output and are therefore expected to fail. 
+These tests are stored [in `src/tests/integration/failing`](./src/tests/integration/failing).
+
 ### Running the Tests
 
 To run the tests, do the following:
 
 ```shell
-make generate_ui_tests
+make integration-test
 ```
-
-This will generate four outputs:
-
-| Path                              | Comment                                                   |
-| ---                               | ---                                                       |
-| `deps/rust/tests/ui/upstream`     | Upstream `rustc` test outputs                             |
-| `deps/rust/tests_ui_upstream.log` | Upstream test log                                         |
-| `deps/rust/tests/ui/smir`         | `smir_pretty` test outputs (including `.smir.json` files) |
-| `deps/rust/tests_ui_smir.log`     | `smir_pretty` test log                                    |
-
-### Test Rationale
-
-Since this crate is a Stable MIR serialization tool, there are two main features we are interested in:
-
-1.  the serialization facilities should be stable (i.e. not crash)
-2.  the serialized output should be correct
-
-Since this tool is currently in its early stages, it is hard to test (2).
-However, to test (1) and to make progress towards (2), we currently do the following:
-
-1.  in the rustc test suite, we gather all of the run-pass tests, i.e., tests where the compiler is able to generate a binary _and_ subsequently execute the binary such that it exits successfully
-2.  we extract the test runner invocation from the `x.py test` command
-3.  we execute the test runner with upstream `rustc` against the test inputs from (1) --- this gives us a baseline on which tests should pass/fail
-4.  we re-execute the test runner but use our wrapper binary against the test inputs from (1) --- this generates the corresponding `.smir.json` files and shows us where any regressions occur
-
-
-**NOTE:** In order to speed up test time, we setup the test runner, by default, such that it skips codegen and compiler-generated binary execution.  
-**NOTE:** Points (1,4) also means that our test _outputs_ from this phase can become test _inputs_ for KMIR.

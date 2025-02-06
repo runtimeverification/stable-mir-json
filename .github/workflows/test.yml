@@ -29,7 +29,7 @@ jobs:
         with:
           toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
-      - name: 'Build smir_pretty' # rustfmt documentation claims it is unstable on code that doesn't build
+      - name: 'Build stable-mir-json' # rustfmt documentation claims it is unstable on code that doesn't build
         run: |
           cargo build -vv
 
@@ -60,7 +60,7 @@ jobs:
         with:
           toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
-      - name: 'Build smir_pretty'
+      - name: 'Build stable-mir-json'
         run: | # Warning check should be redundant since code-quality runs first
           RUSTFLAGS='--deny warnings' cargo build -vv
 
