@@ -15,10 +15,10 @@ use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
 use stable_mir::mir::{
-    BasicBlock, ConstOperand, Operand, Place, Statement, StatementKind, TerminatorKind,
-    UnwindAction,
+    AggregateKind, BasicBlock, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
+    Place, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
 };
-use stable_mir::ty::Ty;
+use stable_mir::ty::{IndexedVal, Ty};
 
 use crate::{
     printer::{collect_smir, FnSymType, SmirJson},
@@ -103,8 +103,8 @@ impl SmirJson<'_> {
                                         label_strs.push("Goto".to_string());
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
-                                    SwitchInt { discr: _, targets } => {
-                                        label_strs.push("SwitchInt".to_string());
+                                    SwitchInt { discr, targets } => {
+                                        label_strs.push(format!("SwitchInt {}", discr.label()));
                                         for (d, t) in targets.clone().branches() {
                                             cluster
                                                 .edge(&this_block, block_name(name, t))
@@ -136,7 +136,7 @@ impl SmirJson<'_> {
                                         target,
                                         unwind,
                                     } => {
-                                        label_strs.push(format!("Drop {}", show_place(place)));
+                                        label_strs.push(format!("Drop {}", place.label()));
                                         if let UnwindAction::Cleanup(t) = unwind {
                                             cluster
                                                 .edge(&this_block, block_name(name, *t))
@@ -160,7 +160,7 @@ impl SmirJson<'_> {
                                                 .set_label("Cleanup");
                                         }
                                         if let Some(t) = target {
-                                            let dest = show_place(destination);
+                                            let dest = destination.label();
                                             cluster
                                                 .edge(&this_block, block_name(name, *t))
                                                 .attributes()
@@ -170,8 +170,24 @@ impl SmirJson<'_> {
                                         // The call edge has to be drawn outside the cluster, outside this function (cluster borrows &mut graph)!
                                         // Code for that is therefore separated into its own second function below.
                                     }
-                                    Assert { target, .. } => {
-                                        label_strs.push(format!("Assert {}", "..."));
+                                    Assert {
+                                        cond,
+                                        expected,
+                                        msg: _,
+                                        target,
+                                        unwind,
+                                    } => {
+                                        label_strs.push(format!(
+                                            "Assert {} == {}",
+                                            cond.label(),
+                                            expected
+                                        ));
+                                        if let UnwindAction::Cleanup(t) = unwind {
+                                            cluster
+                                                .edge(&this_block, block_name(name, *t))
+                                                .attributes()
+                                                .set_label("Cleanup");
+                                        }
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     InlineAsm {
@@ -192,6 +208,7 @@ impl SmirJson<'_> {
                                     }
                                 }
                                 let mut n = cluster.node_named(&this_block);
+                                label_strs.push("".to_string());
                                 n.set_label(&label_strs.join("\\l"));
                             };
 
@@ -252,24 +269,16 @@ impl SmirJson<'_> {
                                                 }
                                                 Operand::Copy(place) => graph.edge(
                                                     &this_block,
-                                                    format!(
-                                                        "{}: {}",
-                                                        &this_block,
-                                                        show_place(place)
-                                                    ),
+                                                    format!("{}: {}", &this_block, place.label()),
                                                 ),
                                                 Operand::Move(place) => graph.edge(
                                                     &this_block,
-                                                    format!(
-                                                        "{}: {}",
-                                                        &this_block,
-                                                        show_place(place)
-                                                    ),
+                                                    format!("{}: {}", &this_block, place.label()),
                                                 ),
                                             };
                                             let arg_str = args
                                                 .iter()
-                                                .map(show_op)
+                                                .map(|op| op.label())
                                                 .collect::<Vec<String>>()
                                                 .join(",");
                                             e.attributes().set_label(&arg_str);
@@ -315,26 +324,6 @@ impl SmirJson<'_> {
     }
 }
 
-fn show_op(op: &Operand) -> String {
-    match op {
-        Operand::Constant(ConstOperand { const_, .. }) => format!("const :: {}", const_.ty()),
-        Operand::Copy(place) => show_place(place),
-        Operand::Move(place) => show_place(place),
-    }
-}
-
-fn show_place(p: &Place) -> String {
-    format!(
-        "_{}{}",
-        p.local,
-        if !p.projection.is_empty() {
-            "(...)"
-        } else {
-            ""
-        }
-    )
-}
-
 fn is_unqualified(name: &str) -> bool {
     !name.contains("::")
 }
@@ -372,25 +361,129 @@ fn block_name(function_name: &String, id: usize) -> String {
 fn render_stmt(s: &Statement) -> String {
     use StatementKind::*;
     match &s.kind {
-        Assign(p, _v) => format!("{} <- {}", show_place(p), ""),
-        FakeRead(_cause, p) => format!("Fake-Read {}", show_place(p)),
+        Assign(p, v) => format!("{} <- {}", p.label(), v.label()),
+        FakeRead(_cause, p) => format!("Fake-Read {}", p.label()),
         SetDiscriminant {
             place,
-            variant_index: _,
-        } => format!("set discriminant {}({})", show_place(place), "..."),
-        Deinit(p) => format!("Deinit {}", show_place(p)),
+            variant_index,
+        } => format!(
+            "set discriminant {}({})",
+            place.label(),
+            variant_index.to_index()
+        ),
+        Deinit(p) => format!("Deinit {}", p.label()),
         StorageLive(l) => format!("Storage Live _{}", &l),
         StorageDead(l) => format!("Storage Dead _{}", &l),
-        Retag(_retag_kind, p) => format!("Retag {}", show_place(p)),
-        PlaceMention(p) => format!("Mention {}", show_place(p)),
+        Retag(_retag_kind, p) => format!("Retag {}", p.label()),
+        PlaceMention(p) => format!("Mention {}", p.label()),
         AscribeUserType {
             place,
-            projections: _,
+            projections,
             variance: _,
-        } => format!("Ascribe {}: {}, {}", show_place(place), "proj", "variance"),
+        } => format!("Ascribe {}.{}", place.label(), projections.base),
         Coverage(_) => "Coverage".to_string(),
-        Intrinsic(_intr) => format!("Intrinsic {}", "non-diverging-intrinsic"),
+        Intrinsic(intr) => format!("Intr: {}", intr.label()),
         ConstEvalCounter {} => "ConstEvalCounter".to_string(),
         Nop {} => "Nop".to_string(),
+    }
+}
+
+/// Rendering things as part of graph node labels
+trait GraphLabelString {
+    fn label(&self) -> String;
+}
+
+impl GraphLabelString for Operand {
+    fn label(&self) -> String {
+        match &self {
+            Operand::Constant(ConstOperand { const_, .. }) => format!("const :: {}", const_.ty()),
+            Operand::Copy(place) => place.label(),
+            Operand::Move(place) => place.label(),
+        }
+    }
+}
+
+impl GraphLabelString for Place {
+    fn label(&self) -> String {
+        format!(
+            "_{}{}",
+            &self.local,
+            if !&self.projection.is_empty() {
+                "(...)"
+            } else {
+                ""
+            }
+        )
+    }
+}
+
+impl GraphLabelString for AggregateKind {
+    fn label(&self) -> String {
+        use AggregateKind::*;
+        use Mutability::*;
+        match &self {
+            Array(_ty) => "Array".to_string(),
+            Tuple {} => "Tuple".to_string(),
+            Adt(_, _, _, _, _) => "Adt".to_string(), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
+            Closure(_, _) => "Closure".to_string(),  // (ClosureDef, GenericArgs),
+            Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
+            // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
+            RawPtr(ty, Mut) => format!("*mut ({})", ty),
+            RawPtr(ty, Not) => format!("*({})", ty),
+        }
+    }
+}
+
+impl GraphLabelString for Rvalue {
+    fn label(&self) -> String {
+        use Rvalue::*;
+        match &self {
+            AddressOf(kind, p) => format!("&{:?} {}", kind, p.label()),
+            Aggregate(kind, operands) => {
+                let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
+                format!("{} ({})", kind.label(), os.join(", "))
+            }
+            BinaryOp(binop, op1, op2) => format!("{:?}({}, {})", binop, op1.label(), op2.label()),
+            Cast(kind, op, _ty) => format!("Cast-{:?} {}", kind, op.label()),
+            CheckedBinaryOp(binop, op1, op2) => {
+                format!("chkd-{:?}({}, {})", binop, op1.label(), op2.label())
+            }
+            CopyForDeref(p) => format!("CopyForDeref({})", p.label()),
+            Discriminant(p) => format!("Discriminant({})", p.label()),
+            Len(p) => format!("Len({})", p.label()),
+            Ref(region, borrowkind, p) => {
+                format!("{:?} ({:?}): {}", region.kind, borrowkind, p.label())
+            }
+            Repeat(op, _ty_const) => format!("Repeat {}", op.label()),
+            ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", op.label()),
+            ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
+            NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
+            UnaryOp(unop, op) => format!("{:?}({})", unop, op.label()),
+            Use(op) => format!("Use({})", op.label()),
+        }
+    }
+}
+
+impl GraphLabelString for NullOp {
+    fn label(&self) -> String {
+        match &self {
+            NullOp::OffsetOf(_vec) => "OffsetOf(..)".to_string(),
+            other => format!("{:?}", other),
+        }
+    }
+}
+
+impl GraphLabelString for NonDivergingIntrinsic {
+    fn label(&self) -> String {
+        use NonDivergingIntrinsic::*;
+        match &self {
+            Assume(op) => format!("Assume {}", op.label()),
+            CopyNonOverlapping(c) => format!(
+                "CopyNonOverlapping: {} <- {}({}))",
+                c.dst.label(),
+                c.src.label(),
+                c.count.label()
+            ),
+        }
     }
 }
