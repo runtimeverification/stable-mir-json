@@ -1718,5 +1718,450 @@
       },
       "symbol_name": "_ZN9ref_deref4main17h"
     }
+  ],
+  "types": [
+    [
+      0,
+      {
+        "RigidTy": {
+          "FnDef": [
+            12,
+            []
+          ]
+        }
+      }
+    ],
+    [
+      1,
+      {
+        "RigidTy": {
+          "Tuple": []
+        }
+      }
+    ],
+    [
+      2,
+      {
+        "RigidTy": {
+          "Int": "I8"
+        }
+      }
+    ],
+    [
+      3,
+      {
+        "RigidTy": {
+          "FnPtr": {
+            "bound_vars": [],
+            "value": {
+              "abi": "RustCall",
+              "c_variadic": false,
+              "inputs_and_output": [
+                1,
+                16
+              ],
+              "safety": "Safe"
+            }
+          }
+        }
+      }
+    ],
+    [
+      4,
+      {
+        "RigidTy": {
+          "Tuple": [
+            7
+          ]
+        }
+      }
+    ],
+    [
+      5,
+      {
+        "RigidTy": {
+          "Ref": [
+            {
+              "kind": "ReErased"
+            },
+            30,
+            "Not"
+          ]
+        }
+      }
+    ],
+    [
+      6,
+      {
+        "RigidTy": {
+          "Int": "Isize"
+        }
+      }
+    ],
+    [
+      7,
+      {
+        "RigidTy": {
+          "FnPtr": {
+            "bound_vars": [],
+            "value": {
+              "abi": "Rust",
+              "c_variadic": false,
+              "inputs_and_output": [
+                1
+              ],
+              "safety": "Safe"
+            }
+          }
+        }
+      }
+    ],
+    [
+      8,
+      {
+        "RigidTy": {
+          "RawPtr": [
+            31,
+            "Not"
+          ]
+        }
+      }
+    ],
+    [
+      9,
+      {
+        "RigidTy": {
+          "Uint": "U8"
+        }
+      }
+    ],
+    [
+      10,
+      {
+        "RigidTy": {
+          "Adt": [
+            13,
+            [
+              {
+                "Type": 6
+              },
+              {
+                "Type": 28
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      11,
+      {
+        "RigidTy": {
+          "Ref": [
+            {
+              "kind": "ReErased"
+            },
+            12,
+            "Not"
+          ]
+        }
+      }
+    ],
+    [
+      12,
+      {
+        "RigidTy": {
+          "Closure": [
+            1,
+            [
+              {
+                "Type": 1
+              },
+              {
+                "Type": 2
+              },
+              {
+                "Type": 3
+              },
+              {
+                "Type": 4
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      13,
+      {
+        "RigidTy": {
+          "FnDef": [
+            2,
+            [
+              {
+                "Type": 7
+              },
+              {
+                "Type": 1
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      14,
+      {
+        "RigidTy": {
+          "FnDef": [
+            18,
+            [
+              {
+                "Type": 1
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      15,
+      {
+        "RigidTy": {
+          "Adt": [
+            9,
+            []
+          ]
+        }
+      }
+    ],
+    [
+      16,
+      {
+        "RigidTy": {
+          "Int": "I32"
+        }
+      }
+    ],
+    [
+      17,
+      {
+        "RigidTy": {
+          "Adt": [
+            7,
+            []
+          ]
+        }
+      }
+    ],
+    [
+      18,
+      {
+        "RigidTy": {
+          "Ref": [
+            {
+              "kind": "ReErased"
+            },
+            15,
+            "Not"
+          ]
+        }
+      }
+    ],
+    [
+      19,
+      {
+        "RigidTy": {
+          "FnDef": [
+            3,
+            [
+              {
+                "Type": 7
+              },
+              {
+                "Type": 1
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      20,
+      {
+        "RigidTy": {
+          "FnDef": [
+            11,
+            [
+              {
+                "Type": 1
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      21,
+      {
+        "RigidTy": {
+          "FnDef": [
+            3,
+            [
+              {
+                "Type": 12
+              },
+              {
+                "Type": 1
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      22,
+      {
+        "RigidTy": {
+          "RawPtr": [
+            12,
+            "Mut"
+          ]
+        }
+      }
+    ],
+    [
+      23,
+      {
+        "RigidTy": {
+          "FnDef": [
+            10,
+            [
+              {
+                "Type": 12
+              },
+              {
+                "Type": 1
+              }
+            ]
+          ]
+        }
+      }
+    ],
+    [
+      24,
+      {
+        "RigidTy": {
+          "Ref": [
+            {
+              "kind": "ReErased"
+            },
+            12,
+            "Mut"
+          ]
+        }
+      }
+    ],
+    [
+      25,
+      {
+        "RigidTy": {
+          "FnDef": [
+            20,
+            []
+          ]
+        }
+      }
+    ],
+    [
+      26,
+      {
+        "RigidTy": {
+          "Ref": [
+            {
+              "kind": "ReErased"
+            },
+            32,
+            "Not"
+          ]
+        }
+      }
+    ],
+    [
+      27,
+      {
+        "RigidTy": {
+          "Ref": [
+            {
+              "kind": "ReErased"
+            },
+            16,
+            "Not"
+          ]
+        }
+      }
+    ],
+    [
+      28,
+      {
+        "RigidTy": "Never"
+      }
+    ],
+    [
+      30,
+      {
+        "RigidTy": {
+          "Dynamic": [
+            [
+              {
+                "bound_vars": [],
+                "value": {
+                  "Trait": {
+                    "def_id": 14,
+                    "generic_args": [
+                      {
+                        "Type": 1
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "bound_vars": [],
+                "value": {
+                  "Projection": {
+                    "def_id": 15,
+                    "generic_args": [
+                      {
+                        "Type": 1
+                      }
+                    ],
+                    "term": {
+                      "Type": 16
+                    }
+                  }
+                }
+              },
+              {
+                "bound_vars": [],
+                "value": {
+                  "AutoTrait": 16
+                }
+              },
+              {
+                "bound_vars": [],
+                "value": {
+                  "AutoTrait": 17
+                }
+              }
+            ],
+            {
+              "kind": "ReErased"
+            },
+            "Dyn"
+          ]
+        }
+      }
+    ]
   ]
 }

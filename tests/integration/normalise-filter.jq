@@ -19,5 +19,10 @@
     ( [ .items[] ]
 # sort items by symbol name they refer to and by the function name for functions
         | sort_by(.symbol_name, .mono_item_kind.MonoItemFn.name)
+    ),
+  types:
+    ( [ .types[] ]
+# sort types by their ID (int, first in list)
+        | sort_by(.[0])
     )
 }
