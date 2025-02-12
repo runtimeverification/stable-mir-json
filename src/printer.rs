@@ -989,6 +989,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let types = visited_tys
         .into_iter()
         .map(|(k, (v, _))| (k, v))
+        .filter(|(_, v)| v.is_primitive())
         .collect::<Vec<_>>();
 
     SmirJson {
