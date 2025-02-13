@@ -1,5 +1,6 @@
 use std::env;
 
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
@@ -16,7 +17,28 @@ fn main() -> Result<()> {
             repo_path.display()
         );
     }
-    setup(repo_path)
+
+    // // WORKING: calling /<path>/stable_mir_json/target/debug/stable_mir_json
+    // exec_from_target_debug()
+
+    let hidden_dir = setup(repo_path)?;
+    record_ld_library_path(&hidden_dir)?;
+
+    // // WORKING calling ~/.stable_mir_json/debug/stable_mir_json
+    exec_dev_from_hidden_dir(hidden_dir)
+}
+
+fn record_ld_library_path(hidden_dir: &Path) -> Result<()> {
+    const LOADER_PATH: &str = "LD_LIBRARY_PATH";
+    if let Some(paths) = env::var_os(LOADER_PATH) {
+        // Note: kani filters the LD_LIBRARY_PATH, not sure why as it is working locally as is
+        let mut ld_library_file = std::fs::File::create(hidden_dir.join("ld_library_path"))?;
+        writeln!(ld_library_file, "{}", paths.to_str().unwrap())?;
+    } else {
+        bail!("Couldn't read LD_LIBRARY_PATH from env");
+    }
+
+    Ok(())
 }
 
 fn smir_json_dir() -> Result<PathBuf> {
@@ -31,17 +53,17 @@ fn smir_json_dir() -> Result<PathBuf> {
     Ok(smir_json_dir)
 }
 
-fn setup(repo_dir: PathBuf) -> Result<()> {
+fn setup(repo_dir: PathBuf) -> Result<PathBuf> {
     let smir_json_dir = smir_json_dir()?;
     println!("Creating {} directory", smir_json_dir.display());
     std::fs::create_dir(&smir_json_dir)?;
 
-    copy_libs(repo_dir, smir_json_dir)?;
+    copy_artefacts(&repo_dir, &smir_json_dir)?;
 
-    Ok(())
+    Ok(smir_json_dir)
 }
 
-fn copy_libs(repo_dir: PathBuf, smir_json_dir: PathBuf) -> Result<()> {
+fn copy_artefacts(repo_dir: &Path, smir_json_dir: &Path) -> Result<()> {
     let dev_dir = repo_dir.join("target/debug/");
     let dev_rlib = dev_dir.join("libstable_mir_json.rlib");
 
@@ -58,12 +80,12 @@ fn copy_libs(repo_dir: PathBuf, smir_json_dir: PathBuf) -> Result<()> {
 
     // Debug
     if dev_rlib.exists() {
-        cp_rlibs_from_profile(dev_dir, &smir_json_dir, Profile::Dev)?;
+        cp_artefacts_from_profile(dev_dir, smir_json_dir, Profile::Dev)?;
     }
 
     // Release
     if release_rlib.exists() {
-        cp_rlibs_from_profile(release_dir, &smir_json_dir, Profile::Release)?;
+        cp_artefacts_from_profile(release_dir, smir_json_dir, Profile::Release)?;
     }
 
     Ok(())
@@ -83,13 +105,15 @@ impl Profile {
     }
 }
 
-fn cp_rlibs_from_profile(
+fn cp_artefacts_from_profile(
     profile_dir: PathBuf,
     smir_json_dir: &Path,
     profile: Profile,
 ) -> Result<()> {
     let rlib = profile_dir.join("libstable_mir_json.rlib");
-    // Stable MIR JSON rlib
+    let bin = profile_dir.join("stable_mir_json");
+
+    // Stable MIR JSON bin and rlib
     let smir_json_profile_dir = smir_json_dir.join(profile.folder_as_string());
     std::fs::create_dir(&smir_json_profile_dir)?;
 
@@ -100,6 +124,14 @@ fn cp_rlibs_from_profile(
         smir_json_profile_rlib.display()
     );
     std::fs::copy(rlib, smir_json_profile_rlib)?;
+
+    let smir_json_profile_bin = smir_json_profile_dir.join("stable_mir_json");
+    println!(
+        "Copying {} to {}",
+        bin.display(),
+        smir_json_profile_bin.display()
+    );
+    std::fs::copy(bin, smir_json_profile_bin)?;
 
     // Deps
     let smir_json_profile_deps_dir = smir_json_profile_dir.join("deps/");
@@ -129,5 +161,29 @@ fn cp_rlibs_from_profile(
         }
     }
 
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn exec_from_target_debug() -> Result<()> {
+    println!("Executing absolute path to debug/stable_mir_json");
+    let output = std::process::Command::new(
+        "/home/daniel/Applications/stable_mir_json/target/debug/stable_mir_json",
+    )
+    .arg("-Zno-codegen")
+    .arg("panic_example.rs")
+    .output()?;
+    println!("{:?}", output);
+    Ok(())
+}
+
+fn exec_dev_from_hidden_dir(hidden_dir: PathBuf) -> Result<()> {
+    println!("Executing absolute path to /home/daniel/.stable_mir_json/debug/stable_mir_json");
+    let _ = hidden_dir;
+    let output = std::process::Command::new("/home/daniel/.stable_mir_json/debug/stable_mir_json")
+        .arg("-Zno-codegen")
+        .arg("panic_example.rs")
+        .output()?;
+    println!("{:?}", output);
     Ok(())
 }
