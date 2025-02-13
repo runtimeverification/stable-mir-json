@@ -461,7 +461,8 @@ pub enum AllocInfo {
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
-type TyMap = HashMap<u64, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
+type TyMap =
+    HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 
 struct InternedValueCollector<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
@@ -629,7 +630,7 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
 
     if val_collector
         .visited_tys
-        .insert(hash(val), (val.kind(), maybe_layout_shape))
+        .insert(val, (val.kind(), maybe_layout_shape))
         .is_some()
     {
         match val.kind() {
@@ -925,6 +926,7 @@ pub struct SmirJson<'t> {
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
+    pub types: Vec<(stable_mir::ty::Ty, stable_mir::ty::TyKind)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
 }
 
@@ -970,7 +972,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
             .collect::<Vec<_>>();
         Some(SmirJsonDebugInfo {
             fn_sources,
-            types: visited_tys,
+            types: visited_tys.clone(),
             foreign_modules: get_foreign_module_details(),
         })
     } else {
@@ -984,6 +986,12 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let allocs = visited_allocs.into_iter().collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
+    let types = visited_tys
+        .into_iter()
+        .map(|(k, (v, _))| (k, v))
+        .filter(|(_, v)| v.is_primitive())
+        .collect::<Vec<_>>();
+
     SmirJson {
         name: local_crate.name,
         crate_id,
@@ -991,6 +999,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         functions: called_functions,
         uneval_consts: unevaluated_consts.into_iter().collect(),
         items,
+        types,
         debug,
     }
 }
