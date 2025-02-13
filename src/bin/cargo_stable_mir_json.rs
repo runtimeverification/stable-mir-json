@@ -27,11 +27,17 @@ fn main() -> Result<()> {
 fn add_run_script(hidden_dir: &Path) -> Result<()> {
     let run_script_path = hidden_dir.join("run.sh");
     let mut run_script = std::fs::File::create(&run_script_path)?;
-        writeln!(run_script, "#!/bin/bash")?;
-        writeln!(run_script, "set -eu")?;
-        writeln!(run_script)?;
-        writeln!(run_script, "export LD_LIBRARY_PATH=$(cat ~/.stable_mir_json/ld_library_path)")?;
-        writeln!(run_script, "exec \"/home/daniel/.stable_mir_json/debug/stable_mir_json\" \"$@\"")?;
+    writeln!(run_script, "#!/bin/bash")?;
+    writeln!(run_script, "set -eu")?;
+    writeln!(run_script)?;
+    writeln!(
+        run_script,
+        "export LD_LIBRARY_PATH=$(cat ~/.stable_mir_json/ld_library_path)"
+    )?;
+    writeln!(
+        run_script,
+        "exec \"/home/daniel/.stable_mir_json/debug/stable_mir_json\" \"$@\""
+    )?;
 
     // Set the script permissions to -rwxr-xr-x
     std::fs::set_permissions(run_script_path, std::fs::Permissions::from_mode(0o755))?;
