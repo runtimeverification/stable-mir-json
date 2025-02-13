@@ -1,6 +1,7 @@
 use std::env;
 
 use std::io::Write;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
@@ -18,14 +19,23 @@ fn main() -> Result<()> {
         );
     }
 
-    // // WORKING: calling /<path>/stable_mir_json/target/debug/stable_mir_json
-    // exec_from_target_debug()
-
     let hidden_dir = setup(repo_path)?;
     record_ld_library_path(&hidden_dir)?;
+    add_run_script(&hidden_dir)
+}
 
-    // // WORKING calling ~/.stable_mir_json/debug/stable_mir_json
-    exec_dev_from_hidden_dir(hidden_dir)
+fn add_run_script(hidden_dir: &Path) -> Result<()> {
+    let run_script_path = hidden_dir.join("run.sh");
+    let mut run_script = std::fs::File::create(&run_script_path)?;
+        writeln!(run_script, "#!/bin/bash")?;
+        writeln!(run_script, "set -eu")?;
+        writeln!(run_script)?;
+        writeln!(run_script, "export LD_LIBRARY_PATH=$(cat ~/.stable_mir_json/ld_library_path)")?;
+        writeln!(run_script, "exec \"/home/daniel/.stable_mir_json/debug/stable_mir_json\" \"$@\"")?;
+
+    // Set the script permissions to -rwxr-xr-x
+    std::fs::set_permissions(run_script_path, std::fs::Permissions::from_mode(0o755))?;
+    Ok(())
 }
 
 fn record_ld_library_path(hidden_dir: &Path) -> Result<()> {
@@ -161,29 +171,5 @@ fn cp_artefacts_from_profile(
         }
     }
 
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn exec_from_target_debug() -> Result<()> {
-    println!("Executing absolute path to debug/stable_mir_json");
-    let output = std::process::Command::new(
-        "/home/daniel/Applications/stable_mir_json/target/debug/stable_mir_json",
-    )
-    .arg("-Zno-codegen")
-    .arg("panic_example.rs")
-    .output()?;
-    println!("{:?}", output);
-    Ok(())
-}
-
-fn exec_dev_from_hidden_dir(hidden_dir: PathBuf) -> Result<()> {
-    println!("Executing absolute path to /home/daniel/.stable_mir_json/debug/stable_mir_json");
-    let _ = hidden_dir;
-    let output = std::process::Command::new("/home/daniel/.stable_mir_json/debug/stable_mir_json")
-        .arg("-Zno-codegen")
-        .arg("panic_example.rs")
-        .output()?;
-    println!("{:?}", output);
     Ok(())
 }
