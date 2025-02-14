@@ -36,7 +36,7 @@ fn add_run_script(hidden_dir: &Path) -> Result<()> {
     )?;
     writeln!(
         run_script,
-        "exec \"/home/daniel/.stable_mir_json/debug/stable_mir_json\" \"$@\""
+        "exec \"$HOME/.stable_mir_json/debug/stable_mir_json\" \"$@\""
     )?;
 
     // Set the script permissions to -rwxr-xr-x
