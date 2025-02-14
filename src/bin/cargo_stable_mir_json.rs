@@ -175,7 +175,8 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path) -> Result<()> {
     )?;
     writeln!(
         run_script,
-        "exec \"/home/daniel/.stable_mir_json/debug/stable_mir_json\" \"$@\""
+        "exec \"{}/debug/stable_mir_json\" \"$@\"",
+        smir_json_dir.display()
     )?;
 
     // Set the script permissions to -rwxr-xr-x
