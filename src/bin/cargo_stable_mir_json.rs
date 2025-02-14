@@ -41,8 +41,8 @@ fn setup(repo_dir: PathBuf, maybe_user_provided_dir: Option<PathBuf>) -> Result<
 
     copy_artefacts(&repo_dir, &smir_json_dir)?;
 
-    record_ld_library_path(&smir_json_dir)?;
-    add_run_script(&smir_json_dir)
+    let ld_library_path = record_ld_library_path(&smir_json_dir)?;
+    add_run_script(&smir_json_dir, &ld_library_path)
 }
 
 fn smir_json_dir(maybe_user_provided_dir: Option<PathBuf>) -> Result<PathBuf> {
@@ -162,7 +162,7 @@ fn cp_artefacts_from_profile(
     Ok(())
 }
 
-fn add_run_script(smir_json_dir: &Path) -> Result<()> {
+fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path) -> Result<()> {
     let run_script_path = smir_json_dir.join("run.sh");
     let mut run_script = std::fs::File::create(&run_script_path)?;
     writeln!(run_script, "#!/bin/bash")?;
@@ -170,7 +170,8 @@ fn add_run_script(smir_json_dir: &Path) -> Result<()> {
     writeln!(run_script)?;
     writeln!(
         run_script,
-        "export LD_LIBRARY_PATH=$(cat ~/.stable_mir_json/ld_library_path)"
+        "export LD_LIBRARY_PATH={}",
+        ld_library_path.display(),
     )?;
     writeln!(
         run_script,
@@ -182,15 +183,21 @@ fn add_run_script(smir_json_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn record_ld_library_path(smir_json_dir: &Path) -> Result<()> {
+fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
     const LOADER_PATH: &str = "LD_LIBRARY_PATH";
     if let Some(paths) = env::var_os(LOADER_PATH) {
         // Note: kani filters the LD_LIBRARY_PATH, not sure why as it is working locally as is
         let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-        writeln!(ld_library_file, "{}", paths.to_str().unwrap())?;
+        let maybe_ld_library_path = paths.to_str();
+
+        match maybe_ld_library_path {
+            Some(ld_library_path) => {
+                writeln!(ld_library_file, "{}", paths.to_str().unwrap())?;
+                Ok(ld_library_path.into())
+            }
+            None => panic!("TODO: TURN THIS PANIC INTO AN Err"),
+        }
     } else {
         bail!("Couldn't read LD_LIBRARY_PATH from env");
     }
-
-    Ok(())
 }
