@@ -189,14 +189,13 @@ fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
     if let Some(paths) = env::var_os(LOADER_PATH) {
         // Note: kani filters the LD_LIBRARY_PATH, not sure why as it is working locally as is
         let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-        let maybe_ld_library_path = paths.to_str();
 
-        match maybe_ld_library_path {
+        match paths.to_str() {
             Some(ld_library_path) => {
-                writeln!(ld_library_file, "{}", paths.to_str().unwrap())?;
+                writeln!(ld_library_file, "{}", ld_library_path)?;
                 Ok(ld_library_path.into())
             }
-            None => panic!("TODO: TURN THIS PANIC INTO AN Err"),
+            None => bail!("Couldn't cast LD_LIBRARY_PATH to str"),
         }
     } else {
         bail!("Couldn't read LD_LIBRARY_PATH from env");
