@@ -75,6 +75,6 @@ cargo run --bin cargo_stable_mir_json -- $PWD [OPTIONAL-PATH-FOR-DIR]
 
 2. Navigate to `cargo` project and run
 ```bash
-RUSTC=<PATH-TO-.stable_mir_json> cargo build
+RUSTC=<PATH-TO-.stable_mir_json>/run.sh cargo build
 ```
 NOTE: by default `<PATH-TO-.stable_mir_json>` is `~/.stable_mir_json`
