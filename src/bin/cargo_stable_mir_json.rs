@@ -78,38 +78,41 @@ fn copy_artefacts(repo_dir: &Path, smir_json_dir: &Path) -> Result<()> {
 
     // Debug
     if dev_rlib.exists() {
-        cp_artefacts_from_profile(dev_dir, smir_json_dir, Profile::Dev)?;
+        cp_artefacts_from_profile(smir_json_dir, Profile::Dev(repo_dir))?;
     }
 
     // Release
     if release_rlib.exists() {
-        cp_artefacts_from_profile(release_dir, smir_json_dir, Profile::Release)?;
+        cp_artefacts_from_profile(smir_json_dir, Profile::Release(repo_dir))?;
     }
 
     Ok(())
 }
 
-enum Profile {
-    Dev,
-    Release,
+enum Profile<'a> {
+    Dev(&'a Path),
+    Release(&'a Path),
 }
 
-impl Profile {
+impl Profile<'_> {
     fn folder_as_string(&self) -> String {
         match self {
-            Profile::Dev => "debug/".into(),
-            Profile::Release => "release/".into(),
+            Profile::Dev(_) => "debug/".into(),
+            Profile::Release(_) => "release/".into(),
+        }
+    }
+
+    fn profile_dir(&self) -> PathBuf {
+        match self {
+            Profile::Dev(repo_dir) => repo_dir.join("target/debug/"),
+            Profile::Release(repo_dir) => repo_dir.join("target/release/"),
         }
     }
 }
 
-fn cp_artefacts_from_profile(
-    profile_dir: PathBuf,
-    smir_json_dir: &Path,
-    profile: Profile,
-) -> Result<()> {
-    let rlib = profile_dir.join("libstable_mir_json.rlib");
-    let bin = profile_dir.join("stable_mir_json");
+fn cp_artefacts_from_profile(smir_json_dir: &Path, profile: Profile) -> Result<()> {
+    let rlib = profile.profile_dir().join("libstable_mir_json.rlib");
+    let bin = profile.profile_dir().join("stable_mir_json");
 
     // Stable MIR JSON bin and rlib
     let smir_json_profile_dir = smir_json_dir.join(profile.folder_as_string());
@@ -130,34 +133,6 @@ fn cp_artefacts_from_profile(
         smir_json_profile_bin.display()
     );
     std::fs::copy(bin, smir_json_profile_bin)?;
-
-    // Deps
-    let smir_json_profile_deps_dir = smir_json_profile_dir.join("deps/");
-    std::fs::create_dir(&smir_json_profile_deps_dir)?;
-
-    let profile_deps_dir = profile_dir.join("deps/");
-    if let Ok(entries) = std::fs::read_dir(profile_deps_dir) {
-        for file in entries.flatten() {
-            let file_path = file.path();
-
-            if !file_path.is_file() {
-                continue;
-            }
-
-            if let Some(ext) = file_path.extension() {
-                if ext == "rlib" {
-                    let smir_json_profile_deps_rlib =
-                        smir_json_profile_deps_dir.join(file_path.file_name().unwrap());
-                    println!(
-                        "Copying {} to {}",
-                        file_path.display(),
-                        smir_json_profile_deps_rlib.display()
-                    );
-                    std::fs::copy(file_path, smir_json_profile_deps_rlib)?;
-                }
-            }
-        }
-    }
 
     Ok(())
 }
@@ -198,6 +173,6 @@ fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
             None => bail!("Couldn't cast LD_LIBRARY_PATH to str"),
         }
     } else {
-        bail!("Couldn't read LD_LIBRARY_PATH from env");
+        bail!("Couldn't read LD_LIBRARY_PATH from env"); // This should be unreachable
     }
 }
