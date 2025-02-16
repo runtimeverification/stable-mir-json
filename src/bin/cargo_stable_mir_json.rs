@@ -41,7 +41,6 @@ fn setup(repo_dir: PathBuf, maybe_user_provided_dir: Option<PathBuf>) -> Result<
 
     let ld_library_path = record_ld_library_path(&smir_json_dir)?;
     copy_artefacts(&repo_dir, &smir_json_dir, &ld_library_path)
-
 }
 
 fn smir_json_dir(maybe_user_provided_dir: Option<PathBuf>) -> Result<PathBuf> {
@@ -78,13 +77,13 @@ fn copy_artefacts(repo_dir: &Path, smir_json_dir: &Path, ld_library_path: &Path)
     // Debug
     if dev_rlib.exists() {
         cp_artefacts_from_profile(smir_json_dir, Profile::Dev(repo_dir))?;
-        add_run_script(&smir_json_dir, &ld_library_path, Profile::Dev(repo_dir))?;
+        add_run_script(smir_json_dir, ld_library_path, Profile::Dev(repo_dir))?;
     }
 
     // Release
     if release_rlib.exists() {
         cp_artefacts_from_profile(smir_json_dir, Profile::Release(repo_dir))?;
-        add_run_script(&smir_json_dir, &ld_library_path, Profile::Release(repo_dir))?;
+        add_run_script(smir_json_dir, ld_library_path, Profile::Release(repo_dir))?;
     }
 
     Ok(())
