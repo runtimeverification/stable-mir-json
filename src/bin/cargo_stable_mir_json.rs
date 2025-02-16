@@ -39,10 +39,9 @@ fn setup(repo_dir: PathBuf, maybe_user_provided_dir: Option<PathBuf>) -> Result<
     println!("Creating {} directory", smir_json_dir.display());
     std::fs::create_dir(&smir_json_dir)?; // This errors is the directory already exists
 
-    copy_artefacts(&repo_dir, &smir_json_dir)?;
-
     let ld_library_path = record_ld_library_path(&smir_json_dir)?;
-    add_run_script(&smir_json_dir, &ld_library_path)
+    copy_artefacts(&repo_dir, &smir_json_dir, &ld_library_path)
+
 }
 
 fn smir_json_dir(maybe_user_provided_dir: Option<PathBuf>) -> Result<PathBuf> {
@@ -61,7 +60,7 @@ fn smir_json_dir(maybe_user_provided_dir: Option<PathBuf>) -> Result<PathBuf> {
     Ok(smir_json_dir)
 }
 
-fn copy_artefacts(repo_dir: &Path, smir_json_dir: &Path) -> Result<()> {
+fn copy_artefacts(repo_dir: &Path, smir_json_dir: &Path, ld_library_path: &Path) -> Result<()> {
     let dev_dir = repo_dir.join("target/debug/");
     let dev_rlib = dev_dir.join("libstable_mir_json.rlib");
 
@@ -79,11 +78,13 @@ fn copy_artefacts(repo_dir: &Path, smir_json_dir: &Path) -> Result<()> {
     // Debug
     if dev_rlib.exists() {
         cp_artefacts_from_profile(smir_json_dir, Profile::Dev(repo_dir))?;
+        add_run_script(&smir_json_dir, &ld_library_path, Profile::Dev(repo_dir))?;
     }
 
     // Release
     if release_rlib.exists() {
         cp_artefacts_from_profile(smir_json_dir, Profile::Release(repo_dir))?;
+        add_run_script(&smir_json_dir, &ld_library_path, Profile::Release(repo_dir))?;
     }
 
     Ok(())
@@ -95,10 +96,10 @@ enum Profile<'a> {
 }
 
 impl Profile<'_> {
-    fn folder_as_string(&self) -> String {
+    fn name(&self) -> String {
         match self {
-            Profile::Dev(_) => "debug/".into(),
-            Profile::Release(_) => "release/".into(),
+            Profile::Dev(_) => "debug".into(),
+            Profile::Release(_) => "release".into(),
         }
     }
 
@@ -115,7 +116,7 @@ fn cp_artefacts_from_profile(smir_json_dir: &Path, profile: Profile) -> Result<(
     let bin = profile.profile_dir().join("stable_mir_json");
 
     // Stable MIR JSON bin and rlib
-    let smir_json_profile_dir = smir_json_dir.join(profile.folder_as_string());
+    let smir_json_profile_dir = smir_json_dir.join(format!("{}/", profile.name()));
     std::fs::create_dir(&smir_json_profile_dir)?;
 
     let smir_json_profile_rlib = smir_json_profile_dir.join("libstable_mir_json.rlib");
@@ -137,8 +138,8 @@ fn cp_artefacts_from_profile(smir_json_dir: &Path, profile: Profile) -> Result<(
     Ok(())
 }
 
-fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path) -> Result<()> {
-    let run_script_path = smir_json_dir.join("run.sh");
+fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile) -> Result<()> {
+    let run_script_path = smir_json_dir.join(format!("{}.sh", profile.name()));
     let mut run_script = std::fs::File::create(&run_script_path)?;
     writeln!(run_script, "#!/bin/bash")?;
     writeln!(run_script, "set -eu")?;
@@ -150,8 +151,9 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path) -> Result<()> {
     )?;
     writeln!(
         run_script,
-        "exec \"{}/debug/stable_mir_json\" \"$@\"",
-        smir_json_dir.display()
+        "exec \"{}/{}/stable_mir_json\" \"$@\"",
+        smir_json_dir.display(),
+        profile.name()
     )?;
 
     // Set the script permissions to -rwxr-xr-x
