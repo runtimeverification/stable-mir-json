@@ -25,7 +25,7 @@ fn main() -> Result<()> {
     if let Some(ref user_provided_dir) = maybe_user_provided_dir {
         if !user_provided_dir.is_dir() {
             bail!(
-                "Provided should be path to create the .stable_mir_json dir, but {} is not a dir",
+                "Provided should be path to create the .stable-mir-json dir, but {} is not a dir",
                 user_provided_dir.display()
             );
         }
@@ -36,13 +36,20 @@ fn main() -> Result<()> {
 
 fn setup(repo_dir: PathBuf, maybe_user_provided_dir: Option<PathBuf>) -> Result<()> {
     let smir_json_dir = smir_json_dir(maybe_user_provided_dir)?;
+    if smir_json_dir.exists() {
+        // Delete the directory if it already exists to overwrite it
+        std::fs::remove_dir_all(&smir_json_dir)?
+    }
     println!("Creating {} directory", smir_json_dir.display());
-    std::fs::create_dir(&smir_json_dir)?; // This errors is the directory already exists
+    std::fs::create_dir_all(&smir_json_dir)?;
 
     let ld_library_path = record_ld_library_path(&smir_json_dir)?;
     copy_artefacts(&repo_dir, &smir_json_dir, &ld_library_path)?;
     println!("Artefacts installed in {}.", &smir_json_dir.display());
-    println!("To use stable-mir-json, set `RUSTC={}/{{debug,release}}/stable-mir-json` when calling `cargo`.", &smir_json_dir.display());
+    println!(
+        "To use stable-mir-json, set `RUSTC={}/{{debug,release}}.sh` when calling `cargo`.",
+        &smir_json_dir.display()
+    );
     Ok(())
 }
 
@@ -58,7 +65,7 @@ fn smir_json_dir(maybe_user_provided_dir: Option<PathBuf>) -> Result<PathBuf> {
             user_provided_dir.display()
         );
     }
-    let smir_json_dir = user_provided_dir.join(".stable_mir_json");
+    let smir_json_dir = user_provided_dir.join(".stable-mir-json");
     Ok(smir_json_dir)
 }
 
