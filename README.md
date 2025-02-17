@@ -64,3 +64,17 @@ To run the tests, do the following:
 ```shell
 make integration-test
 ```
+
+## Integration with `cargo`
+Currently the system to integrate with cargo is to create a `.stable_mir_json` package that contains the libraries, binaries, and run scripts for `stable_mir_json`. These run scripts ensure that the the same library that built `stable_mir_json` is used in the `cargo` project. Here are the steps required:
+
+1. Navigate to the project root of `stable_mir_json` and run
+```bash
+cargo run --bin cargo_stable_mir_json -- $PWD [OPTIONAL-PATH-FOR-DIR]
+```
+
+2. Navigate to `cargo` project and run script for the appropriate profile, e.g. `debug` or `release`
+```bash
+RUSTC=<PATH-TO-.stable_mir_json>/<PROFILE>.sh cargo build
+```
+NOTE: by default `<PATH-TO-.stable_mir_json>` is `~/.stable_mir_json`
