@@ -40,9 +40,10 @@ fn setup(repo_dir: PathBuf, maybe_user_provided_dir: Option<PathBuf>) -> Result<
     std::fs::create_dir(&smir_json_dir)?; // This errors is the directory already exists
 
     let ld_library_path = record_ld_library_path(&smir_json_dir)?;
-    copy_artefacts(&repo_dir, &smir_json_dir, &ld_library_path)
-    println!("Artefacts installed in {}.", &simr_json_dir);
-    println!("To use stable-mir-json, set `RUSTC={}/\{debug,release\}/stable-mir-json` when calling `cargo`.", smir_json_dir);
+    copy_artefacts(&repo_dir, &smir_json_dir, &ld_library_path)?;
+    println!("Artefacts installed in {}.", &smir_json_dir.display());
+    println!("To use stable-mir-json, set `RUSTC={}/{{debug,release}}/stable-mir-json` when calling `cargo`.", &smir_json_dir.display());
+    Ok(())
 }
 
 fn smir_json_dir(maybe_user_provided_dir: Option<PathBuf>) -> Result<PathBuf> {
