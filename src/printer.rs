@@ -529,9 +529,11 @@ fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mi
         return ty.ty.kind().into();
     }
     match kind.rigid().expect("Non-rigid-ty allocation found!") {
-        RigidTy::Array(ty, _) | RigidTy::Slice(ty) => ty.kind().into(),
-        RigidTy::FnPtr(_) => None,
-        _ => todo!(),
+        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => ty.kind().into(),
+        RigidTy::FnPtr(_) | RigidTy::Adt(..) => None, // TODO: Check for Adt if the GenericArgs are related to prov
+        unimplemented => {
+            todo!("Unimplemented RigidTy allocation: {:?}", unimplemented);
+        }
     }
 }
 
