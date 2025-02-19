@@ -471,12 +471,12 @@
     ],
     [
       {
-        "NoOpSym": ""
+        "NormalSym": "_ZN4core3ptr46drop_in_place$LT$alloc..vec..Vec$LT$u8$GT$$GT$17h"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ptr53drop_in_place$LT$alloc..raw_vec..RawVec$LT$u8$GT$$GT$17h"
+        "NoOpSym": ""
       }
     ],
     [
@@ -486,7 +486,7 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3ptr46drop_in_place$LT$alloc..vec..Vec$LT$u8$GT$$GT$17h"
+        "NormalSym": "_ZN4core3ptr53drop_in_place$LT$alloc..raw_vec..RawVec$LT$u8$GT$$GT$17h"
       }
     ]
   ],
@@ -512,11 +512,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 29,
+                              "id": 32,
                               "kind": "ZeroSized",
-                              "ty": 68
+                              "ty": 71
                             },
-                            "span": 195,
+                            "span": 211,
                             "user_ty": null
                           }
                         },
@@ -524,7 +524,7 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 196
+                    "span": 212
                   }
                 },
                 {
@@ -550,7 +550,7 @@
                           }
                         ]
                       },
-                      "span": 198
+                      "span": 214
                     },
                     {
                       "kind": {
@@ -563,7 +563,7 @@
                             "Use": {
                               "Constant": {
                                 "const_": {
-                                  "id": 31,
+                                  "id": 34,
                                   "kind": {
                                     "Allocated": {
                                       "align": 8,
@@ -588,16 +588,16 @@
                                       }
                                     }
                                   },
-                                  "ty": 66
+                                  "ty": 69
                                 },
-                                "span": 199,
+                                "span": 215,
                                 "user_ty": null
                               }
                             }
                           }
                         ]
                       },
-                      "span": 199
+                      "span": 215
                     }
                   ],
                   "terminator": {
@@ -624,11 +624,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 30,
+                              "id": 33,
                               "kind": "ZeroSized",
-                              "ty": 69
+                              "ty": 72
                             },
-                            "span": 197,
+                            "span": 213,
                             "user_ty": null
                           }
                         },
@@ -638,7 +638,7 @@
                         }
                       }
                     },
-                    "span": 197
+                    "span": 213
                   }
                 },
                 {
@@ -663,7 +663,7 @@
                         }
                       }
                     },
-                    "span": 197
+                    "span": 213
                   }
                 },
                 {
@@ -679,7 +679,7 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 200
+                    "span": 216
                   }
                 },
                 {
@@ -691,7 +691,7 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 33,
+                                "id": 36,
                                 "kind": {
                                   "Allocated": {
                                     "align": 8,
@@ -724,9 +724,9 @@
                                     }
                                   }
                                 },
-                                "ty": 33
+                                "ty": 34
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           }
@@ -738,11 +738,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 32,
+                              "id": 35,
                               "kind": "ZeroSized",
-                              "ty": 70
+                              "ty": 73
                             },
-                            "span": 201,
+                            "span": 217,
                             "user_ty": null
                           }
                         },
@@ -752,14 +752,14 @@
                         }
                       }
                     },
-                    "span": 201
+                    "span": 217
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 202
+                    "span": 218
                   }
                 },
                 {
@@ -775,50 +775,50 @@
                         "unwind": "Terminate"
                       }
                     },
-                    "span": 200
+                    "span": 216
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Resume",
-                    "span": 203
+                    "span": 219
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 204,
+                  "span": 220,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 205,
-                  "ty": 51
+                  "span": 221,
+                  "ty": 53
                 },
                 {
                   "mutability": "Mut",
-                  "span": 197,
-                  "ty": 46
+                  "span": 213,
+                  "ty": 48
                 },
                 {
                   "mutability": "Mut",
-                  "span": 198,
+                  "span": 214,
                   "ty": 60
                 },
                 {
                   "mutability": "Mut",
-                  "span": 199,
-                  "ty": 66
+                  "span": 215,
+                  "ty": 69
                 },
                 {
                   "mutability": "Mut",
-                  "span": 201,
-                  "ty": 47
+                  "span": 217,
+                  "ty": 49
                 }
               ],
-              "span": 203,
+              "span": 219,
               "spread_arg": null,
               "var_debug_info": [
                 {
@@ -827,7 +827,7 @@
                   "name": "a",
                   "source_info": {
                     "scope": 1,
-                    "span": 205
+                    "span": 221
                   },
                   "value": {
                     "Place": {
@@ -854,7 +854,7 @@
                             "Use": {
                               "Constant": {
                                 "const_": {
-                                  "id": 34,
+                                  "id": 37,
                                   "kind": {
                                     "Allocated": {
                                       "align": 8,
@@ -887,16 +887,16 @@
                                       }
                                     }
                                   },
-                                  "ty": 33
+                                  "ty": 34
                                 },
-                                "span": 199,
+                                "span": 215,
                                 "user_ty": null
                               }
                             }
                           }
                         ]
                       },
-                      "span": 199
+                      "span": 215
                     },
                     {
                       "kind": {
@@ -919,28 +919,28 @@
                           }
                         ]
                       },
-                      "span": 199
+                      "span": 215
                     }
                   ],
                   "terminator": {
                     "kind": "Return",
-                    "span": 199
+                    "span": 215
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 199,
-                  "ty": 66
+                  "span": 215,
+                  "ty": 69
                 },
                 {
                   "mutability": "Mut",
-                  "span": 199,
-                  "ty": 33
+                  "span": 215,
+                  "ty": 34
                 }
               ],
-              "span": 199,
+              "span": 215,
               "spread_arg": null,
               "var_debug_info": []
             }
@@ -1464,6 +1464,42 @@
                             "projection": []
                           },
                           {
+                            "Ref": [
+                              {
+                                "kind": "ReErased"
+                              },
+                              "Shared",
+                              {
+                                "local": 2,
+                                "projection": [
+                                  {
+                                    "Field": [
+                                      0,
+                                      15
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "span": 22
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 6
+                      },
+                      "span": 23
+                    },
+                    {
+                      "kind": {
+                        "Assign": [
+                          {
+                            "local": 6,
+                            "projection": []
+                          },
+                          {
                             "Use": {
                               "Copy": {
                                 "local": 2,
@@ -1486,7 +1522,7 @@
                           }
                         ]
                       },
-                      "span": 22
+                      "span": 23
                     },
                     {
                       "kind": {
@@ -1500,7 +1536,7 @@
                               "IntToInt",
                               {
                                 "Move": {
-                                  "local": 5,
+                                  "local": 6,
                                   "projection": []
                                 }
                               },
@@ -1509,19 +1545,25 @@
                           }
                         ]
                       },
-                      "span": 23
+                      "span": 24
+                    },
+                    {
+                      "kind": {
+                        "StorageDead": 6
+                      },
+                      "span": 25
                     },
                     {
                       "kind": {
                         "StorageDead": 5
                       },
-                      "span": 24
+                      "span": 26
                     },
                     {
                       "kind": {
                         "StorageDead": 2
                       },
-                      "span": 25
+                      "span": 27
                     }
                   ],
                   "terminator": {
@@ -1533,7 +1575,7 @@
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 26,
+                  "span": 28,
                   "ty": 16
                 },
                 {
@@ -1559,6 +1601,11 @@
                 {
                   "mutability": "Mut",
                   "span": 22,
+                  "ty": 18
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 23,
                   "ty": 9
                 }
               ],
@@ -1594,11 +1641,26 @@
                   "name": "self",
                   "source_info": {
                     "scope": 1,
-                    "span": 27
+                    "span": 29
                   },
                   "value": {
                     "Place": {
                       "local": 2,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 2,
+                    "span": 30
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 5,
                       "projection": []
                     }
                   }
@@ -1639,7 +1701,7 @@
                                 "kind": "ZeroSized",
                                 "ty": 1
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           }
@@ -1653,9 +1715,9 @@
                             "const_": {
                               "id": 3,
                               "kind": "ZeroSized",
-                              "ty": 18
+                              "ty": 19
                             },
-                            "span": 28,
+                            "span": 31,
                             "user_ty": null
                           }
                         },
@@ -1663,7 +1725,7 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 30
+                    "span": 33
                   }
                 },
                 {
@@ -1679,7 +1741,7 @@
                                 "kind": "ZeroSized",
                                 "ty": 1
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           }
@@ -1693,9 +1755,9 @@
                             "const_": {
                               "id": 5,
                               "kind": "ZeroSized",
-                              "ty": 19
+                              "ty": 20
                             },
-                            "span": 31,
+                            "span": 34,
                             "user_ty": null
                           }
                         },
@@ -1703,35 +1765,35 @@
                         "unwind": "Unreachable"
                       }
                     },
-                    "span": 32
+                    "span": 35
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 33
+                    "span": 36
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 34,
+                  "span": 37,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 35,
+                  "span": 38,
                   "ty": 7
                 },
                 {
                   "mutability": "Not",
-                  "span": 36,
+                  "span": 39,
                   "ty": 1
                 }
               ],
-              "span": 39,
+              "span": 42,
               "spread_arg": null,
               "var_debug_info": [
                 {
@@ -1740,7 +1802,7 @@
                   "name": "f",
                   "source_info": {
                     "scope": 0,
-                    "span": 35
+                    "span": 38
                   },
                   "value": {
                     "Place": {
@@ -1755,7 +1817,7 @@
                   "name": "result",
                   "source_info": {
                     "scope": 1,
-                    "span": 37
+                    "span": 40
                   },
                   "value": {
                     "Place": {
@@ -1770,7 +1832,7 @@
                   "name": "dummy",
                   "source_info": {
                     "scope": 2,
-                    "span": 38
+                    "span": 41
                   },
                   "value": {
                     "Const": {
@@ -1779,7 +1841,7 @@
                         "kind": "ZeroSized",
                         "ty": 1
                       },
-                      "span": 29,
+                      "span": 32,
                       "user_ty": null
                     }
                   }
@@ -1831,9 +1893,9 @@
                             "const_": {
                               "id": 6,
                               "kind": "ZeroSized",
-                              "ty": 20
+                              "ty": 21
                             },
-                            "span": 40,
+                            "span": 43,
                             "user_ty": null
                           }
                         },
@@ -1841,35 +1903,35 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 40
+                    "span": 43
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 40
+                    "span": 43
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 40,
+                  "span": 43,
                   "ty": 16
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
-                  "ty": 21
+                  "span": 43,
+                  "ty": 22
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
+                  "span": 43,
                   "ty": 1
                 }
               ],
-              "span": 40,
+              "span": 43,
               "spread_arg": 2,
               "var_debug_info": []
             }
@@ -1908,35 +1970,35 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 40
+                    "span": 43
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 40
+                    "span": 43
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 40,
+                  "span": 43,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
+                  "span": 43,
                   "ty": 7
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
+                  "span": 43,
                   "ty": 1
                 }
               ],
-              "span": 40,
+              "span": 43,
               "spread_arg": 2,
               "var_debug_info": []
             }
@@ -1982,7 +2044,7 @@
                           }
                         ]
                       },
-                      "span": 40
+                      "span": 43
                     }
                   ],
                   "terminator": {
@@ -2011,9 +2073,9 @@
                             "const_": {
                               "id": 7,
                               "kind": "ZeroSized",
-                              "ty": 22
+                              "ty": 23
                             },
-                            "span": 40,
+                            "span": 43,
                             "user_ty": null
                           }
                         },
@@ -2023,7 +2085,7 @@
                         }
                       }
                     },
-                    "span": 40
+                    "span": 43
                   }
                 },
                 {
@@ -2039,14 +2101,14 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 40
+                    "span": 43
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 40
+                    "span": 43
                   }
                 },
                 {
@@ -2062,40 +2124,40 @@
                         "unwind": "Terminate"
                       }
                     },
-                    "span": 40
+                    "span": 43
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Resume",
-                    "span": 40
+                    "span": 43
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 40,
+                  "span": 43,
                   "ty": 16
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
+                  "span": 43,
                   "ty": 12
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
+                  "span": 43,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 40,
-                  "ty": 23
+                  "span": 43,
+                  "ty": 24
                 }
               ],
-              "span": 40,
+              "span": 43,
               "spread_arg": 2,
               "var_debug_info": []
             }
@@ -2126,7 +2188,7 @@
                             {
                               "Field": [
                                 0,
-                                24
+                                25
                               ]
                             }
                           ]
@@ -2135,30 +2197,30 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 41
+                    "span": 44
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 41
+                    "span": 44
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 41,
-                  "ty": 25
+                  "span": 44,
+                  "ty": 26
                 }
               ],
-              "span": 41,
+              "span": 44,
               "spread_arg": null,
               "var_debug_info": []
             }
@@ -2206,7 +2268,7 @@
                           }
                         ]
                       },
-                      "span": 41
+                      "span": 44
                     }
                   ],
                   "terminator": {
@@ -2229,9 +2291,9 @@
                             "const_": {
                               "id": 8,
                               "kind": "ZeroSized",
-                              "ty": 26
+                              "ty": 27
                             },
-                            "span": 41,
+                            "span": 44,
                             "user_ty": null
                           }
                         },
@@ -2241,21 +2303,21 @@
                         }
                       }
                     },
-                    "span": 41
+                    "span": 44
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Resume",
-                    "span": 41
+                    "span": 44
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 41
+                    "span": 44
                   }
                 },
                 {
@@ -2270,7 +2332,7 @@
                             {
                               "Field": [
                                 0,
-                                27
+                                28
                               ]
                             }
                           ]
@@ -2279,7 +2341,7 @@
                         "unwind": "Terminate"
                       }
                     },
-                    "span": 41
+                    "span": 44
                   }
                 },
                 {
@@ -2294,7 +2356,7 @@
                             {
                               "Field": [
                                 0,
-                                27
+                                28
                               ]
                             }
                           ]
@@ -2303,33 +2365,33 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 41
+                    "span": 44
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 41,
-                  "ty": 28
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
                   "ty": 29
                 },
                 {
                   "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
+                  "ty": 30
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 44,
                   "ty": 1
                 }
               ],
-              "span": 41,
+              "span": 44,
               "spread_arg": null,
               "var_debug_info": []
             }
@@ -2377,7 +2439,7 @@
                           }
                         ]
                       },
-                      "span": 41
+                      "span": 44
                     }
                   ],
                   "terminator": {
@@ -2400,9 +2462,9 @@
                             "const_": {
                               "id": 9,
                               "kind": "ZeroSized",
-                              "ty": 30
+                              "ty": 31
                             },
-                            "span": 41,
+                            "span": 44,
                             "user_ty": null
                           }
                         },
@@ -2410,40 +2472,40 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 41
+                    "span": 44
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 41
+                    "span": 44
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 41,
-                  "ty": 31
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
                   "ty": 32
                 },
                 {
                   "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
+                  "ty": 33
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 44,
                   "ty": 1
                 }
               ],
-              "span": 41,
+              "span": 44,
               "spread_arg": null,
               "var_debug_info": []
             }
@@ -2466,23 +2528,23 @@
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 41
+                    "span": 44
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 41,
+                  "span": 44,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 41,
-                  "ty": 21
+                  "span": 44,
+                  "ty": 22
                 }
               ],
-              "span": 41,
+              "span": 44,
               "spread_arg": null,
               "var_debug_info": []
             }
@@ -2520,42 +2582,62 @@
                           }
                         ]
                       },
-                      "span": 43
+                      "span": 46
                     }
                   ],
                   "terminator": {
                     "kind": "Return",
-                    "span": 42
+                    "span": 45
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 44,
-                  "ty": 33
-                },
-                {
-                  "mutability": "Not",
-                  "span": 45,
+                  "span": 47,
                   "ty": 34
                 },
                 {
                   "mutability": "Not",
-                  "span": 46,
-                  "ty": 33
+                  "span": 48,
+                  "ty": 35
+                },
+                {
+                  "mutability": "Not",
+                  "span": 49,
+                  "ty": 34
                 }
               ],
-              "span": 47,
+              "span": 50,
               "spread_arg": null,
               "var_debug_info": [
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 0,
+                    "span": 48
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 10,
+                        "kind": "ZeroSized",
+                        "ty": 35
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
                 {
                   "argument_index": 2,
                   "composite": null,
                   "name": "slice",
                   "source_info": {
                     "scope": 0,
-                    "span": 46
+                    "span": 49
                   },
                   "value": {
                     "Place": {
@@ -2587,13 +2669,13 @@
                       "kind": {
                         "StorageLive": 5
                       },
-                      "span": 50
+                      "span": 53
                     },
                     {
                       "kind": {
                         "StorageLive": 6
                       },
-                      "span": 51
+                      "span": 54
                     },
                     {
                       "kind": {
@@ -2611,24 +2693,24 @@
                                   "projection": []
                                 }
                               },
-                              36
+                              37
                             ]
                           }
                         ]
                       },
-                      "span": 51
+                      "span": 54
                     },
                     {
                       "kind": {
                         "StorageLive": 13
                       },
-                      "span": 52
+                      "span": 55
                     },
                     {
                       "kind": {
                         "StorageLive": 15
                       },
-                      "span": 53
+                      "span": 56
                     }
                   ],
                   "terminator": {
@@ -2649,11 +2731,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 10,
+                              "id": 11,
                               "kind": "ZeroSized",
-                              "ty": 35
+                              "ty": 36
                             },
-                            "span": 48,
+                            "span": 51,
                             "user_ty": null
                           }
                         },
@@ -2661,7 +2743,7 @@
                         "unwind": "Unreachable"
                       }
                     },
-                    "span": 49
+                    "span": 52
                   }
                 },
                 {
@@ -2670,31 +2752,31 @@
                       "kind": {
                         "StorageDead": 6
                       },
-                      "span": 55
+                      "span": 58
                     },
                     {
                       "kind": {
                         "StorageLive": 7
                       },
-                      "span": 56
+                      "span": 59
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 20
+                      },
+                      "span": 59
                     },
                     {
                       "kind": {
                         "StorageLive": 19
                       },
-                      "span": 56
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 18
-                      },
-                      "span": 57
+                      "span": 60
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
-                            "local": 19,
+                            "local": 20,
                             "projection": []
                           },
                           {
@@ -2709,7 +2791,7 @@
                               {
                                 "Constant": {
                                   "const_": {
-                                    "id": 11,
+                                    "id": 12,
                                     "kind": {
                                       "Allocated": {
                                         "align": 8,
@@ -2729,9 +2811,9 @@
                                         }
                                       }
                                     },
-                                    "ty": 37
+                                    "ty": 38
                                   },
-                                  "span": 58,
+                                  "span": 61,
                                   "user_ty": null
                                 }
                               }
@@ -2739,7 +2821,7 @@
                           }
                         ]
                       },
-                      "span": 54
+                      "span": 57
                     }
                   ],
                   "terminator": {
@@ -2762,7 +2844,7 @@
                         }
                       }
                     },
-                    "span": 54
+                    "span": 57
                   }
                 },
                 {
@@ -2771,18 +2853,18 @@
                       "kind": {
                         "StorageDead": 7
                       },
-                      "span": 60
+                      "span": 63
                     },
                     {
                       "kind": {
                         "StorageDead": 5
                       },
-                      "span": 60
+                      "span": 63
                     }
                   ],
                   "terminator": {
                     "kind": "Return",
-                    "span": 59
+                    "span": 62
                   }
                 },
                 {
@@ -2793,7 +2875,7 @@
                         "target": 5
                       }
                     },
-                    "span": 29
+                    "span": 32
                   }
                 },
                 {
@@ -2802,7 +2884,7 @@
                       "kind": {
                         "StorageDead": 6
                       },
-                      "span": 55
+                      "span": 58
                     }
                   ],
                   "terminator": {
@@ -2811,7 +2893,7 @@
                         "target": 5
                       }
                     },
-                    "span": 29
+                    "span": 32
                   }
                 },
                 {
@@ -2823,7 +2905,7 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 13,
+                                "id": 14,
                                 "kind": {
                                   "Allocated": {
                                     "align": 8,
@@ -2856,9 +2938,9 @@
                                     }
                                   }
                                 },
-                                "ty": 33
+                                "ty": 34
                               },
-                              "span": 62,
+                              "span": 65,
                               "user_ty": null
                             }
                           }
@@ -2870,11 +2952,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 12,
+                              "id": 13,
                               "kind": "ZeroSized",
-                              "ty": 38
+                              "ty": 39
                             },
-                            "span": 61,
+                            "span": 64,
                             "user_ty": null
                           }
                         },
@@ -2882,7 +2964,7 @@
                         "unwind": "Unreachable"
                       }
                     },
-                    "span": 63
+                    "span": 66
                   }
                 },
                 {
@@ -2891,13 +2973,42 @@
                       "kind": {
                         "StorageDead": 12
                       },
-                      "span": 64
+                      "span": 67
                     },
                     {
                       "kind": {
                         "StorageLive": 9
                       },
-                      "span": 65
+                      "span": 68
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 18
+                      },
+                      "span": 69
+                    },
+                    {
+                      "kind": {
+                        "Assign": [
+                          {
+                            "local": 18,
+                            "projection": []
+                          },
+                          {
+                            "Cast": [
+                              "PtrToPtr",
+                              {
+                                "Copy": {
+                                  "local": 1,
+                                  "projection": []
+                                }
+                              },
+                              40
+                            ]
+                          }
+                        ]
+                      },
+                      "span": 70
                     },
                     {
                       "kind": {
@@ -2918,7 +3029,7 @@
                               {
                                 "Constant": {
                                   "const_": {
-                                    "id": 11,
+                                    "id": 12,
                                     "kind": {
                                       "Allocated": {
                                         "align": 8,
@@ -2938,9 +3049,9 @@
                                         }
                                       }
                                     },
-                                    "ty": 37
+                                    "ty": 38
                                   },
-                                  "span": 66,
+                                  "span": 71,
                                   "user_ty": null
                                 }
                               }
@@ -2948,7 +3059,13 @@
                           }
                         ]
                       },
-                      "span": 67
+                      "span": 72
+                    },
+                    {
+                      "kind": {
+                        "StorageDead": 18
+                      },
+                      "span": 69
                     },
                     {
                       "kind": {
@@ -2970,19 +3087,19 @@
                           }
                         ]
                       },
-                      "span": 68
+                      "span": 73
                     },
                     {
                       "kind": {
                         "StorageDead": 9
                       },
-                      "span": 69
+                      "span": 74
                     },
                     {
                       "kind": {
                         "StorageDead": 13
                       },
-                      "span": 52
+                      "span": 55
                     }
                   ],
                   "terminator": {
@@ -3005,7 +3122,7 @@
                         }
                       }
                     },
-                    "span": 50
+                    "span": 53
                   }
                 },
                 {
@@ -3014,13 +3131,13 @@
                       "kind": {
                         "StorageDead": 12
                       },
-                      "span": 64
+                      "span": 67
                     },
                     {
                       "kind": {
                         "StorageDead": 13
                       },
-                      "span": 52
+                      "span": 55
                     }
                   ],
                   "terminator": {
@@ -3029,7 +3146,7 @@
                         "target": 4
                       }
                     },
-                    "span": 50
+                    "span": 53
                   }
                 },
                 {
@@ -3038,13 +3155,13 @@
                       "kind": {
                         "StorageDead": 15
                       },
-                      "span": 70
+                      "span": 75
                     },
                     {
                       "kind": {
                         "StorageLive": 12
                       },
-                      "span": 71
+                      "span": 76
                     },
                     {
                       "kind": {
@@ -3062,18 +3179,18 @@
                                   "projection": []
                                 }
                               },
-                              37
+                              38
                             ]
                           }
                         ]
                       },
-                      "span": 72
+                      "span": 77
                     },
                     {
                       "kind": {
                         "StorageLive": 14
                       },
-                      "span": 73
+                      "span": 78
                     },
                     {
                       "kind": {
@@ -3094,7 +3211,7 @@
                               {
                                 "Constant": {
                                   "const_": {
-                                    "id": 14,
+                                    "id": 15,
                                     "kind": {
                                       "Allocated": {
                                         "align": 8,
@@ -3114,9 +3231,9 @@
                                         }
                                       }
                                     },
-                                    "ty": 37
+                                    "ty": 38
                                   },
-                                  "span": 74,
+                                  "span": 79,
                                   "user_ty": null
                                 }
                               }
@@ -3124,7 +3241,7 @@
                           }
                         ]
                       },
-                      "span": 73
+                      "span": 78
                     },
                     {
                       "kind": {
@@ -3152,13 +3269,13 @@
                           }
                         ]
                       },
-                      "span": 71
+                      "span": 76
                     },
                     {
                       "kind": {
                         "StorageDead": 14
                       },
-                      "span": 75
+                      "span": 80
                     }
                   ],
                   "terminator": {
@@ -3181,7 +3298,7 @@
                         }
                       }
                     },
-                    "span": 64
+                    "span": 67
                   }
                 },
                 {
@@ -3190,84 +3307,25 @@
                       "kind": {
                         "StorageDead": 15
                       },
-                      "span": 70
+                      "span": 75
                     },
                     {
                       "kind": {
                         "StorageLive": 11
                       },
-                      "span": 78
+                      "span": 83
                     },
                     {
                       "kind": {
                         "StorageLive": 16
                       },
-                      "span": 79
+                      "span": 84
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
                             "local": 16,
-                            "projection": []
-                          },
-                          {
-                            "Cast": [
-                              {
-                                "PointerCoercion": "Unsize"
-                              },
-                              {
-                                "Constant": {
-                                  "const_": {
-                                    "id": 16,
-                                    "kind": {
-                                      "Allocated": {
-                                        "align": 8,
-                                        "bytes": [
-                                          0,
-                                          0,
-                                          0,
-                                          0,
-                                          0,
-                                          0,
-                                          0,
-                                          0
-                                        ],
-                                        "mutability": "Mut",
-                                        "provenance": {
-                                          "ptrs": [
-                                            [
-                                              0,
-                                              1
-                                            ]
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    "ty": 40
-                                  },
-                                  "span": 80,
-                                  "user_ty": null
-                                }
-                              },
-                              41
-                            ]
-                          }
-                        ]
-                      },
-                      "span": 79
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 17
-                      },
-                      "span": 81
-                    },
-                    {
-                      "kind": {
-                        "Assign": [
-                          {
-                            "local": 17,
                             "projection": []
                           },
                           {
@@ -3297,7 +3355,7 @@
                                           "ptrs": [
                                             [
                                               0,
-                                              2
+                                              1
                                             ]
                                           ]
                                         }
@@ -3305,7 +3363,7 @@
                                     },
                                     "ty": 42
                                   },
-                                  "span": 81,
+                                  "span": 85,
                                   "user_ty": null
                                 }
                               },
@@ -3314,7 +3372,66 @@
                           }
                         ]
                       },
-                      "span": 81
+                      "span": 84
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 17
+                      },
+                      "span": 86
+                    },
+                    {
+                      "kind": {
+                        "Assign": [
+                          {
+                            "local": 17,
+                            "projection": []
+                          },
+                          {
+                            "Cast": [
+                              {
+                                "PointerCoercion": "Unsize"
+                              },
+                              {
+                                "Constant": {
+                                  "const_": {
+                                    "id": 18,
+                                    "kind": {
+                                      "Allocated": {
+                                        "align": 8,
+                                        "bytes": [
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0
+                                        ],
+                                        "mutability": "Mut",
+                                        "provenance": {
+                                          "ptrs": [
+                                            [
+                                              0,
+                                              2
+                                            ]
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "ty": 44
+                                  },
+                                  "span": 86,
+                                  "user_ty": null
+                                }
+                              },
+                              45
+                            ]
+                          }
+                        ]
+                      },
+                      "span": 86
                     },
                     {
                       "kind": {
@@ -3350,7 +3467,7 @@
                                 {
                                   "Constant": {
                                     "const_": {
-                                      "id": 18,
+                                      "id": 19,
                                       "kind": {
                                         "Allocated": {
                                           "align": 8,
@@ -3378,9 +3495,9 @@
                                           }
                                         }
                                       },
-                                      "ty": 44
+                                      "ty": 46
                                     },
-                                    "span": 29,
+                                    "span": 32,
                                     "user_ty": null
                                   }
                                 },
@@ -3395,19 +3512,19 @@
                           }
                         ]
                       },
-                      "span": 82
+                      "span": 87
                     },
                     {
                       "kind": {
                         "StorageDead": 17
                       },
-                      "span": 83
+                      "span": 88
                     },
                     {
                       "kind": {
                         "StorageDead": 16
                       },
-                      "span": 83
+                      "span": 88
                     }
                   ],
                   "terminator": {
@@ -3428,11 +3545,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 15,
+                              "id": 16,
                               "kind": "ZeroSized",
-                              "ty": 39
+                              "ty": 41
                             },
-                            "span": 76,
+                            "span": 81,
                             "user_ty": null
                           }
                         },
@@ -3440,7 +3557,7 @@
                         "unwind": "Terminate"
                       }
                     },
-                    "span": 77
+                    "span": 82
                   }
                 },
                 {
@@ -3465,7 +3582,7 @@
                         }
                       }
                     },
-                    "span": 70
+                    "span": 75
                   }
                 },
                 {
@@ -3474,14 +3591,14 @@
                       "kind": {
                         "Assign": [
                           {
-                            "local": 18,
+                            "local": 19,
                             "projection": []
                           },
                           {
                             "Use": {
                               "Constant": {
                                 "const_": {
-                                  "id": 19,
+                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 8,
@@ -3501,16 +3618,16 @@
                                       }
                                     }
                                   },
-                                  "ty": 37
+                                  "ty": 38
                                 },
-                                "span": 85,
+                                "span": 90,
                                 "user_ty": null
                               }
                             }
                           }
                         ]
                       },
-                      "span": 85
+                      "span": 90
                     }
                   ],
                   "terminator": {
@@ -3519,7 +3636,7 @@
                         "target": 14
                       }
                     },
-                    "span": 84
+                    "span": 89
                   }
                 },
                 {
@@ -3529,7 +3646,7 @@
                       "Assert": {
                         "cond": {
                           "Copy": {
-                            "local": 19,
+                            "local": 20,
                             "projection": []
                           }
                         },
@@ -3538,7 +3655,7 @@
                           "DivisionByZero": {
                             "Constant": {
                               "const_": {
-                                "id": 20,
+                                "id": 21,
                                 "kind": {
                                   "Allocated": {
                                     "align": 8,
@@ -3558,9 +3675,9 @@
                                     }
                                   }
                                 },
-                                "ty": 37
+                                "ty": 38
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           }
@@ -3569,7 +3686,7 @@
                         "unwind": "Terminate"
                       }
                     },
-                    "span": 86
+                    "span": 91
                   }
                 },
                 {
@@ -3578,7 +3695,7 @@
                       "kind": {
                         "Assign": [
                           {
-                            "local": 18,
+                            "local": 19,
                             "projection": []
                           },
                           {
@@ -3587,7 +3704,7 @@
                               {
                                 "Constant": {
                                   "const_": {
-                                    "id": 20,
+                                    "id": 21,
                                     "kind": {
                                       "Allocated": {
                                         "align": 8,
@@ -3607,9 +3724,9 @@
                                         }
                                       }
                                     },
-                                    "ty": 37
+                                    "ty": 38
                                   },
-                                  "span": 29,
+                                  "span": 32,
                                   "user_ty": null
                                 }
                               },
@@ -3623,7 +3740,7 @@
                           }
                         ]
                       },
-                      "span": 86
+                      "span": 91
                     }
                   ],
                   "terminator": {
@@ -3632,35 +3749,35 @@
                         "target": 14
                       }
                     },
-                    "span": 84
+                    "span": 89
                   }
                 },
                 {
                   "statements": [
                     {
                       "kind": {
-                        "StorageLive": 20
+                        "StorageLive": 21
                       },
-                      "span": 87
+                      "span": 92
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
-                            "local": 20,
+                            "local": 21,
                             "projection": []
                           },
                           {
                             "Use": {
                               "Copy": {
-                                "local": 18,
+                                "local": 19,
                                 "projection": []
                               }
                             }
                           }
                         ]
                       },
-                      "span": 87
+                      "span": 92
                     },
                     {
                       "kind": {
@@ -3680,7 +3797,7 @@
                               },
                               {
                                 "Move": {
-                                  "local": 20,
+                                  "local": 21,
                                   "projection": []
                                 }
                               }
@@ -3688,25 +3805,25 @@
                           }
                         ]
                       },
-                      "span": 88
+                      "span": 93
                     },
                     {
                       "kind": {
-                        "StorageDead": 20
+                        "StorageDead": 21
                       },
-                      "span": 89
-                    },
-                    {
-                      "kind": {
-                        "StorageDead": 18
-                      },
-                      "span": 90
+                      "span": 94
                     },
                     {
                       "kind": {
                         "StorageDead": 19
                       },
-                      "span": 56
+                      "span": 95
+                    },
+                    {
+                      "kind": {
+                        "StorageDead": 20
+                      },
+                      "span": 59
                     }
                   ],
                   "terminator": {
@@ -3729,118 +3846,123 @@
                         }
                       }
                     },
-                    "span": 56
+                    "span": 59
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 91,
+                  "span": 96,
                   "ty": 1
                 },
                 {
                   "mutability": "Not",
-                  "span": 92,
-                  "ty": 45
-                },
-                {
-                  "mutability": "Not",
-                  "span": 92,
-                  "ty": 37
-                },
-                {
-                  "mutability": "Not",
-                  "span": 92,
-                  "ty": 37
-                },
-                {
-                  "mutability": "Not",
-                  "span": 92,
-                  "ty": 37
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 50,
-                  "ty": 46
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 51,
-                  "ty": 36
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 56,
-                  "ty": 46
-                },
-                {
-                  "mutability": "Not",
-                  "span": 63,
+                  "span": 97,
                   "ty": 47
                 },
                 {
-                  "mutability": "Mut",
-                  "span": 65,
-                  "ty": 46
+                  "mutability": "Not",
+                  "span": 97,
+                  "ty": 38
                 },
                 {
                   "mutability": "Not",
-                  "span": 77,
-                  "ty": 47
+                  "span": 97,
+                  "ty": 38
                 },
                 {
-                  "mutability": "Mut",
-                  "span": 78,
-                  "ty": 48
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 71,
-                  "ty": 37
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 93,
-                  "ty": 37
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 73,
-                  "ty": 37
+                  "mutability": "Not",
+                  "span": 97,
+                  "ty": 38
                 },
                 {
                   "mutability": "Mut",
                   "span": 53,
-                  "ty": 49
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 79,
-                  "ty": 41
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 81,
-                  "ty": 43
-                },
-                {
-                  "mutability": "Not",
-                  "span": 57,
-                  "ty": 37
+                  "ty": 48
                 },
                 {
                   "mutability": "Mut",
                   "span": 54,
-                  "ty": 46
+                  "ty": 37
                 },
                 {
                   "mutability": "Mut",
-                  "span": 87,
-                  "ty": 37
+                  "span": 59,
+                  "ty": 48
+                },
+                {
+                  "mutability": "Not",
+                  "span": 66,
+                  "ty": 49
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 68,
+                  "ty": 48
+                },
+                {
+                  "mutability": "Not",
+                  "span": 82,
+                  "ty": 49
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 83,
+                  "ty": 50
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 76,
+                  "ty": 38
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 98,
+                  "ty": 38
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 78,
+                  "ty": 38
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 56,
+                  "ty": 51
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 84,
+                  "ty": 43
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 86,
+                  "ty": 45
+                },
+                {
+                  "mutability": "Not",
+                  "span": 99,
+                  "ty": 40
+                },
+                {
+                  "mutability": "Not",
+                  "span": 60,
+                  "ty": 38
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 57,
+                  "ty": 48
+                },
+                {
+                  "mutability": "Mut",
+                  "span": 92,
+                  "ty": 38
                 }
               ],
-              "span": 109,
+              "span": 116,
               "spread_arg": null,
               "var_debug_info": [
                 {
@@ -3849,7 +3971,7 @@
                   "name": "data",
                   "source_info": {
                     "scope": 0,
-                    "span": 92
+                    "span": 97
                   },
                   "value": {
                     "Place": {
@@ -3864,7 +3986,7 @@
                   "name": "size",
                   "source_info": {
                     "scope": 0,
-                    "span": 92
+                    "span": 97
                   },
                   "value": {
                     "Place": {
@@ -3879,7 +4001,7 @@
                   "name": "align",
                   "source_info": {
                     "scope": 0,
-                    "span": 92
+                    "span": 97
                   },
                   "value": {
                     "Place": {
@@ -3894,7 +4016,7 @@
                   "name": "len",
                   "source_info": {
                     "scope": 0,
-                    "span": 92
+                    "span": 97
                   },
                   "value": {
                     "Place": {
@@ -3909,7 +4031,7 @@
                   "name": "ptr",
                   "source_info": {
                     "scope": 1,
-                    "span": 94
+                    "span": 100
                   },
                   "value": {
                     "Place": {
@@ -3924,7 +4046,7 @@
                   "name": "align",
                   "source_info": {
                     "scope": 1,
-                    "span": 95
+                    "span": 101
                   },
                   "value": {
                     "Place": {
@@ -3939,12 +4061,12 @@
                   "name": "is_zst",
                   "source_info": {
                     "scope": 1,
-                    "span": 96
+                    "span": 102
                   },
                   "value": {
                     "Const": {
                       "const_": {
-                        "id": 21,
+                        "id": 22,
                         "kind": {
                           "Allocated": {
                             "align": 1,
@@ -3957,9 +4079,9 @@
                             }
                           }
                         },
-                        "ty": 46
+                        "ty": 48
                       },
-                      "span": 97,
+                      "span": 103,
                       "user_ty": null
                     }
                   }
@@ -3970,7 +4092,7 @@
                   "name": "ptr",
                   "source_info": {
                     "scope": 2,
-                    "span": 98
+                    "span": 104
                   },
                   "value": {
                     "Place": {
@@ -3985,7 +4107,7 @@
                   "name": "align",
                   "source_info": {
                     "scope": 2,
-                    "span": 98
+                    "span": 104
                   },
                   "value": {
                     "Place": {
@@ -4000,12 +4122,12 @@
                   "name": "is_zst",
                   "source_info": {
                     "scope": 2,
-                    "span": 98
+                    "span": 104
                   },
                   "value": {
                     "Const": {
                       "const_": {
-                        "id": 21,
+                        "id": 22,
                         "kind": {
                           "Allocated": {
                             "align": 1,
@@ -4018,9 +4140,9 @@
                             }
                           }
                         },
-                        "ty": 46
+                        "ty": 48
                       },
-                      "span": 97,
+                      "span": 103,
                       "user_ty": null
                     }
                   }
@@ -4031,7 +4153,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 3,
-                    "span": 99
+                    "span": 105
                   },
                   "value": {
                     "Place": {
@@ -4046,7 +4168,7 @@
                   "name": "align",
                   "source_info": {
                     "scope": 3,
-                    "span": 100
+                    "span": 106
                   },
                   "value": {
                     "Place": {
@@ -4061,7 +4183,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 4,
-                    "span": 101
+                    "span": 107
                   },
                   "value": {
                     "Place": {
@@ -4076,7 +4198,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 5,
-                    "span": 102
+                    "span": 108
                   },
                   "value": {
                     "Place": {
@@ -4091,7 +4213,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 6,
-                    "span": 103
+                    "span": 109
                   },
                   "value": {
                     "Place": {
@@ -4106,7 +4228,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 7,
-                    "span": 104
+                    "span": 110
                   },
                   "value": {
                     "Place": {
@@ -4121,12 +4243,12 @@
                   "name": "pieces",
                   "source_info": {
                     "scope": 8,
-                    "span": 105
+                    "span": 111
                   },
                   "value": {
                     "Const": {
                       "const_": {
-                        "id": 16,
+                        "id": 17,
                         "kind": {
                           "Allocated": {
                             "align": 8,
@@ -4151,9 +4273,9 @@
                             }
                           }
                         },
-                        "ty": 40
+                        "ty": 42
                       },
-                      "span": 80,
+                      "span": 85,
                       "user_ty": null
                     }
                   }
@@ -4164,11 +4286,71 @@
                   "name": "self",
                   "source_info": {
                     "scope": 9,
-                    "span": 106
+                    "span": 112
                   },
                   "value": {
                     "Place": {
                       "local": 6,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": null,
+                  "composite": null,
+                  "name": "ptr",
+                  "source_info": {
+                    "scope": 10,
+                    "span": 99
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 18,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "ptr",
+                  "source_info": {
+                    "scope": 11,
+                    "span": 113
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 18,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 12,
+                    "span": 109
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 18,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 13,
+                    "span": 110
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 18,
                       "projection": []
                     }
                   }
@@ -4179,7 +4361,7 @@
                   "name": "size",
                   "source_info": {
                     "scope": 14,
-                    "span": 107
+                    "span": 114
                   },
                   "value": {
                     "Place": {
@@ -4194,7 +4376,7 @@
                   "name": "len",
                   "source_info": {
                     "scope": 14,
-                    "span": 108
+                    "span": 115
                   },
                   "value": {
                     "Place": {
@@ -4209,11 +4391,11 @@
                   "name": "max_len",
                   "source_info": {
                     "scope": 15,
-                    "span": 57
+                    "span": 60
                   },
                   "value": {
                     "Place": {
-                      "local": 18,
+                      "local": 19,
                       "projection": []
                     }
                   }
@@ -4248,7 +4430,7 @@
                             "Use": {
                               "Constant": {
                                 "const_": {
-                                  "id": 22,
+                                  "id": 23,
                                   "kind": {
                                     "Allocated": {
                                       "align": 1,
@@ -4263,37 +4445,58 @@
                                   },
                                   "ty": 17
                                 },
-                                "span": 111,
+                                "span": 118,
                                 "user_ty": null
                               }
                             }
                           }
                         ]
                       },
-                      "span": 111
+                      "span": 118
                     }
                   ],
                   "terminator": {
                     "kind": "Return",
-                    "span": 110
+                    "span": 117
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 112,
+                  "span": 119,
                   "ty": 17
                 },
                 {
                   "mutability": "Not",
-                  "span": 113,
+                  "span": 120,
                   "ty": 1
                 }
               ],
-              "span": 114,
+              "span": 121,
               "spread_arg": null,
-              "var_debug_info": []
+              "var_debug_info": [
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 0,
+                    "span": 120
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 4,
+                        "kind": "ZeroSized",
+                        "ty": 1
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                }
+              ]
             }
           ],
           "id": 8,
@@ -4316,7 +4519,7 @@
                       "kind": {
                         "StorageLive": 1
                       },
-                      "span": 116
+                      "span": 123
                     },
                     {
                       "kind": {
@@ -4336,7 +4539,7 @@
                                       "Type": 9
                                     },
                                     {
-                                      "Type": 50
+                                      "Type": 52
                                     }
                                   ],
                                   null,
@@ -4347,7 +4550,7 @@
                                 {
                                   "Constant": {
                                     "const_": {
-                                      "id": 23,
+                                      "id": 24,
                                       "kind": {
                                         "Allocated": {
                                           "align": 8,
@@ -4375,16 +4578,16 @@
                                           }
                                         }
                                       },
-                                      "ty": 27
+                                      "ty": 28
                                     },
-                                    "span": 29,
+                                    "span": 32,
                                     "user_ty": null
                                   }
                                 },
                                 {
                                   "Constant": {
                                     "const_": {
-                                      "id": 11,
+                                      "id": 12,
                                       "kind": {
                                         "Allocated": {
                                           "align": 8,
@@ -4404,9 +4607,9 @@
                                           }
                                         }
                                       },
-                                      "ty": 37
+                                      "ty": 38
                                     },
-                                    "span": 117,
+                                    "span": 124,
                                     "user_ty": null
                                   }
                                 }
@@ -4415,7 +4618,7 @@
                           }
                         ]
                       },
-                      "span": 118
+                      "span": 125
                     },
                     {
                       "kind": {
@@ -4447,36 +4650,153 @@
                           }
                         ]
                       },
-                      "span": 119
+                      "span": 126
                     },
                     {
                       "kind": {
                         "StorageDead": 1
                       },
-                      "span": 120
+                      "span": 127
                     }
                   ],
                   "terminator": {
                     "kind": "Return",
-                    "span": 115
+                    "span": 122
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 121,
-                  "ty": 51
+                  "span": 128,
+                  "ty": 53
                 },
                 {
                   "mutability": "Mut",
-                  "span": 116,
-                  "ty": 24
+                  "span": 123,
+                  "ty": 25
                 }
               ],
-              "span": 122,
+              "span": 133,
               "spread_arg": null,
-              "var_debug_info": []
+              "var_debug_info": [
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "alloc",
+                  "source_info": {
+                    "scope": 3,
+                    "span": 129
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 25,
+                        "kind": "ZeroSized",
+                        "ty": 52
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "alloc",
+                  "source_info": {
+                    "scope": 5,
+                    "span": 130
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 25,
+                        "kind": "ZeroSized",
+                        "ty": 52
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
+                {
+                  "argument_index": 2,
+                  "composite": null,
+                  "name": "align",
+                  "source_info": {
+                    "scope": 5,
+                    "span": 131
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 15,
+                        "kind": {
+                          "Allocated": {
+                            "align": 8,
+                            "bytes": [
+                              1,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0
+                            ],
+                            "mutability": "Mut",
+                            "provenance": {
+                              "ptrs": []
+                            }
+                          }
+                        },
+                        "ty": 38
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
+                {
+                  "argument_index": null,
+                  "composite": null,
+                  "name": "ptr",
+                  "source_info": {
+                    "scope": 6,
+                    "span": 132
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 26,
+                        "kind": {
+                          "Allocated": {
+                            "align": 8,
+                            "bytes": [
+                              1,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0,
+                              0
+                            ],
+                            "mutability": "Mut",
+                            "provenance": {
+                              "ptrs": []
+                            }
+                          }
+                        },
+                        "ty": 54
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                }
+              ]
             }
           ],
           "id": 9,
@@ -4499,13 +4819,19 @@
                       "kind": {
                         "StorageLive": 4
                       },
-                      "span": 124
+                      "span": 135
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 10
+                      },
+                      "span": 135
                     },
                     {
                       "kind": {
                         "StorageLive": 5
                       },
-                      "span": 125
+                      "span": 136
                     },
                     {
                       "kind": {
@@ -4527,7 +4853,7 @@
                                   {
                                     "Field": [
                                       0,
-                                      24
+                                      25
                                     ]
                                   }
                                 ]
@@ -4536,37 +4862,117 @@
                           }
                         ]
                       },
-                      "span": 125
+                      "span": 136
                     },
                     {
                       "kind": {
-                        "StorageLive": 8
+                        "StorageLive": 7
                       },
-                      "span": 126
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 6
-                      },
-                      "span": 127
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 9
-                      },
-                      "span": 128
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 12
-                      },
-                      "span": 129
+                      "span": 137
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
-                            "local": 12,
+                            "local": 7,
+                            "projection": []
+                          },
+                          {
+                            "Ref": [
+                              {
+                                "kind": "ReErased"
+                              },
+                              "Shared",
+                              {
+                                "local": 1,
+                                "projection": [
+                                  "Deref",
+                                  {
+                                    "Field": [
+                                      0,
+                                      25
+                                    ]
+                                  },
+                                  {
+                                    "Field": [
+                                      0,
+                                      28
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "span": 137
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 8
+                      },
+                      "span": 138
+                    },
+                    {
+                      "kind": {
+                        "Assign": [
+                          {
+                            "local": 8,
+                            "projection": []
+                          },
+                          {
+                            "Ref": [
+                              {
+                                "kind": "ReErased"
+                              },
+                              "Shared",
+                              {
+                                "local": 1,
+                                "projection": [
+                                  "Deref",
+                                  {
+                                    "Field": [
+                                      0,
+                                      25
+                                    ]
+                                  },
+                                  {
+                                    "Field": [
+                                      0,
+                                      28
+                                    ]
+                                  },
+                                  {
+                                    "Field": [
+                                      0,
+                                      55
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "span": 138
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 9
+                      },
+                      "span": 139
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 11
+                      },
+                      "span": 140
+                    },
+                    {
+                      "kind": {
+                        "Assign": [
+                          {
+                            "local": 11,
                             "projection": []
                           },
                           {
@@ -4578,31 +4984,31 @@
                                   {
                                     "Field": [
                                       0,
-                                      24
+                                      25
                                     ]
                                   },
                                   {
                                     "Field": [
                                       0,
-                                      27
+                                      28
                                     ]
                                   },
                                   {
                                     "Field": [
                                       0,
-                                      52
-                                    ]
-                                  },
-                                  {
-                                    "Field": [
-                                      0,
-                                      53
+                                      55
                                     ]
                                   },
                                   {
                                     "Field": [
                                       0,
                                       54
+                                    ]
+                                  },
+                                  {
+                                    "Field": [
+                                      0,
+                                      56
                                     ]
                                   }
                                 ]
@@ -4611,42 +5017,7 @@
                           }
                         ]
                       },
-                      "span": 130
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 11
-                      },
-                      "span": 131
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 10
-                      },
-                      "span": 132
-                    },
-                    {
-                      "kind": {
-                        "Assign": [
-                          {
-                            "local": 11,
-                            "projection": []
-                          },
-                          {
-                            "Cast": [
-                              "Transmute",
-                              {
-                                "Copy": {
-                                  "local": 12,
-                                  "projection": []
-                                }
-                              },
-                              55
-                            ]
-                          }
-                        ]
-                      },
-                      "span": 133
+                      "span": 141
                     },
                     {
                       "kind": {
@@ -4656,20 +5027,23 @@
                             "projection": []
                           },
                           {
-                            "Cast": [
-                              "PtrToPtr",
-                              {
-                                "Copy": {
-                                  "local": 11,
-                                  "projection": []
-                                }
-                              },
-                              56
-                            ]
+                            "Use": {
+                              "Copy": {
+                                "local": 11,
+                                "projection": [
+                                  {
+                                    "Field": [
+                                      0,
+                                      40
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
                           }
                         ]
                       },
-                      "span": 132
+                      "span": 142
                     },
                     {
                       "kind": {
@@ -4695,7 +5069,7 @@
                               },
                               [
                                 {
-                                  "Move": {
+                                  "Copy": {
                                     "local": 10,
                                     "projection": []
                                   }
@@ -4705,89 +5079,43 @@
                           }
                         ]
                       },
-                      "span": 134
-                    },
-                    {
-                      "kind": {
-                        "StorageDead": 10
-                      },
-                      "span": 135
+                      "span": 143
                     },
                     {
                       "kind": {
                         "StorageDead": 11
                       },
-                      "span": 131
-                    },
-                    {
-                      "kind": {
-                        "StorageDead": 12
-                      },
-                      "span": 129
-                    },
-                    {
-                      "kind": {
-                        "Assign": [
-                          {
-                            "local": 8,
-                            "projection": []
-                          },
-                          {
-                            "Cast": [
-                              "Transmute",
-                              {
-                                "Copy": {
-                                  "local": 9,
-                                  "projection": []
-                                }
-                              },
-                              55
-                            ]
-                          }
-                        ]
-                      },
-                      "span": 133
+                      "span": 140
                     },
                     {
                       "kind": {
                         "StorageDead": 9
                       },
-                      "span": 136
+                      "span": 144
+                    },
+                    {
+                      "kind": {
+                        "StorageDead": 8
+                      },
+                      "span": 145
+                    },
+                    {
+                      "kind": {
+                        "StorageDead": 7
+                      },
+                      "span": 146
+                    },
+                    {
+                      "kind": {
+                        "StorageLive": 6
+                      },
+                      "span": 147
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
                             "local": 6,
-                            "projection": []
-                          },
-                          {
-                            "Cast": [
-                              "PtrToPtr",
-                              {
-                                "Copy": {
-                                  "local": 8,
-                                  "projection": []
-                                }
-                              },
-                              56
-                            ]
-                          }
-                        ]
-                      },
-                      "span": 137
-                    },
-                    {
-                      "kind": {
-                        "StorageLive": 7
-                      },
-                      "span": 138
-                    },
-                    {
-                      "kind": {
-                        "Assign": [
-                          {
-                            "local": 7,
                             "projection": []
                           },
                           {
@@ -4799,13 +5127,13 @@
                                   {
                                     "Field": [
                                       0,
-                                      24
+                                      25
                                     ]
                                   },
                                   {
                                     "Field": [
                                       1,
-                                      37
+                                      38
                                     ]
                                   }
                                 ]
@@ -4814,30 +5142,30 @@
                           }
                         ]
                       },
-                      "span": 138
+                      "span": 147
                     },
                     {
                       "kind": {
-                        "StorageLive": 13
+                        "StorageLive": 12
                       },
-                      "span": 123
+                      "span": 134
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
-                            "local": 13,
+                            "local": 12,
                             "projection": []
                           },
                           {
                             "NullaryOp": [
                               "UbChecks",
-                              46
+                              48
                             ]
                           }
                         ]
                       },
-                      "span": 139
+                      "span": 148
                     }
                   ],
                   "terminator": {
@@ -4845,7 +5173,7 @@
                       "SwitchInt": {
                         "discr": {
                           "Move": {
-                            "local": 13,
+                            "local": 12,
                             "projection": []
                           }
                         },
@@ -4860,29 +5188,29 @@
                         }
                       }
                     },
-                    "span": 123
+                    "span": 134
                   }
                 },
                 {
                   "statements": [],
                   "terminator": {
                     "kind": "Return",
-                    "span": 140
+                    "span": 149
                   }
                 },
                 {
                   "statements": [
                     {
                       "kind": {
-                        "StorageLive": 15
+                        "StorageLive": 14
                       },
-                      "span": 143
+                      "span": 152
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
-                            "local": 15,
+                            "local": 14,
                             "projection": []
                           },
                           {
@@ -4890,16 +5218,16 @@
                               "PtrToPtr",
                               {
                                 "Copy": {
-                                  "local": 8,
+                                  "local": 10,
                                   "projection": []
                                 }
                               },
-                              45
+                              47
                             ]
                           }
                         ]
                       },
-                      "span": 143
+                      "span": 152
                     }
                   ],
                   "terminator": {
@@ -4908,14 +5236,14 @@
                         "args": [
                           {
                             "Move": {
-                              "local": 15,
+                              "local": 14,
                               "projection": []
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 14,
+                                "id": 15,
                                 "kind": {
                                   "Allocated": {
                                     "align": 8,
@@ -4935,16 +5263,16 @@
                                     }
                                   }
                                 },
-                                "ty": 37
+                                "ty": 38
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 14,
+                                "id": 15,
                                 "kind": {
                                   "Allocated": {
                                     "align": 8,
@@ -4964,31 +5292,31 @@
                                     }
                                   }
                                 },
-                                "ty": 37
+                                "ty": 38
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           },
                           {
                             "Copy": {
-                              "local": 7,
+                              "local": 6,
                               "projection": []
                             }
                           }
                         ],
                         "destination": {
-                          "local": 14,
+                          "local": 13,
                           "projection": []
                         },
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 24,
+                              "id": 27,
                               "kind": "ZeroSized",
                               "ty": 57
                             },
-                            "span": 141,
+                            "span": 150,
                             "user_ty": null
                           }
                         },
@@ -4996,16 +5324,16 @@
                         "unwind": "Unreachable"
                       }
                     },
-                    "span": 142
+                    "span": 151
                   }
                 },
                 {
                   "statements": [
                     {
                       "kind": {
-                        "StorageDead": 15
+                        "StorageDead": 14
                       },
-                      "span": 145
+                      "span": 154
                     }
                   ],
                   "terminator": {
@@ -5014,28 +5342,28 @@
                         "target": 4
                       }
                     },
-                    "span": 144
+                    "span": 153
                   }
                 },
                 {
                   "statements": [
                     {
                       "kind": {
-                        "StorageDead": 13
+                        "StorageDead": 12
                       },
-                      "span": 148
+                      "span": 157
                     },
                     {
                       "kind": {
-                        "StorageLive": 16
+                        "StorageLive": 15
                       },
-                      "span": 149
+                      "span": 158
                     },
                     {
                       "kind": {
                         "Assign": [
                           {
-                            "local": 16,
+                            "local": 15,
                             "projection": []
                           },
                           {
@@ -5049,13 +5377,13 @@
                               [
                                 {
                                   "Copy": {
-                                    "local": 6,
+                                    "local": 10,
                                     "projection": []
                                   }
                                 },
                                 {
                                   "Copy": {
-                                    "local": 7,
+                                    "local": 6,
                                     "projection": []
                                   }
                                 }
@@ -5064,7 +5392,7 @@
                           }
                         ]
                       },
-                      "span": 150
+                      "span": 159
                     },
                     {
                       "kind": {
@@ -5080,7 +5408,7 @@
                               },
                               "Shared",
                               {
-                                "local": 16,
+                                "local": 15,
                                 "projection": [
                                   "Deref"
                                 ]
@@ -5089,37 +5417,25 @@
                           }
                         ]
                       },
-                      "span": 151
+                      "span": 160
                     },
                     {
                       "kind": {
-                        "StorageDead": 16
+                        "StorageDead": 15
                       },
-                      "span": 152
-                    },
-                    {
-                      "kind": {
-                        "StorageDead": 7
-                      },
-                      "span": 153
+                      "span": 161
                     },
                     {
                       "kind": {
                         "StorageDead": 6
                       },
-                      "span": 153
-                    },
-                    {
-                      "kind": {
-                        "StorageDead": 8
-                      },
-                      "span": 126
+                      "span": 162
                     },
                     {
                       "kind": {
                         "StorageDead": 5
                       },
-                      "span": 154
+                      "span": 163
                     },
                     {
                       "kind": {
@@ -5137,18 +5453,24 @@
                                   "projection": []
                                 }
                               },
-                              33
+                              34
                             ]
                           }
                         ]
                       },
-                      "span": 155
+                      "span": 164
+                    },
+                    {
+                      "kind": {
+                        "StorageDead": 10
+                      },
+                      "span": 135
                     },
                     {
                       "kind": {
                         "StorageDead": 4
                       },
-                      "span": 124
+                      "span": 135
                     }
                   ],
                   "terminator": {
@@ -5175,11 +5497,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 25,
+                              "id": 28,
                               "kind": "ZeroSized",
                               "ty": 58
                             },
-                            "span": 146,
+                            "span": 155,
                             "user_ty": null
                           }
                         },
@@ -5187,98 +5509,93 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 147
+                    "span": 156
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 156,
-                  "ty": 33
-                },
-                {
-                  "mutability": "Not",
-                  "span": 157,
-                  "ty": 60
-                },
-                {
-                  "mutability": "Not",
-                  "span": 158,
+                  "span": 165,
                   "ty": 34
                 },
                 {
                   "mutability": "Not",
-                  "span": 159,
-                  "ty": 33
+                  "span": 166,
+                  "ty": 60
                 },
                 {
                   "mutability": "Not",
-                  "span": 160,
+                  "span": 167,
+                  "ty": 35
+                },
+                {
+                  "mutability": "Not",
+                  "span": 168,
+                  "ty": 34
+                },
+                {
+                  "mutability": "Not",
+                  "span": 169,
                   "ty": 61
                 },
                 {
                   "mutability": "Mut",
-                  "span": 125,
+                  "span": 136,
                   "ty": 62
                 },
                 {
                   "mutability": "Mut",
-                  "span": 127,
-                  "ty": 56
-                },
-                {
-                  "mutability": "Mut",
-                  "span": 138,
-                  "ty": 37
+                  "span": 147,
+                  "ty": 38
                 },
                 {
                   "mutability": "Mut",
                   "span": 137,
-                  "ty": 55
+                  "ty": 63
                 },
                 {
                   "mutability": "Mut",
-                  "span": 128,
-                  "ty": 54
+                  "span": 138,
+                  "ty": 64
                 },
                 {
                   "mutability": "Mut",
-                  "span": 132,
+                  "span": 139,
                   "ty": 56
                 },
                 {
                   "mutability": "Mut",
-                  "span": 161,
-                  "ty": 55
+                  "span": 142,
+                  "ty": 40
                 },
                 {
                   "mutability": "Mut",
-                  "span": 130,
-                  "ty": 54
+                  "span": 141,
+                  "ty": 56
                 },
                 {
                   "mutability": "Mut",
-                  "span": 123,
-                  "ty": 46
+                  "span": 134,
+                  "ty": 48
                 },
                 {
                   "mutability": "Not",
-                  "span": 142,
+                  "span": 151,
                   "ty": 1
                 },
                 {
                   "mutability": "Mut",
-                  "span": 143,
-                  "ty": 45
+                  "span": 152,
+                  "ty": 47
                 },
                 {
                   "mutability": "Not",
-                  "span": 149,
-                  "ty": 63
+                  "span": 158,
+                  "ty": 65
                 }
               ],
-              "span": 171,
+              "span": 187,
               "spread_arg": null,
               "var_debug_info": [
                 {
@@ -5287,7 +5604,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 0,
-                    "span": 157
+                    "span": 166
                   },
                   "value": {
                     "Place": {
@@ -5302,7 +5619,7 @@
                   "name": "index",
                   "source_info": {
                     "scope": 0,
-                    "span": 158
+                    "span": 167
                   },
                   "value": {
                     "Place": {
@@ -5317,7 +5634,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 1,
-                    "span": 162
+                    "span": 170
                   },
                   "value": {
                     "Place": {
@@ -5332,7 +5649,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 2,
-                    "span": 163
+                    "span": 171
                   },
                   "value": {
                     "Place": {
@@ -5347,7 +5664,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 3,
-                    "span": 164
+                    "span": 172
                   },
                   "value": {
                     "Place": {
@@ -5359,25 +5676,10 @@
                 {
                   "argument_index": 1,
                   "composite": null,
-                  "name": "data",
+                  "name": "self",
                   "source_info": {
-                    "scope": 12,
-                    "span": 165
-                  },
-                  "value": {
-                    "Place": {
-                      "local": 6,
-                      "projection": []
-                    }
-                  }
-                },
-                {
-                  "argument_index": 2,
-                  "composite": null,
-                  "name": "len",
-                  "source_info": {
-                    "scope": 12,
-                    "span": 166
+                    "scope": 4,
+                    "span": 173
                   },
                   "value": {
                     "Place": {
@@ -5389,14 +5691,229 @@
                 {
                   "argument_index": 1,
                   "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 5,
+                    "span": 174
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 8,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 6,
+                    "span": 175
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 8,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": {
+                    "projection": [
+                      {
+                        "Field": [
+                          0,
+                          56
+                        ]
+                      }
+                    ],
+                    "ty": 54
+                  },
+                  "name": "self",
+                  "source_info": {
+                    "scope": 7,
+                    "span": 176
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 11,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": {
+                    "projection": [
+                      {
+                        "Field": [
+                          1,
+                          66
+                        ]
+                      }
+                    ],
+                    "ty": 54
+                  },
+                  "name": "self",
+                  "source_info": {
+                    "scope": 7,
+                    "span": 176
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 29,
+                        "kind": "ZeroSized",
+                        "ty": 66
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 8,
+                    "span": 177
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 11,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 9,
+                    "span": 178
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 11,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": {
+                    "projection": [
+                      {
+                        "Field": [
+                          0,
+                          56
+                        ]
+                      }
+                    ],
+                    "ty": 54
+                  },
+                  "name": "self",
+                  "source_info": {
+                    "scope": 10,
+                    "span": 179
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 9,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": {
+                    "projection": [
+                      {
+                        "Field": [
+                          1,
+                          66
+                        ]
+                      }
+                    ],
+                    "ty": 54
+                  },
+                  "name": "self",
+                  "source_info": {
+                    "scope": 10,
+                    "span": 179
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 29,
+                        "kind": "ZeroSized",
+                        "ty": 66
+                      },
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 11,
+                    "span": 178
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 9,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
                   "name": "data",
                   "source_info": {
-                    "scope": 17,
-                    "span": 167
+                    "scope": 12,
+                    "span": 180
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 10,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 2,
+                  "composite": null,
+                  "name": "len",
+                  "source_info": {
+                    "scope": 12,
+                    "span": 181
                   },
                   "value": {
                     "Place": {
                       "local": 6,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "data",
+                  "source_info": {
+                    "scope": 17,
+                    "span": 182
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 10,
                       "projection": []
                     }
                   }
@@ -5407,11 +5924,11 @@
                   "name": "len",
                   "source_info": {
                     "scope": 17,
-                    "span": 168
+                    "span": 183
                   },
                   "value": {
                     "Place": {
-                      "local": 7,
+                      "local": 6,
                       "projection": []
                     }
                   }
@@ -5422,7 +5939,22 @@
                   "name": "data_pointer",
                   "source_info": {
                     "scope": 18,
-                    "span": 169
+                    "span": 184
+                  },
+                  "value": {
+                    "Place": {
+                      "local": 10,
+                      "projection": []
+                    }
+                  }
+                },
+                {
+                  "argument_index": 2,
+                  "composite": null,
+                  "name": "metadata",
+                  "source_info": {
+                    "scope": 18,
+                    "span": 185
                   },
                   "value": {
                     "Place": {
@@ -5437,11 +5969,11 @@
                   "name": "v",
                   "source_info": {
                     "scope": 19,
-                    "span": 170
+                    "span": 186
                   },
                   "value": {
                     "Place": {
-                      "local": 16,
+                      "local": 15,
                       "projection": []
                     }
                   }
@@ -5478,11 +6010,11 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 27,
+                                "id": 10,
                                 "kind": "ZeroSized",
-                                "ty": 34
+                                "ty": 35
                               },
-                              "span": 29,
+                              "span": 32,
                               "user_ty": null
                             }
                           }
@@ -5494,11 +6026,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 26,
+                              "id": 30,
                               "kind": "ZeroSized",
-                              "ty": 64
+                              "ty": 67
                             },
-                            "span": 172,
+                            "span": 188,
                             "user_ty": null
                           }
                         },
@@ -5506,7 +6038,7 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 172
+                    "span": 188
                   }
                 },
                 {
@@ -5530,25 +6062,25 @@
                           }
                         ]
                       },
-                      "span": 175
+                      "span": 191
                     },
                     {
                       "kind": {
                         "StorageLive": 6
                       },
-                      "span": 176
+                      "span": 192
                     },
                     {
                       "kind": {
                         "StorageLive": 8
                       },
-                      "span": 176
+                      "span": 192
                     },
                     {
                       "kind": {
                         "StorageLive": 5
                       },
-                      "span": 177
+                      "span": 193
                     },
                     {
                       "kind": {
@@ -5571,7 +6103,7 @@
                           }
                         ]
                       },
-                      "span": 178
+                      "span": 194
                     },
                     {
                       "kind": {
@@ -5594,13 +6126,13 @@
                           }
                         ]
                       },
-                      "span": 177
+                      "span": 193
                     },
                     {
                       "kind": {
                         "StorageLive": 7
                       },
-                      "span": 179
+                      "span": 195
                     },
                     {
                       "kind": {
@@ -5623,7 +6155,7 @@
                           }
                         ]
                       },
-                      "span": 178
+                      "span": 194
                     },
                     {
                       "kind": {
@@ -5646,7 +6178,7 @@
                           }
                         ]
                       },
-                      "span": 179
+                      "span": 195
                     }
                   ],
                   "terminator": {
@@ -5673,11 +6205,11 @@
                         "func": {
                           "Constant": {
                             "const_": {
-                              "id": 28,
+                              "id": 31,
                               "kind": "ZeroSized",
-                              "ty": 65
+                              "ty": 68
                             },
-                            "span": 173,
+                            "span": 189,
                             "user_ty": null
                           }
                         },
@@ -5685,7 +6217,7 @@
                         "unwind": "Continue"
                       }
                     },
-                    "span": 174
+                    "span": 190
                   }
                 },
                 {
@@ -5694,81 +6226,81 @@
                       "kind": {
                         "StorageDead": 7
                       },
-                      "span": 181
+                      "span": 197
                     },
                     {
                       "kind": {
                         "StorageDead": 5
                       },
-                      "span": 181
+                      "span": 197
                     },
                     {
                       "kind": {
                         "StorageDead": 8
                       },
-                      "span": 176
+                      "span": 192
                     },
                     {
                       "kind": {
                         "StorageDead": 6
                       },
-                      "span": 176
+                      "span": 192
                     }
                   ],
                   "terminator": {
                     "kind": "Return",
-                    "span": 180
+                    "span": 196
                   }
                 }
               ],
               "locals": [
                 {
                   "mutability": "Mut",
-                  "span": 182,
-                  "ty": 46
+                  "span": 198,
+                  "ty": 48
                 },
                 {
                   "mutability": "Not",
-                  "span": 183,
+                  "span": 199,
                   "ty": 60
                 },
                 {
                   "mutability": "Not",
-                  "span": 184,
-                  "ty": 66
+                  "span": 200,
+                  "ty": 69
                 },
                 {
                   "mutability": "Not",
-                  "span": 172,
-                  "ty": 33
+                  "span": 188,
+                  "ty": 34
                 },
                 {
                   "mutability": "Mut",
-                  "span": 184,
-                  "ty": 33
+                  "span": 200,
+                  "ty": 34
                 },
                 {
                   "mutability": "Mut",
-                  "span": 177,
-                  "ty": 67
+                  "span": 193,
+                  "ty": 70
                 },
                 {
                   "mutability": "Not",
-                  "span": 177,
+                  "span": 193,
                   "ty": 61
                 },
                 {
                   "mutability": "Mut",
-                  "span": 179,
-                  "ty": 67
+                  "span": 195,
+                  "ty": 70
                 },
                 {
                   "mutability": "Not",
-                  "span": 179,
+                  "span": 195,
                   "ty": 61
                 }
               ],
-              "span": 194,
+              "span": 210,
               "spread_arg": null,
               "var_debug_info": [
                 {
@@ -5777,7 +6309,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 0,
-                    "span": 183
+                    "span": 199
                   },
                   "value": {
                     "Place": {
@@ -5792,7 +6324,7 @@
                   "name": "other",
                   "source_info": {
                     "scope": 0,
-                    "span": 184
+                    "span": 200
                   },
                   "value": {
                     "Place": {
@@ -5807,7 +6339,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 1,
-                    "span": 185
+                    "span": 201
                   },
                   "value": {
                     "Place": {
@@ -5822,16 +6354,36 @@
                   "name": "index",
                   "source_info": {
                     "scope": 1,
-                    "span": 186
+                    "span": 202
                   },
                   "value": {
                     "Const": {
                       "const_": {
-                        "id": 27,
+                        "id": 10,
                         "kind": "ZeroSized",
-                        "ty": 34
+                        "ty": 35
                       },
-                      "span": 29,
+                      "span": 32,
+                      "user_ty": null
+                    }
+                  }
+                },
+                {
+                  "argument_index": 1,
+                  "composite": null,
+                  "name": "self",
+                  "source_info": {
+                    "scope": 2,
+                    "span": 48
+                  },
+                  "value": {
+                    "Const": {
+                      "const_": {
+                        "id": 10,
+                        "kind": "ZeroSized",
+                        "ty": 35
+                      },
+                      "span": 32,
                       "user_ty": null
                     }
                   }
@@ -5842,7 +6394,7 @@
                   "name": "slice",
                   "source_info": {
                     "scope": 2,
-                    "span": 46
+                    "span": 49
                   },
                   "value": {
                     "Place": {
@@ -5857,7 +6409,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 3,
-                    "span": 187
+                    "span": 203
                   },
                   "value": {
                     "Place": {
@@ -5872,7 +6424,7 @@
                   "name": "other",
                   "source_info": {
                     "scope": 3,
-                    "span": 188
+                    "span": 204
                   },
                   "value": {
                     "Place": {
@@ -5887,7 +6439,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 4,
-                    "span": 189
+                    "span": 205
                   },
                   "value": {
                     "Place": {
@@ -5902,7 +6454,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 5,
-                    "span": 189
+                    "span": 205
                   },
                   "value": {
                     "Place": {
@@ -5917,7 +6469,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 6,
-                    "span": 190
+                    "span": 206
                   },
                   "value": {
                     "Place": {
@@ -5932,7 +6484,7 @@
                   "name": "other",
                   "source_info": {
                     "scope": 6,
-                    "span": 191
+                    "span": 207
                   },
                   "value": {
                     "Place": {
@@ -5947,7 +6499,7 @@
                   "name": "self",
                   "source_info": {
                     "scope": 7,
-                    "span": 192
+                    "span": 208
                   },
                   "value": {
                     "Place": {
@@ -5962,7 +6514,7 @@
                   "name": "other",
                   "source_info": {
                     "scope": 7,
-                    "span": 193
+                    "span": 209
                   },
                   "value": {
                     "Place": {
@@ -5980,5 +6532,61 @@
       },
       "symbol_name": "_ZN77_$LT$alloc..string..String$u20$as$u20$core..cmp..PartialEq$LT$$RF$str$GT$$GT$2eq17h"
     }
+  ],
+  "types": [
+    [
+      2,
+      {
+        "RigidTy": {
+          "Int": "I8"
+        }
+      }
+    ],
+    [
+      6,
+      {
+        "RigidTy": {
+          "Int": "Isize"
+        }
+      }
+    ],
+    [
+      9,
+      {
+        "RigidTy": {
+          "Uint": "U8"
+        }
+      }
+    ],
+    [
+      16,
+      {
+        "RigidTy": {
+          "Int": "I32"
+        }
+      }
+    ],
+    [
+      38,
+      {
+        "RigidTy": {
+          "Uint": "Usize"
+        }
+      }
+    ],
+    [
+      48,
+      {
+        "RigidTy": "Bool"
+      }
+    ],
+    [
+      51,
+      {
+        "RigidTy": {
+          "Uint": "U32"
+        }
+      }
+    ]
   ]
 }
