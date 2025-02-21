@@ -426,9 +426,9 @@ impl GraphLabelString for ProjectionElem {
             ProjectionElem::Field(i, _) => format!(".{i}"),
             ProjectionElem::Index(local) => format!("[_{local}]"),
             ProjectionElem::ConstantIndex { offset, min_length: _, from_end } =>
-                format!("[{}{}]", if from_end.clone() {"-"} else {""}, offset),
+                format!("[{}{}]", if *from_end {"-"} else {""}, offset),
             ProjectionElem::Subslice { from, to, from_end } =>
-                format!("[{}..{}{}]", from, if from_end.clone() {"-"} else {""}, to),
+                format!("[{}..{}{}]", from, if *from_end {"-"} else {""}, to),
             ProjectionElem::Downcast(i) => format!(" as {:?}", i),
             ProjectionElem::OpaqueCast(ty) => format!(" as type {}", ty),
             ProjectionElem::Subtype(i) => format!(" as {:?}", i),
