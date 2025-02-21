@@ -15,7 +15,8 @@ use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
 use stable_mir::mir::{
-    AggregateKind, BasicBlock, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction
+    AggregateKind, BasicBlock, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
+    Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
 };
 use stable_mir::ty::{IndexedVal, Ty};
 
@@ -404,18 +405,9 @@ impl GraphLabelString for Operand {
 
 impl GraphLabelString for Place {
     fn label(&self) -> String {
+        let projections: &Vec<String> = &self.projection.iter().map(|p| p.label()).collect();
 
-        let projections: &Vec<String> = 
-            &self.projection
-                .iter()
-                .map(|p| p.label())
-                .collect();
-
-        format!(
-            "_{}{}",
-            &self.local,
-            projections.join("")
-        )
+        format!("_{}{}", &self.local, projections.join(""))
     }
 }
 
@@ -425,17 +417,20 @@ impl GraphLabelString for ProjectionElem {
             ProjectionElem::Deref => "*".to_string(),
             ProjectionElem::Field(i, _) => format!(".{i}"),
             ProjectionElem::Index(local) => format!("[_{local}]"),
-            ProjectionElem::ConstantIndex { offset, min_length: _, from_end } =>
-                format!("[{}{}]", if *from_end {"-"} else {""}, offset),
-            ProjectionElem::Subslice { from, to, from_end } =>
-                format!("[{}..{}{}]", from, if *from_end {"-"} else {""}, to),
+            ProjectionElem::ConstantIndex {
+                offset,
+                min_length: _,
+                from_end,
+            } => format!("[{}{}]", if *from_end { "-" } else { "" }, offset),
+            ProjectionElem::Subslice { from, to, from_end } => {
+                format!("[{}..{}{}]", from, if *from_end { "-" } else { "" }, to)
+            }
             ProjectionElem::Downcast(i) => format!(" as {:?}", i),
             ProjectionElem::OpaqueCast(ty) => format!(" as type {}", ty),
             ProjectionElem::Subtype(i) => format!(" as {:?}", i),
         }
     }
 }
-
 
 impl GraphLabelString for AggregateKind {
     fn label(&self) -> String {
