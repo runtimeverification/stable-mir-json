@@ -615,7 +615,11 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
             let name = rustc_middle::ty::print::with_no_trimmed_paths!(val_collector
                 .tcx
                 .def_path_str(def_id_internal));
-            if *"std::fmt::Arguments" == name {
+            if *"std::fmt::Arguments" == name || *"core::fmt::Arguments" == name {
+                eprintln!(
+                    "Cannot collect Layout for Ty with escaping bound vars: {:?}",
+                    val
+                );
                 None
             } else {
                 Some(val.layout())
