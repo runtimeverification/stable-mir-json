@@ -529,9 +529,11 @@ fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mi
         return ty.ty.kind().into();
     }
     match kind.rigid().expect("Non-rigid-ty allocation found!") {
-        RigidTy::Array(ty, _) | RigidTy::Slice(ty) => ty.kind().into(),
-        RigidTy::FnPtr(_) => None,
-        _ => todo!(),
+        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => ty.kind().into(),
+        RigidTy::FnPtr(_) | RigidTy::Adt(..) => None, // TODO: Check for Adt if the GenericArgs are related to prov
+        unimplemented => {
+            todo!("Unimplemented RigidTy allocation: {:?}", unimplemented);
+        }
     }
 }
 
@@ -613,7 +615,11 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
             let name = rustc_middle::ty::print::with_no_trimmed_paths!(val_collector
                 .tcx
                 .def_path_str(def_id_internal));
-            if *"std::fmt::Arguments" == name {
+            if *"std::fmt::Arguments" == name || *"core::fmt::Arguments" == name {
+                eprintln!(
+                    "Cannot collect Layout for Ty with escaping bound vars: {:?}",
+                    val
+                );
                 None
             } else {
                 Some(val.layout())
