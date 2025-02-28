@@ -42,3 +42,9 @@ integration-test:
 
 golden:
 	make integration-test DIFF=">"
+
+format: 
+	cargo fmt
+
+style-check: format
+	cargo clippy
