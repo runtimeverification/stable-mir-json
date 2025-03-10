@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::io::Write;
 use std::{collections::HashMap, fs::File, io, iter::Iterator, str, vec::Vec};
 extern crate rustc_middle;
@@ -604,35 +605,9 @@ fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty
 }
 
 fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
-    use stable_mir::ty::{AdtDef, RigidTy::*, TyKind::RigidTy};
+    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy};
 
-    // HACK: std::fmt::Arguments has escaping bounds and will error if trying to get the layout.
-    // We will just ban producing the layout for now see, this issue for more info
-    // https://github.com/runtimeverification/stable-mir-json/issues/27
-    let maybe_layout = match val.kind() {
-        stable_mir::ty::TyKind::RigidTy(Adt(AdtDef(def_id_stable), _)) => {
-            let def_id_internal = rustc_internal::internal(val_collector.tcx, def_id_stable);
-            let name = rustc_middle::ty::print::with_no_trimmed_paths!(val_collector
-                .tcx
-                .def_path_str(def_id_internal));
-            if *"std::fmt::Arguments" == name || *"core::fmt::Arguments" == name {
-                eprintln!(
-                    "Cannot collect Layout for Ty with escaping bound vars: {:?}",
-                    val
-                );
-                None
-            } else {
-                Some(val.layout())
-            }
-        }
-        _ => Some(val.layout()),
-    };
-
-    let maybe_layout_shape = if let Some(Ok(layout)) = maybe_layout {
-        Some(layout.shape())
-    } else {
-        None
-    };
+    let maybe_layout_shape = val.layout().ok().map(|layout| layout.shape());
 
     if val_collector
         .visited_tys
@@ -656,21 +631,46 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
             RigidTy(Coroutine(_, ref args, _) | CoroutineWitness(_, ref args)) => {
                 collect_arg_tys(val_collector, args)
             }
-            ref kind @ RigidTy(FnDef(_, ref args) | Closure(_, ref args)) => {
-                collect_vec_tys(
-                    val_collector,
-                    kind.fn_sig().unwrap().value.inputs_and_output,
-                );
-                collect_arg_tys(val_collector, args);
+            RigidTy(Closure(def, ref args)) => {
+                // Need to monomorphise again
+                // let ty_internal = rustc_internal::internal(val_collector.tcx, val);
+                // let closure_kind = ty_internal.to_opt_closure_kind().unwrap(); // Errors on span for some reason
+                // Choose FnOnce, got the idea from kani reachability.rs
+                let instance =
+                    Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
+                let fn_abi = instance.fn_abi().unwrap();
+                let mut inputs_and_outputs: Vec<stable_mir::ty::Ty> =
+                    fn_abi.args.iter().map(|arg| arg.ty).collect();
+                if inputs_and_outputs[0].type_id() == val.type_id() {
+                    // TODO: Not sure if it always occurs, but had case where the first ArgAbi had ty same as val.
+                    // This causes an infinite loop
+                    inputs_and_outputs.remove(0);
+                }
+                inputs_and_outputs.push(fn_abi.ret.ty);
+
+                collect_vec_tys(val_collector, inputs_and_outputs);
+                collect_arg_tys(val_collector, args); // Do I need to do this again?
+            }
+            ref _kind @ RigidTy(FnDef(def, ref args)) => {
+                // Need to monomorphise again
+                let instance = Instance::resolve(def, args).unwrap();
+                let fn_abi = instance.fn_abi().unwrap();
+                let mut inputs_and_outputs: Vec<stable_mir::ty::Ty> =
+                    fn_abi.args.iter().map(|arg| arg.ty).collect();
+                inputs_and_outputs.push(fn_abi.ret.ty);
+
+                collect_vec_tys(val_collector, inputs_and_outputs);
+                collect_arg_tys(val_collector, args); // Do I need to do this again?
             }
             RigidTy(Foreign(def)) => match def.kind() {
                 ForeignItemKind::Fn(def) => {
+                    // I think this is fully monomorphised???
                     collect_vec_tys(val_collector, def.fn_sig().value.inputs_and_output)
                 }
                 ForeignItemKind::Type(ty) => collect_ty(val_collector, ty),
                 ForeignItemKind::Static(def) => collect_ty(val_collector, def.ty()),
             },
-            _ => {}
+            _ => {} // TODO: I think we need to add arm for FnPtr? Maybe we should create an example that uses it first
         }
     }
 }
