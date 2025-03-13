@@ -151,17 +151,24 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
     let run_script_path = smir_json_dir.join(format!("{}.sh", profile.name()));
     let mut run_script = std::fs::File::create(&run_script_path)?;
     writeln!(run_script, "#!/bin/bash")?;
-    writeln!(run_script, "set -eu")?;
     writeln!(run_script)?;
+    writeln!(
+        run_script,
+        "# options --dot and --json can be set with this"
+    )?;
+    writeln!(run_script, "STABLE_MIR_OPTS=${{STABLE_MIR_OPTS:-''}}")?;
+    writeln!(run_script)?;
+    writeln!(run_script, "set -eu")?;
+    writeln!(run_script, "SCRIPT_DIR=$(dirname \"$(realpath $0)\")")?;
     writeln!(
         run_script,
         "export LD_LIBRARY_PATH={}",
         ld_library_path.display(),
     )?;
+    writeln!(run_script)?;
     writeln!(
         run_script,
-        "exec \"{}/{}/stable_mir_json\" \"$@\"",
-        smir_json_dir.display(),
+        "exec \"${{SCRIPT_DIR}}/{}/stable_mir_json\" ${{STABLE_MIR_OPTS}} \"$@\"",
         profile.name()
     )?;
 

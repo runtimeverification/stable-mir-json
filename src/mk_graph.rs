@@ -15,8 +15,8 @@ use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
 use stable_mir::mir::{
-    AggregateKind, BasicBlock, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
-    Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
+    AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
+    Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
 };
 use stable_mir::ty::{IndexedVal, Ty};
 
@@ -397,45 +397,49 @@ impl GraphLabelString for Operand {
     fn label(&self) -> String {
         match &self {
             Operand::Constant(ConstOperand { const_, .. }) => format!("const :: {}", const_.ty()),
-            Operand::Copy(place) => place.label(),
-            Operand::Move(place) => place.label(),
+            Operand::Copy(place) => format!("cp({})", place.label()),
+            Operand::Move(place) => format!("mv({})", place.label()),
         }
     }
 }
 
 impl GraphLabelString for Place {
     fn label(&self) -> String {
-        let projections: &Vec<String> = &self.projection.iter().map(|p| p.label()).collect();
-
-        format!("_{}{}", &self.local, projections.join(""))
+        project(self.local.to_string(), &self.projection)
     }
 }
 
-impl GraphLabelString for ProjectionElem {
-    fn label(&self) -> String {
-        match &self {
-            ProjectionElem::Deref => "*".to_string(),
-            ProjectionElem::Field(i, _) => format!(".{i}"),
-            ProjectionElem::Index(local) => format!("[_{local}]"),
-            ProjectionElem::ConstantIndex {
-                offset,
-                min_length: _,
-                from_end,
-            } => format!("[{}{}]", if *from_end { "-" } else { "" }, offset),
-            ProjectionElem::Subslice { from, to, from_end } => {
-                format!("[{}..{}{}]", from, if *from_end { "-" } else { "" }, to)
-            }
-            ProjectionElem::Downcast(i) => format!(" as {:?}", i),
-            ProjectionElem::OpaqueCast(ty) => format!(" as type {}", ty),
-            ProjectionElem::Subtype(i) => format!(" as {:?}", i),
+fn project(local: String, ps: &[ProjectionElem]) -> String {
+    ps.iter().fold(local, decorate)
+}
+
+fn decorate(thing: String, p: &ProjectionElem) -> String {
+    match p {
+        ProjectionElem::Deref => format!("*{}", thing),
+        ProjectionElem::Field(i, _) => format!("{thing}.{i}"),
+        ProjectionElem::Index(local) => format!("{thing}[_{local}]"),
+        ProjectionElem::ConstantIndex {
+            offset,
+            min_length: _,
+            from_end,
+        } => format!("{thing}[{}{}]", if *from_end { "-" } else { "" }, offset),
+        ProjectionElem::Subslice { from, to, from_end } => {
+            format!(
+                "{thing}[{}..{}{}]",
+                from,
+                if *from_end { "-" } else { "" },
+                to
+            )
         }
+        ProjectionElem::Downcast(i) => format!("{thing} as {:?}", i),
+        ProjectionElem::OpaqueCast(ty) => format!("{thing} as type {}", ty),
+        ProjectionElem::Subtype(i) => format!("{thing} as {:?}", i),
     }
 }
 
 impl GraphLabelString for AggregateKind {
     fn label(&self) -> String {
         use AggregateKind::*;
-        use Mutability::*;
         match &self {
             Array(_ty) => "Array".to_string(),
             Tuple {} => "Tuple".to_string(),
@@ -443,8 +447,8 @@ impl GraphLabelString for AggregateKind {
             Closure(_, _) => "Closure".to_string(),  // (ClosureDef, GenericArgs),
             Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
             // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
-            RawPtr(ty, Mut) => format!("*mut ({})", ty),
-            RawPtr(ty, Not) => format!("*({})", ty),
+            RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
+            RawPtr(ty, Mutability::Not) => format!("*({})", ty),
         }
     }
 }
@@ -466,8 +470,15 @@ impl GraphLabelString for Rvalue {
             CopyForDeref(p) => format!("CopyForDeref({})", p.label()),
             Discriminant(p) => format!("Discriminant({})", p.label()),
             Len(p) => format!("Len({})", p.label()),
-            Ref(region, borrowkind, p) => {
-                format!("{:?} ({:?}): {}", region.kind, borrowkind, p.label())
+            Ref(_region, borrowkind, p) => {
+                format!(
+                    "&{} {}",
+                    match borrowkind {
+                        BorrowKind::Mut { kind: _ } => "mut",
+                        _other => "",
+                    },
+                    p.label()
+                )
             }
             Repeat(op, _ty_const) => format!("Repeat {}", op.label()),
             ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", op.label()),
