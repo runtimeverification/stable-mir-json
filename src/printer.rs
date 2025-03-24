@@ -133,7 +133,7 @@ fn get_item_details(tcx: TyCtxt<'_>, id: DefId, fn_inst: Option<Instance>) -> Op
                 .and_then(|i| CrateItem::try_from(i).ok())
                 .map(|i| i.kind()),
             fn_body_details: if let Some(fn_inst) = fn_inst {
-                fn_inst.body().and_then(|body| Some(get_body_details(&body)))
+                fn_inst.body().map(|body| get_body_details(&body))
             } else {
                 None
             },
@@ -295,7 +295,12 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
                 mono_item_kind: MonoItemKind::MonoItemFn {
                     name: name.clone(),
                     id,
-                    body: inst.body().expect(format!("Failed to retrive body for Instance of MonoItem::Fn {}", sym_name).as_str()),
+                    body: inst.body().unwrap_or_else(|| {
+                        panic!(
+                            "Failed to retrive body for Instance of MonoItem::Fn {}",
+                            sym_name
+                        )
+                    }),
                 },
                 details: get_item_details(tcx, internal_id, Some(inst)),
             }
@@ -746,7 +751,12 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
     for item in items.iter() {
         match &item {
             MonoItem::Fn(inst) => {
-                let body = inst.body().expect(format!("Failed to retrive body for Instance of MonoItem::Fn {}", inst.name()).as_str());
+                let body = inst.body().unwrap_or_else(|| {
+                    panic!(
+                        "Failed to retrive body for Instance of MonoItem::Fn {}",
+                        inst.name()
+                    )
+                });
                 InternedValueCollector {
                     tcx,
                     _sym: inst.mangled_name(),
@@ -759,7 +769,12 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
             }
             MonoItem::Static(def) => {
                 let inst = def_id_to_inst(tcx, def.def_id());
-                let body = inst.body().expect(format!("Failed to retrive body for Instance of MonoItem::Fn {}", inst.name()).as_str());
+                let body = inst.body().unwrap_or_else(|| {
+                    panic!(
+                        "Failed to retrive body for Instance of MonoItem::Fn {}",
+                        inst.name()
+                    )
+                });
                 InternedValueCollector {
                     tcx,
                     _sym: inst.mangled_name(),
