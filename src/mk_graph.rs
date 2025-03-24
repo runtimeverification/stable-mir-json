@@ -221,22 +221,7 @@ impl SmirJson<'_> {
                                 }
                             };
 
-                        match &body.len() {
-                            0 => {
-                                c.node_auto().set_label("<empty body>");
-                            }
-                            1 => {
-                                process_blocks(&mut c, 0, &body[0].blocks);
-                            }
-                            _more => {
-                                let mut curr: usize = 0;
-                                for b in &body {
-                                    let mut cc = c.cluster();
-                                    process_blocks(&mut cc, curr, &b.blocks);
-                                    curr += b.blocks.len();
-                                }
-                            }
-                        }
+                        process_blocks(&mut c, 0, &body.blocks);
                         drop(c); // so we can borrow graph again
 
                         // call edges have to be added _outside_ the cluster of blocks for one function
@@ -290,19 +275,7 @@ impl SmirJson<'_> {
                                 }
                             };
 
-                        match &body.len() {
-                            0 => {}
-                            1 => {
-                                add_call_edges(&mut graph, 0, &body[0].blocks);
-                            }
-                            _more => {
-                                let mut curr: usize = 0;
-                                for b in &body {
-                                    add_call_edges(&mut graph, curr, &b.blocks);
-                                    curr += b.blocks.len();
-                                }
-                            }
-                        }
+                        add_call_edges(&mut graph, 0, &body.blocks);
                     }
                     MonoItemKind::MonoItemGlobalAsm { asm } => {
                         let mut n = graph.node_named(short_name(&asm));
