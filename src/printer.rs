@@ -263,7 +263,7 @@ pub enum MonoItemKind {
     MonoItemFn {
         name: String,
         id: stable_mir::DefId,
-        body: Body,
+        body: Option<Body>,
     },
     MonoItemStatic {
         name: String,
@@ -295,12 +295,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
                 mono_item_kind: MonoItemKind::MonoItemFn {
                     name: name.clone(),
                     id,
-                    body: inst.body().unwrap_or_else(|| {
-                        panic!(
-                            "Failed to retrive body for Instance of MonoItem::Fn {}",
-                            sym_name
-                        )
-                    }),
+                    body: inst.body(),
                 },
                 details: get_item_details(tcx, internal_id, Some(inst)),
             }
@@ -870,7 +865,9 @@ fn collect_unevaluated_constant_items(
             current_item: hash(&curr_name),
         };
 
-        collector.visit_body(body);
+        if let Some(body) = body {
+            collector.visit_body(body);
+        }
 
         // move processed item into seen items
         processed_items.insert(curr_name.to_string(), value);
