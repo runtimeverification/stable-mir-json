@@ -746,39 +746,41 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
     for item in items.iter() {
         match &item {
             MonoItem::Fn(inst) => {
-                let body = inst.body().unwrap_or_else(|| {
-                    panic!(
+                if let Some(body) = inst.body() {
+                    InternedValueCollector {
+                        tcx,
+                        _sym: inst.mangled_name(),
+                        locals: body.locals(),
+                        link_map: &mut calls_map,
+                        visited_tys: &mut visited_tys,
+                        visited_allocs: &mut visited_allocs,
+                    }
+                    .visit_body(&body)
+                } else {
+                    eprintln!(
                         "Failed to retrive body for Instance of MonoItem::Fn {}",
                         inst.name()
                     )
-                });
-                InternedValueCollector {
-                    tcx,
-                    _sym: inst.mangled_name(),
-                    locals: body.locals(),
-                    link_map: &mut calls_map,
-                    visited_tys: &mut visited_tys,
-                    visited_allocs: &mut visited_allocs,
                 }
-                .visit_body(&body)
             }
             MonoItem::Static(def) => {
                 let inst = def_id_to_inst(tcx, def.def_id());
-                let body = inst.body().unwrap_or_else(|| {
-                    panic!(
-                        "Failed to retrive body for Instance of MonoItem::Fn {}",
+                if let Some(body) = inst.body() {
+                    InternedValueCollector {
+                        tcx,
+                        _sym: inst.mangled_name(),
+                        locals: &[],
+                        link_map: &mut calls_map,
+                        visited_tys: &mut visited_tys,
+                        visited_allocs: &mut visited_allocs,
+                    }
+                    .visit_body(&body)
+                } else {
+                    eprintln!(
+                        "Failed to retrive body for Instance of MonoItem::Static {}",
                         inst.name()
                     )
-                });
-                InternedValueCollector {
-                    tcx,
-                    _sym: inst.mangled_name(),
-                    locals: &[],
-                    link_map: &mut calls_map,
-                    visited_tys: &mut visited_tys,
-                    visited_allocs: &mut visited_allocs,
                 }
-                .visit_body(&body)
             }
             MonoItem::GlobalAsm(_) => {}
         }

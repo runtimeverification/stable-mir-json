@@ -223,7 +223,7 @@ impl SmirJson<'_> {
 
                         if let Some(body) = &body {
                             process_blocks(&mut c, 0, &body.blocks);
-                        } // TODO: Should we indicate missing `Body`?
+                        } // TODO: Investigate `MonoItem::Fn` without `Body` and make dummy node if correct
 
                         drop(c); // so we can borrow graph again
 
@@ -280,7 +280,7 @@ impl SmirJson<'_> {
 
                         if let Some(ref body) = body {
                             add_call_edges(&mut graph, 0, &body.blocks);
-                        } // TODO: Should we indicate missing `Body`?
+                        }
                     }
                     MonoItemKind::MonoItemGlobalAsm { asm } => {
                         let mut n = graph.node_named(short_name(&asm));
