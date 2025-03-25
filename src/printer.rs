@@ -70,7 +70,7 @@ struct ItemDetails {
     // these fields only defined for fn items
     fn_instance_kind: Option<InstanceKind>,
     fn_item_kind: Option<ItemKind>,
-    fn_body_details: Vec<BodyDetails>,
+    fn_body_details: Option<BodyDetails>,
     // these fields defined for all items
     internal_kind: String,
     path: String,
@@ -133,12 +133,9 @@ fn get_item_details(tcx: TyCtxt<'_>, id: DefId, fn_inst: Option<Instance>) -> Op
                 .and_then(|i| CrateItem::try_from(i).ok())
                 .map(|i| i.kind()),
             fn_body_details: if let Some(fn_inst) = fn_inst {
-                get_bodies(tcx, &fn_inst)
-                    .iter()
-                    .map(get_body_details)
-                    .collect()
+                fn_inst.body().map(|body| get_body_details(&body))
             } else {
-                vec![]
+                None
             },
             internal_kind: format!("{:#?}", tcx.def_kind(id)),
             path: tcx.def_path_str(id), // NOTE: underlying data from tcx.def_path(id);
@@ -227,28 +224,6 @@ fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoI
     item.symbol_name(tcx).name.into()
 }
 
-fn get_promoted(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
-    let id = rustc_internal::internal(tcx, inst.def.def_id());
-    if inst.has_body() {
-        tcx.promoted_mir(id)
-            .into_iter()
-            .map(rustc_internal::stable)
-            .collect()
-    } else {
-        vec![]
-    }
-}
-
-fn get_bodies(tcx: TyCtxt<'_>, inst: &Instance) -> Vec<Body> {
-    if let Some(body) = inst.body() {
-        let mut bodies = get_promoted(tcx, inst);
-        bodies.insert(0, body);
-        bodies
-    } else {
-        vec![]
-    }
-}
-
 fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
     ty.kind().fn_def().and_then(|(fn_def, args)| {
         if direct_call {
@@ -288,7 +263,7 @@ pub enum MonoItemKind {
     MonoItemFn {
         name: String,
         id: stable_mir::DefId,
-        body: Vec<Body>,
+        body: Option<Body>,
     },
     MonoItemStatic {
         name: String,
@@ -316,11 +291,11 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             let internal_id = rustc_internal::internal(tcx, id);
             Item {
                 mono_item: item,
-                symbol_name: sym_name,
+                symbol_name: sym_name.clone(),
                 mono_item_kind: MonoItemKind::MonoItemFn {
                     name: name.clone(),
                     id,
-                    body: get_bodies(tcx, &inst),
+                    body: inst.body(),
                 },
                 details: get_item_details(tcx, internal_id, Some(inst)),
             }
@@ -771,7 +746,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
     for item in items.iter() {
         match &item {
             MonoItem::Fn(inst) => {
-                for body in get_bodies(tcx, inst).into_iter() {
+                if let Some(body) = inst.body() {
                     InternedValueCollector {
                         tcx,
                         _sym: inst.mangled_name(),
@@ -781,11 +756,16 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         visited_allocs: &mut visited_allocs,
                     }
                     .visit_body(&body)
+                } else {
+                    eprintln!(
+                        "Failed to retrive body for Instance of MonoItem::Fn {}",
+                        inst.name()
+                    )
                 }
             }
             MonoItem::Static(def) => {
                 let inst = def_id_to_inst(tcx, def.def_id());
-                for body in get_bodies(tcx, &inst).into_iter() {
+                if let Some(body) = inst.body() {
                     InternedValueCollector {
                         tcx,
                         _sym: inst.mangled_name(),
@@ -795,6 +775,11 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         visited_allocs: &mut visited_allocs,
                     }
                     .visit_body(&body)
+                } else {
+                    eprintln!(
+                        "Failed to retrive body for Instance of MonoItem::Static {}",
+                        inst.name()
+                    )
                 }
             }
             MonoItem::GlobalAsm(_) => {}
@@ -868,7 +853,7 @@ fn collect_unevaluated_constant_items(
 
     while let Some((curr_name, value)) = take_any(&mut pending_items) {
         // skip item if it isn't a function
-        let bodies = match value.mono_item_kind {
+        let body = match value.mono_item_kind {
             MonoItemKind::MonoItemFn { ref body, .. } => body,
             _ => continue,
         };
@@ -882,8 +867,9 @@ fn collect_unevaluated_constant_items(
             current_item: hash(&curr_name),
         };
 
-        // add each fresh collected constant to pending new items
-        bodies.iter().for_each(|body| collector.visit_body(body));
+        if let Some(body) = body {
+            collector.visit_body(body);
+        }
 
         // move processed item into seen items
         processed_items.insert(curr_name.to_string(), value);
