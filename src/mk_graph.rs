@@ -409,9 +409,9 @@ fn decorate(thing: String, p: &ProjectionElem) -> String {
                 to
             )
         }
-        ProjectionElem::Downcast(i) => format!("{thing} as {:?}", i),
-        ProjectionElem::OpaqueCast(ty) => format!("{thing} as type {}", ty),
-        ProjectionElem::Subtype(i) => format!("{thing} as {:?}", i),
+        ProjectionElem::Downcast(i) => format!("({thing} as variant {})", i.to_index()),
+        ProjectionElem::OpaqueCast(ty) => format!("{thing} as type {ty}"),
+        ProjectionElem::Subtype(i) => format!("{thing} :> {i}"),
     }
 }
 
@@ -421,7 +421,7 @@ impl GraphLabelString for AggregateKind {
         match &self {
             Array(_ty) => "Array".to_string(),
             Tuple {} => "Tuple".to_string(),
-            Adt(_, _, _, _, _) => "Adt".to_string(), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
+            Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
             Closure(_, _) => "Closure".to_string(),  // (ClosureDef, GenericArgs),
             Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
             // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
