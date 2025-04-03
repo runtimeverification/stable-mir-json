@@ -282,12 +282,16 @@ pub struct Item {
 }
 
 impl PartialEq for Item {
-    fn eq(&self, other: &Item) -> bool { self.mono_item.eq(&other.mono_item) }
+    fn eq(&self, other: &Item) -> bool {
+        self.mono_item.eq(&other.mono_item)
+    }
 }
 impl Eq for Item {}
 
 impl PartialOrd for Item {
-    fn partial_cmp(&self, other: &Item) -> Option<std::cmp::Ordering> { Some(self.cmp(other)) }
+    fn partial_cmp(&self, other: &Item) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl Ord for Item {
@@ -298,13 +302,21 @@ impl Ord for Item {
                 "{}!{}",
                 i.symbol_name,
                 match &i.mono_item_kind {
-                    MonoItemFn{name, id: _, body: _} => name,
-                    MonoItemStatic{name, id: _, allocation: _} => name,
-                    MonoItemGlobalAsm{asm} => asm,
+                    MonoItemFn {
+                        name,
+                        id: _,
+                        body: _,
+                    } => name,
+                    MonoItemStatic {
+                        name,
+                        id: _,
+                        allocation: _,
+                    } => name,
+                    MonoItemGlobalAsm { asm } => asm,
                 }
             )
         };
-        sort_key(&self).cmp(&sort_key(&other))
+        sort_key(self).cmp(&sort_key(other))
     }
 }
 
@@ -1062,9 +1074,9 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
 
     // sort output vectors to stabilise output (a bit)
     allocs.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
-    functions.sort_by(|a, b| a.0.0.to_index().cmp(&b.0.0.to_index()));
+    functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
     items.sort();
-    types.sort_by(|a,b| a.0.to_index().cmp(&b.0.to_index()));
+    types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
 
     SmirJson {
         name: local_crate.name,
