@@ -13,9 +13,7 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{
-    EarlyBinder, FnSig, GenericArgs, Ty, TyCtxt, TyKind, TypeFoldable, TypingEnv,
-};
+use rustc_middle::ty::{EarlyBinder, FnSig, GenericArgs, Ty, TyCtxt, TypeFoldable, TypingEnv};
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_smir::rustc_internal;
 use rustc_span::{
@@ -26,7 +24,7 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{Allocation, ConstDef, ForeignItemKind},
+    ty::{Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -100,8 +98,8 @@ where
 
 fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>>) -> String {
     // lookup type kind in order to perform case analysis
-    let kind: &TyKind = ty.skip_binder().kind();
-    if let TyKind::FnDef(fun_id, args) = kind {
+    let kind: &middle::ty::TyKind = ty.skip_binder().kind();
+    if let middle::ty::TyKind::FnDef(fun_id, args) = kind {
         // since FnDef doesn't contain signature, lookup actual function type
         // via getting fn signature with parameters and resolving those parameters
         let sig0 = tcx.fn_sig(fun_id);
@@ -281,6 +279,45 @@ pub struct Item {
     pub symbol_name: String,
     pub mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
+}
+
+impl PartialEq for Item {
+    fn eq(&self, other: &Item) -> bool {
+        self.mono_item.eq(&other.mono_item)
+    }
+}
+impl Eq for Item {}
+
+impl PartialOrd for Item {
+    fn partial_cmp(&self, other: &Item) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Item {
+    fn cmp(&self, other: &Item) -> std::cmp::Ordering {
+        use MonoItemKind::*;
+        let sort_key = |i: &Item| {
+            format!(
+                "{}!{}",
+                i.symbol_name,
+                match &i.mono_item_kind {
+                    MonoItemFn {
+                        name,
+                        id: _,
+                        body: _,
+                    } => name,
+                    MonoItemStatic {
+                        name,
+                        id: _,
+                        allocation: _,
+                    } => name,
+                    MonoItemGlobalAsm { asm } => asm,
+                }
+            )
+        };
+        sort_key(self).cmp(&sort_key(other))
+    }
 }
 
 fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
@@ -909,6 +946,56 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
         .collect::<HashMap<_, _>>()
 }
 
+// Type metadata required for execution
+
+#[derive(Serialize)]
+pub enum TypeMetadata {
+    Basetype(RigidTy),
+    EnumType {
+        name: String,
+        discriminants: Vec<(VariantIdx, u128)>,
+    },
+    StructType {
+        name: String,
+    },
+}
+
+fn mk_type_metadata(
+    tcx: TyCtxt<'_>,
+    k: stable_mir::ty::Ty,
+    t: TyKind,
+) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
+    use TypeMetadata::*;
+    match t {
+        TyKind::RigidTy(basetype) if t.is_primitive() => Some((k, Basetype(basetype))),
+        // for enums, we need a mapping of variantIdx to discriminant
+        // this requires access to the internals and is not provided as an interface function at the moment
+        TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_enum() => {
+            let adt_internal = rustc_internal::internal(tcx, adt_def);
+            let discriminants = adt_internal
+                .discriminants(tcx)
+                .map(|(v_idx, discr)| (rustc_internal::stable(v_idx), discr.val))
+                .collect::<Vec<_>>();
+            let adt_binder = tcx.type_of(adt_internal.did()).skip_binder();
+            let name = format!("{adt_binder:#?}");
+            Some((
+                k,
+                EnumType {
+                    name,
+                    discriminants,
+                },
+            ))
+        }
+        // for structs, we record the name for information purposes
+        TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_struct() => {
+            let adt_internal = rustc_internal::internal(tcx, adt_def);
+            let name = format!("{:#?}", tcx.type_of(adt_internal.did()).skip_binder());
+            Some((k, StructType { name }))
+        }
+        _ => None,
+    }
+}
+
 /// the serialised data structure as a whole
 #[derive(Serialize)]
 pub struct SmirJson<'t> {
@@ -918,7 +1005,7 @@ pub struct SmirJson<'t> {
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
-    pub types: Vec<(stable_mir::ty::Ty, stable_mir::ty::TyKind)>,
+    pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
 }
 
@@ -971,24 +1058,31 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         None
     };
 
-    let called_functions = calls_map
+    let mut functions = calls_map
         .into_iter()
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
-    let allocs = visited_allocs.into_iter().collect::<Vec<_>>();
+    let mut allocs = visited_allocs.into_iter().collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
-    let types = visited_tys
+    let mut types = visited_tys
         .into_iter()
         .map(|(k, (v, _))| (k, v))
-        .filter(|(_, v)| v.is_primitive())
+        .filter_map(|(k, t)| mk_type_metadata(tcx, k, t))
+        //        .filter(|(_, v)| v.is_primitive())
         .collect::<Vec<_>>();
+
+    // sort output vectors to stabilise output (a bit)
+    allocs.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
+    functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
+    items.sort();
+    types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
 
     SmirJson {
         name: local_crate.name,
         crate_id,
         allocs,
-        functions: called_functions,
+        functions,
         uneval_consts: unevaluated_consts.into_iter().collect(),
         items,
         types,
