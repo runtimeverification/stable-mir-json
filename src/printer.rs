@@ -24,7 +24,7 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{Allocation, ConstDef, ForeignItemKind, RigidTy, TyKind, VariantIdx},
+    ty::{Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -279,6 +279,33 @@ pub struct Item {
     pub symbol_name: String,
     pub mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
+}
+
+impl PartialEq for Item {
+    fn eq(&self, other: &Item) -> bool { self.mono_item.eq(&other.mono_item) }
+}
+impl Eq for Item {}
+
+impl PartialOrd for Item {
+    fn partial_cmp(&self, other: &Item) -> Option<std::cmp::Ordering> { Some(self.cmp(other)) }
+}
+
+impl Ord for Item {
+    fn cmp(&self, other: &Item) -> std::cmp::Ordering {
+        use MonoItemKind::*;
+        let sort_key = |i: &Item| {
+            format!(
+                "{}!{}",
+                i.symbol_name,
+                match &i.mono_item_kind {
+                    MonoItemFn{name, id: _, body: _} => name,
+                    MonoItemStatic{name, id: _, allocation: _} => name,
+                    MonoItemGlobalAsm{asm} => asm,
+                }
+            )
+        };
+        sort_key(&self).cmp(&sort_key(&other))
+    }
 }
 
 fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
@@ -1019,25 +1046,31 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         None
     };
 
-    let called_functions = calls_map
+    let mut functions = calls_map
         .into_iter()
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
-    let allocs = visited_allocs.into_iter().collect::<Vec<_>>();
+    let mut allocs = visited_allocs.into_iter().collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
-    let types = visited_tys
+    let mut types = visited_tys
         .into_iter()
         .map(|(k, (v, _))| (k, v))
         .filter_map(|(k, t)| mk_type_metadata(tcx, k, t))
         //        .filter(|(_, v)| v.is_primitive())
         .collect::<Vec<_>>();
 
+    // sort output vectors to stabilise output (a bit)
+    allocs.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
+    functions.sort_by(|a, b| a.0.0.to_index().cmp(&b.0.0.to_index()));
+    items.sort();
+    types.sort_by(|a,b| a.0.to_index().cmp(&b.0.to_index()));
+
     SmirJson {
         name: local_crate.name,
         crate_id,
         allocs,
-        functions: called_functions,
+        functions,
         uneval_consts: unevaluated_consts.into_iter().collect(),
         items,
         types,
