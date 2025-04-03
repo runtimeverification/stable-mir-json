@@ -422,7 +422,7 @@ impl GraphLabelString for AggregateKind {
             Array(_ty) => "Array".to_string(),
             Tuple {} => "Tuple".to_string(),
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
-            Closure(_, _) => "Closure".to_string(),  // (ClosureDef, GenericArgs),
+            Closure(_, _) => "Closure".to_string(), // (ClosureDef, GenericArgs),
             Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
             // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
             RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
