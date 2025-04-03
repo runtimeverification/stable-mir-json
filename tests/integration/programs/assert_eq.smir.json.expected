@@ -1725,71 +1725,6 @@
             "arg_count": 2,
             "blocks": [
               {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Move": {
-                          "local": 1,
-                          "projection": []
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 73
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 73
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 73,
-                "ty": 1
-              },
-              {
-                "mutability": "Not",
-                "span": 73,
-                "ty": 7
-              },
-              {
-                "mutability": "Not",
-                "span": 73,
-                "ty": 1
-              }
-            ],
-            "span": 73,
-            "spread_arg": 2,
-            "var_debug_info": []
-          },
-          "id": 5,
-          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
-        }
-      },
-      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
                 "statements": [
                   {
                     "kind": {
@@ -1935,6 +1870,71 @@
           },
           "id": 5,
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
+        }
+      },
+      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 2,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [],
+                      "destination": {
+                        "local": 0,
+                        "projection": []
+                      },
+                      "func": {
+                        "Move": {
+                          "local": 1,
+                          "projection": []
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 73
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 73
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 73,
+                "ty": 1
+              },
+              {
+                "mutability": "Not",
+                "span": 73,
+                "ty": 7
+              },
+              {
+                "mutability": "Not",
+                "span": 73,
+                "ty": 1
+              }
+            ],
+            "span": 73,
+            "spread_arg": 2,
+            "var_debug_info": []
+          },
+          "id": 5,
+          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
       "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
@@ -3120,49 +3120,150 @@
   ],
   "types": [
     [
-      2,
       {
-        "RigidTy": {
+        "Basetype": {
           "Int": "I8"
         }
       }
     ],
     [
-      6,
       {
-        "RigidTy": {
+        "Basetype": {
           "Int": "Isize"
         }
       }
     ],
     [
-      9,
       {
-        "RigidTy": {
+        "Basetype": {
           "Uint": "U8"
         }
       }
     ],
     [
-      16,
       {
-        "RigidTy": {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result<T/#0, E/#1>"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "Basetype": {
           "Int": "I32"
         }
       }
     ],
     [
-      26,
       {
-        "RigidTy": {
+        "StructType": {
+          "name": "std::process::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result<T/#0, E/#1>"
+        }
+      }
+    ],
+    [
+      {
+        "Basetype": {
           "Uint": "U32"
         }
       }
     ],
     [
-      40,
       {
-        "RigidTy": "Bool"
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ]
+          ],
+          "name": "core::panicking::AssertKind"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::option::Option<T/#0>"
+        }
+      }
+    ],
+    [
+      {
+        "Basetype": "Bool"
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::fmt::Arguments<'a/#0>"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::fmt::Error"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::fmt::Formatter<'a/#0>"
+        }
       }
     ]
   ]

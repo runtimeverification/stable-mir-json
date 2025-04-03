@@ -1893,47 +1893,72 @@
   ],
   "types": [
     [
-      2,
       {
-        "RigidTy": {
+        "Basetype": {
           "Int": "I8"
         }
       }
     ],
     [
-      6,
       {
-        "RigidTy": {
+        "Basetype": {
           "Int": "Isize"
         }
       }
     ],
     [
-      9,
       {
-        "RigidTy": {
+        "Basetype": {
           "Uint": "U8"
         }
       }
     ],
     [
-      16,
       {
-        "RigidTy": {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result<T/#0, E/#1>"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "Basetype": {
           "Int": "I32"
         }
       }
     ],
     [
-      25,
       {
-        "RigidTy": "Bool"
+        "StructType": {
+          "name": "std::process::ExitCode"
+        }
       }
     ],
     [
-      26,
       {
-        "RigidTy": {
+        "Basetype": "Bool"
+      }
+    ],
+    [
+      {
+        "Basetype": {
           "Uint": "Usize"
         }
       }

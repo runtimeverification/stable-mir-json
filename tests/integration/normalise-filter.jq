@@ -5,24 +5,20 @@
 # Apply the normalisation filter
 { allocs:
     ( [ .allocs[] ]
-# sort allocs by their ID
-        | sort_by(.[0])
+# delete unstable alloc ID
         | map(del(.[0]))
     ),
   functions:
     ( [ .functions[] ]
-# sort functions by their ID (int, first in list)
-        | sort_by(.[0])
+# delete unstable function ID
         | map(del(.[0]))
     ),
   items:
     ( [ .items[] ]
-# sort items by symbol name they refer to and by the function name for functions
-        | sort_by(.symbol_name, .mono_item_kind.MonoItemFn.name)
     ),
   types:
     ( [ .types[] ]
-# sort types by their ID (int, first in list)
-        | sort_by(.[0])
+# delete unstable Ty ID (int, first in list)
+        | map(del(.[0]))
     )
 }
