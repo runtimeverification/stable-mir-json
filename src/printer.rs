@@ -950,7 +950,7 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 
 #[derive(Serialize)]
 pub enum TypeMetadata {
-    Basetype(RigidTy),
+    PrimitiveType(RigidTy),
     EnumType {
         name: String,
         discriminants: Vec<(VariantIdx, u128)>,
@@ -967,7 +967,7 @@ fn mk_type_metadata(
 ) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
     use TypeMetadata::*;
     match t {
-        TyKind::RigidTy(basetype) if t.is_primitive() => Some((k, Basetype(basetype))),
+        TyKind::RigidTy(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
         // for enums, we need a mapping of variantIdx to discriminant
         // this requires access to the internals and is not provided as an interface function at the moment
         TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_enum() => {
