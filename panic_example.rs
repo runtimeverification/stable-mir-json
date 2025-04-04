@@ -1,1 +1,0 @@
-tests/integration/failing/panic_example.rs
