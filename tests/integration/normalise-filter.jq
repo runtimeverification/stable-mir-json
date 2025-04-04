@@ -20,5 +20,8 @@
     ( [ .types[] ]
 # delete unstable Ty ID (int, first in list)
         | map(del(.[0]))
+# delete unstable adt_def from Struct and Enum
+        | map(del(.[0].StructType.adt_def))
+        | map(del(.[0].EnumType.adt_def))
     )
 }
