@@ -24,7 +24,7 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -953,10 +953,12 @@ pub enum TypeMetadata {
     PrimitiveType(RigidTy),
     EnumType {
         name: String,
+        adt_def: AdtDef,
         discriminants: Vec<(VariantIdx, u128)>,
     },
     StructType {
         name: String,
+        adt_def: AdtDef,
     },
 }
 
@@ -982,6 +984,7 @@ fn mk_type_metadata(
                 k,
                 EnumType {
                     name,
+                    adt_def,
                     discriminants,
                 },
             ))
@@ -990,7 +993,7 @@ fn mk_type_metadata(
         TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_struct() => {
             let adt_internal = rustc_internal::internal(tcx, adt_def);
             let name = format!("{:#?}", tcx.type_of(adt_internal.did()).skip_binder());
-            Some((k, StructType { name }))
+            Some((k, StructType { name, adt_def }))
         }
         _ => None,
     }
