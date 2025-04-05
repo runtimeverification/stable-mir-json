@@ -978,8 +978,7 @@ fn mk_type_metadata(
                 .discriminants(tcx)
                 .map(|(v_idx, discr)| (rustc_internal::stable(v_idx), discr.val))
                 .collect::<Vec<_>>();
-            let adt_binder = tcx.type_of(adt_internal.did()).skip_binder();
-            let name = format!("{adt_binder:#?}");
+            let name = adt_def.name();
             Some((
                 k,
                 EnumType {
@@ -991,8 +990,7 @@ fn mk_type_metadata(
         }
         // for structs, we record the name for information purposes
         TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_struct() => {
-            let adt_internal = rustc_internal::internal(tcx, adt_def);
-            let name = format!("{:#?}", tcx.type_of(adt_internal.did()).skip_binder());
+            let name = adt_def.name();
             Some((k, StructType { name, adt_def }))
         }
         _ => None,
