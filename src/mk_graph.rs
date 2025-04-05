@@ -223,7 +223,9 @@ impl SmirJson<'_> {
 
                         if let Some(body) = &body {
                             process_blocks(&mut c, 0, &body.blocks);
-                        } // TODO: Investigate `MonoItem::Fn` without `Body` and make dummy node if correct
+                        } else {
+                            c.node_auto().set_label("<empty body>");
+                        }
 
                         drop(c); // so we can borrow graph again
 
