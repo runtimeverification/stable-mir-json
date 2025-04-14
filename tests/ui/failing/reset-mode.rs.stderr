@@ -1,0 +1,7 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/rfcs/rfc-2005-default-binding-mode/reset-mode.rs`
+thread 'rustc' panicked at src/printer.rs:548:13:
+not yet implemented: Unimplemented RigidTy allocation: Tuple([Ty { id: 16, kind: RigidTy(Int(I32)) }, Ty { id: 25, kind: RigidTy(Ref(Region { kind: ReErased }, Ty { id: 16, kind: RigidTy(Int(I32)) }, Not)) }])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -1,0 +1,15 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/runtime/out-of-stack.rs`
+warning: the feature `core_intrinsics` is internal to the compiler or standard library
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/runtime/out-of-stack.rs:11:12
+   |
+11 | #![feature(core_intrinsics)]
+   |            ^^^^^^^^^^^^^^^
+   |
+   = note: using it is strongly discouraged
+   = note: `#[warn(internal_features)]` on by default
+
+
+thread 'rustc' has overflowed its stack
+fatal runtime error: stack overflow
+Aborted (core dumped)

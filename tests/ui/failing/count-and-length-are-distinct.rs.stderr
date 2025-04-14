@@ -1,0 +1,287 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs`
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:13:27
+   |
+13 |                         ${ignore(l)} ${index()}, ${length()},
+   |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:13:52
+   |
+13 |                         ${ignore(l)} ${index()}, ${length()},
+   |                                                    ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:15:23
+   |
+15 |                     ${count(l)}, ${index()}, ${length()},
+   |                       ^^^^^
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:15:48
+   |
+15 |                     ${count(l)}, ${index()}, ${length()},
+   |                                                ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:17:19
+   |
+17 |                 ${count(l)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:75:27
+   |
+75 |                         ${ignore(i)} ${count(i, 0)},
+   |                           ^^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:75:40
+   |
+75 |                         ${ignore(i)} ${count(i, 0)},
+   |                                        ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:81:27
+   |
+81 |                         ${ignore(i)} ${count(i, 0)},
+   |                           ^^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:81:40
+   |
+81 |                         ${ignore(i)} ${count(i, 0)},
+   |                                        ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:82:27
+   |
+82 |                         ${ignore(i)} ${count(i, 1)},
+   |                           ^^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:82:40
+   |
+82 |                         ${ignore(i)} ${count(i, 1)},
+   |                                        ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:88:27
+   |
+88 |                         ${ignore(i)} ${count(i, 0)},
+   |                           ^^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:88:40
+   |
+88 |                         ${ignore(i)} ${count(i, 0)},
+   |                                        ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:89:27
+   |
+89 |                         ${ignore(i)} ${count(i, 1)},
+   |                           ^^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:89:40
+   |
+89 |                         ${ignore(i)} ${count(i, 1)},
+   |                                        ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:90:27
+   |
+90 |                         ${ignore(i)} ${count(i, 2)},
+   |                           ^^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:90:40
+   |
+90 |                         ${ignore(i)} ${count(i, 2)},
+   |                                        ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:95:23
+   |
+95 |                     ${count(i, 0)},
+   |                       ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:96:23
+   |
+96 |                     ${count(i, 1)},
+   |                       ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:97:23
+   |
+97 |                     ${count(i, 2)},
+   |                       ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:98:23
+   |
+98 |                     ${count(i, 3)},
+   |                       ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:173:27
+    |
+173 |                         ${ignore(i)} ${length(3)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:173:40
+    |
+173 |                         ${ignore(i)} ${length(3)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:174:27
+    |
+174 |                         ${ignore(i)} ${length(2)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:174:40
+    |
+174 |                         ${ignore(i)} ${length(2)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:175:27
+    |
+175 |                         ${ignore(i)} ${length(1)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:175:40
+    |
+175 |                         ${ignore(i)} ${length(1)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:176:27
+    |
+176 |                         ${ignore(i)} ${length(0)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:176:40
+    |
+176 |                         ${ignore(i)} ${length(0)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:182:27
+    |
+182 |                         ${ignore(i)} ${length(2)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:182:40
+    |
+182 |                         ${ignore(i)} ${length(2)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:183:27
+    |
+183 |                         ${ignore(i)} ${length(1)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:183:40
+    |
+183 |                         ${ignore(i)} ${length(1)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:184:27
+    |
+184 |                         ${ignore(i)} ${length(0)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:184:40
+    |
+184 |                         ${ignore(i)} ${length(0)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:190:27
+    |
+190 |                         ${ignore(i)} ${length(1)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:190:40
+    |
+190 |                         ${ignore(i)} ${length(1)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:191:27
+    |
+191 |                         ${ignore(i)} ${length(0)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:191:40
+    |
+191 |                         ${ignore(i)} ${length(0)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:197:27
+    |
+197 |                         ${ignore(i)} ${length(0)},
+    |                           ^^^^^^
+
+error: unrecognized meta-variable expression
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:197:40
+    |
+197 |                         ${ignore(i)} ${length(0)},
+    |                                        ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: attempted to repeat an expression containing no syntax variables matched as repeating at this depth
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:10:18
+   |
+10 |                   $(
+   |  __________________^
+11 | |                     // inner-most repetition
+12 | |                     $(
+13 | |                         ${ignore(l)} ${index()}, ${length()},
+14 | |                     )*
+15 | |                     ${count(l)}, ${index()}, ${length()},
+16 | |                 )*
+   | |_________________^
+
+error: attempted to repeat an expression containing no syntax variables matched as repeating at this depth
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:73:18
+   |
+73 |                   $( $( $(
+   |  __________________^
+74 | |                     &[
+75 | |                         ${ignore(i)} ${count(i, 0)},
+76 | |                     ][..],
+77 | |                 )* )* )*
+   | |_______________________^
+
+error: attempted to repeat an expression containing no syntax variables matched as repeating at this depth
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/count-and-length-are-distinct.rs:171:18
+    |
+171 |                   $( $( $( $(
+    |  __________________^
+172 | |                     &[
+173 | |                         ${ignore(i)} ${length(3)},
+174 | |                         ${ignore(i)} ${length(2)},
+...   |
+177 | |                     ][..],
+178 | |                 )* )* )* )*
+    | |__________________________^
+
+error: aborting due to 44 previous errors
+

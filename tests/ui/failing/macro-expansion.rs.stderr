@@ -1,0 +1,96 @@
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs`
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:16:26
+   |
+16 |             _counts: &[${count(x, 0)}, ${count(x, 1)}, ${count(x, 2)}],
+   |                          ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:16:42
+   |
+16 |             _counts: &[${count(x, 0)}, ${count(x, 1)}, ${count(x, 2)}],
+   |                                          ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:16:58
+   |
+16 |             _counts: &[${count(x, 0)}, ${count(x, 1)}, ${count(x, 2)}],
+   |                                                          ^^^^^
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:20:48
+   |
+20 |                     _indexes: &[(${index()}, ${length()})],
+   |                                                ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:21:34
+   |
+21 |                     _counts: &[${count(x, 0)}, ${count(x, 1)}],
+   |                                  ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:21:50
+   |
+21 |                     _counts: &[${count(x, 0)}, ${count(x, 1)}],
+   |                                                  ^^^^^
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:25:57
+   |
+25 | ...                   _indexes: &[(${index(1)}, ${length(1)}), (${index()}, ${length()})],
+   |                                                   ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:25:85
+   |
+25 | ...                   _indexes: &[(${index(1)}, ${length(1)}), (${index()}, ${length()})],
+   |                                                                               ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:26:42
+   |
+26 | ...                   _counts: &[${count(x)}],
+   |                                    ^^^^^
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:31:57
+   |
+31 | ...                   (${index(2)}, ${length(2)}),
+   |                                       ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:32:57
+   |
+32 | ...                   (${index(1)}, ${length(1)}),
+   |                                       ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:33:56
+   |
+33 | ...                   (${index()}, ${length()})
+   |                                      ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:37:39
+   |
+37 | ...                   ${ignore(x)}
+   |                         ^^^^^^
+
+error: attempted to repeat an expression containing no syntax variables matched as repeating at this depth
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs:18:14
+   |
+18 |               $(
+   |  ______________^
+19 | |                 Example {
+20 | |                     _indexes: &[(${index()}, ${length()})],
+21 | |                     _counts: &[${count(x, 0)}, ${count(x, 1)}],
+...  |
+44 | |                 }
+45 | |             ),*
+   | |_____________^
+
+error: aborting due to 14 previous errors
+

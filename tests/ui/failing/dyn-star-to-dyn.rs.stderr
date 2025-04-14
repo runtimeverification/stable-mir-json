@@ -1,0 +1,16 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/dyn-star/dyn-star-to-dyn.rs`
+warning: the feature `dyn_star` is incomplete and may not be safe to use and/or cause compiler crashes
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/dyn-star/dyn-star-to-dyn.rs:3:12
+  |
+3 | #![feature(dyn_star)]
+  |            ^^^^^^^^
+  |
+  = note: see issue #102425 <https://github.com/rust-lang/rust/issues/102425> for more information
+  = note: `#[warn(incomplete_features)]` on by default
+
+thread 'rustc' panicked at src/printer.rs:508:13:
+Added inconsistent entries into link map! (Ty { id: 54, kind: RigidTy(FnDef(FnDef(DefId { id: 12, name: "std::fmt::Debug::fmt" }), GenericArgs([Type(Ty { id: 56, kind: RigidTy(Dynamic([Binder { value: Trait(ExistentialTraitRef { def_id: TraitDef(DefId { id: 107, name: "std::fmt::Debug" }), generic_args: GenericArgs([]) }), bound_vars: [] }], Region { kind: ReErased }, DynStar)) })]))) }, Some((FnDef(DefId { id: 12, name: "std::fmt::Debug::fmt" }), GenericArgs([Type(Ty { id: 56, kind: RigidTy(Dynamic([Binder { value: Trait(ExistentialTraitRef { def_id: TraitDef(DefId { id: 107, name: "std::fmt::Debug" }), generic_args: GenericArgs([]) }), bound_vars: [] }], Region { kind: ReErased }, DynStar)) })]))), ReifyShim(DefId(2:11173 ~ core[478e]::fmt::Debug::fmt), None)) -> NormalSym("_ZN4core3fmt5Debug3fmt17ha5630726c5bdf459E"), NormalSym("_ZN4core3fmt5Debug33fmt$u7b$$u7b$reify.shim$u7d$$u7d$17hfeb88b6c618c25a1E")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: 1 warning emitted
+

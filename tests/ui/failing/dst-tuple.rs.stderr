@@ -1,0 +1,5 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/dynamically-sized-types/dst-tuple.rs`
+thread 'rustc' panicked at src/printer.rs:548:13:
+not yet implemented: Unimplemented RigidTy allocation: Tuple([Ty { id: 6, kind: RigidTy(Int(Isize)) }, Ty { id: 33, kind: RigidTy(Ref(Region { kind: ReErased }, Ty { id: 202, kind: RigidTy(Str) }, Not)) }, Ty { id: 131, kind: RigidTy(Array(Ty { id: 6, kind: RigidTy(Int(Isize)) }, TyConst { kind: Value(Ty { id: 53, kind: RigidTy(Uint(Usize)) }, Allocation { bytes: [Some(3), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0)], provenance: ProvenanceMap { ptrs: [] }, align: 8, mutability: Mut }), id: TyConstId(0) })) }])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

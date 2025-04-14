@@ -1,0 +1,223 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs`
+error: expected identifier, found keyword `let`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:13:9
+   |
+12 |     let catch_result: Option<_> = try {
+   |                                   --- while parsing this struct
+13 |         let x = 5;
+   |         ^^^ expected identifier, found keyword
+
+error: expected one of `,`, `:`, or `}`, found `(`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:30:12
+   |
+29 |     let catch_err: Result<_, i32> = try {
+   |                                     --- while parsing this struct
+30 |         Err(22)?;
+   |         ---^ expected one of `,`, `:`, or `}`
+   |         |
+   |         while parsing this struct field
+   |
+help: try naming a field
+   |
+30 |         Err: Err(22)?;
+   |         ++++
+
+error: expected identifier, found keyword `if`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:36:9
+   |
+35 |     let catch_okay: Result<i32, i32> = try {
+   |                                        --- while parsing this struct
+36 |         if false { Err(25)?; }
+   |         ^^ expected identifier, found keyword
+
+error: expected one of `,`, `:`, or `}`, found `>`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:37:21
+   |
+35 |     let catch_okay: Result<i32, i32> = try {
+   |                                        --- while parsing this struct
+36 |         if false { Err(25)?; }
+37 |         Ok::<(), i32>(())?;
+   |                  ---^ expected one of `,`, `:`, or `}`
+   |                  |
+   |                  while parsing this struct field
+   |
+help: try naming a field
+   |
+37 |         Ok::<(), i32: i32>(())?;
+   |                  ++++
+
+error: expected identifier, found keyword `for`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:43:9
+   |
+42 |     let catch_from_loop: Result<i32, i32> = try {
+   |                                             --- while parsing this struct
+43 |         for i in 0..10 {
+   |         ^^^ expected identifier, found keyword
+
+error: expected `:`, found `=`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:52:18
+   |
+52 |         cfg_init = 5;
+   |                  ^
+   |
+help: replace equals symbol with a colon
+   |
+52 |         cfg_init: 5;
+   |                 ~
+
+error: expected one of `,`, `.`, `?`, `}`, or an operator, found `;`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:52:21
+   |
+51 |     let _res: Result<(), ()> = try {
+   |                                --- while parsing this struct
+52 |         cfg_init = 5;
+   |                     ^ expected one of `,`, `.`, `?`, `}`, or an operator
+
+error: expected `:`, found `=`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:58:20
+   |
+58 |         cfg_init_2 = 6;
+   |                    ^
+   |
+help: replace equals symbol with a colon
+   |
+58 |         cfg_init_2: 6;
+   |                   ~
+
+error: expected one of `,`, `.`, `?`, `}`, or an operator, found `;`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:58:23
+   |
+57 |     let _res: Result<(), ()> = try {
+   |                                --- while parsing this struct
+58 |         cfg_init_2 = 6;
+   |                       ^ expected one of `,`, `.`, `?`, `}`, or an operator
+
+error: expected identifier, found `&`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:66:9
+   |
+64 |     let res: Result<&str, ()> = try {
+   |                                 --- while parsing this struct
+65 |         // Unfortunately, deref doesn't fire here (#49356)
+66 |         &my_string[..]
+   |         ^ expected identifier
+
+error: expected identifier, found `(`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:70:35
+   |
+70 |     let my_opt: Option<_> = try { () };
+   |                             ---   ^ expected identifier
+   |                             |
+   |                             while parsing this struct
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:12:35
+   |
+12 |     let catch_result: Option<_> = try {
+   |                                   ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+12 |     let catch_result: Option<_> = try! {
+   |                                      +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:29:37
+   |
+29 |     let catch_err: Result<_, i32> = try {
+   |                                     ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+29 |     let catch_err: Result<_, i32> = try! {
+   |                                        +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:35:40
+   |
+35 |     let catch_okay: Result<i32, i32> = try {
+   |                                        ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+35 |     let catch_okay: Result<i32, i32> = try! {
+   |                                           +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:42:45
+   |
+42 |     let catch_from_loop: Result<i32, i32> = try {
+   |                                             ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+42 |     let catch_from_loop: Result<i32, i32> = try! {
+   |                                                +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:51:32
+   |
+51 |     let _res: Result<(), ()> = try {
+   |                                ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+51 |     let _res: Result<(), ()> = try! {
+   |                                   +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:57:32
+   |
+57 |     let _res: Result<(), ()> = try {
+   |                                ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+57 |     let _res: Result<(), ()> = try! {
+   |                                   +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:64:33
+   |
+64 |     let res: Result<&str, ()> = try {
+   |                                 ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+64 |     let res: Result<&str, ()> = try! {
+   |                                    +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:70:29
+   |
+70 |     let my_opt: Option<_> = try { () };
+   |                             ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+70 |     let my_opt: Option<_> = try! { () };
+   |                                +
+
+error[E0574]: expected struct, variant or union type, found macro `try`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block.rs:73:29
+   |
+73 |     let my_opt: Option<_> = try { };
+   |                             ^^^ not a struct, variant or union type
+   |
+   = note: if you want the `try` keyword, you need Rust 2018 or later
+help: use `!` to invoke the macro
+   |
+73 |     let my_opt: Option<_> = try! { };
+   |                                +
+
+error: aborting due to 20 previous errors
+
+For more information about this error, try `rustc --explain E0574`.

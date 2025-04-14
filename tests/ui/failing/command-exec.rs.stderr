@@ -1,0 +1,51 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/command/command-exec.rs`
+warning: unused return value of `std::os::unix::process::CommandExt::exec` that must be used
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/command/command-exec.rs:29:17
+   |
+29 |                 Command::new("/path/to/nowhere").exec();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+29 |                 let _ = Command::new("/path/to/nowhere").exec();
+   |                 +++++++
+
+warning: unused return value of `std::os::unix::process::CommandExt::exec` that must be used
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/command/command-exec.rs:34:17
+   |
+34 |                 Command::new(&me).arg("bad\0").exec();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `let _ = ...` to ignore the resulting value
+   |
+34 |                 let _ = Command::new(&me).arg("bad\0").exec();
+   |                 +++++++
+
+warning: unused return value of `std::os::unix::process::CommandExt::exec` that must be used
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/command/command-exec.rs:39:17
+   |
+39 |                 Command::new(&me).current_dir("/path/to/nowhere").exec();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `let _ = ...` to ignore the resulting value
+   |
+39 |                 let _ = Command::new(&me).current_dir("/path/to/nowhere").exec();
+   |                 +++++++
+
+warning: unused return value of `std::os::unix::process::CommandExt::exec` that must be used
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/command/command-exec.rs:45:17
+   |
+45 |                 Command::new("definitely-not-a-real-binary").env("VARIABLE", "XYZ").exec();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `let _ = ...` to ignore the resulting value
+   |
+45 |                 let _ = Command::new("definitely-not-a-real-binary").env("VARIABLE", "XYZ").exec();
+   |                 +++++++
+
+
+thread 'rustc' has overflowed its stack
+fatal runtime error: stack overflow
+Aborted (core dumped)

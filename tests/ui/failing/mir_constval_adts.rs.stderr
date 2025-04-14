@@ -1,0 +1,5 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/mir/mir_constval_adts.rs`
+thread 'rustc' panicked at src/printer.rs:548:13:
+not yet implemented: Unimplemented RigidTy allocation: Tuple([Ty { id: 38, kind: RigidTy(Ref(Region { kind: ReErased }, Ty { id: 112, kind: RigidTy(Str) }, Not)) }, Ty { id: 38, kind: RigidTy(Ref(Region { kind: ReErased }, Ty { id: 112, kind: RigidTy(Str) }, Not)) }])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

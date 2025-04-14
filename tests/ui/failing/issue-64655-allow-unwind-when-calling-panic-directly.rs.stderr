@@ -1,0 +1,21 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/extern/issue-64655-allow-unwind-when-calling-panic-directly.rs`
+error[E0658]: use of unstable library feature `panic_internals`: internal details of the implementation of the `panic!` and related macros
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/extern/issue-64655-allow-unwind-when-calling-panic-directly.rs:53:9
+   |
+53 |         core::panicking::panic("???");
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `#![feature(panic_internals)]` to the crate attributes to enable
+   = note: this compiler was built on 2024-11-28; consider upgrading it if it is out of date
+
+error[E0635]: unknown feature `core_panic`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/extern/issue-64655-allow-unwind-when-calling-panic-directly.rs:25:12
+   |
+25 | #![feature(core_panic)]
+   |            ^^^^^^^^^^
+
+error: aborting due to 2 previous errors
+
+Some errors have detailed explanations: E0635, E0658.
+For more information about an error, try `rustc --explain E0635`.

@@ -1,0 +1,18 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/cast/cast-rfc0401.rs`
+error: casting references to a bigger memory layout than the backing allocation is undefined behavior, even if the reference is unused
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/cast/cast-rfc0401.rs:86:33
+   |
+85 |     let w: *mut [u16; 2] = &mut l as *mut [u8; 2] as *mut _;
+   |                            --------------------------------
+   |                            |    |
+   |                            |    backing allocation comes from here
+   |                            casting happend here
+86 |     let w: *mut [u16] = unsafe {&mut *w};
+   |                                 ^^^^^^^
+   |
+   = note: casting from `[u8; 2]` (2 bytes) to `[u16; 2]` (4 bytes)
+   = note: `#[deny(invalid_reference_casting)]` on by default
+
+error: aborting due to 1 previous error
+

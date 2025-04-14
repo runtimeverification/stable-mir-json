@@ -1,0 +1,16 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/list.rs`
+warning: lint `unused_tuple_struct_fields` has been renamed to `dead_code`
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/list.rs:6:21
+  |
+6 | enum list { #[allow(unused_tuple_struct_fields)] cons(isize, Box<list>), nil, }
+  |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use the new name: `dead_code`
+  |
+  = note: `#[warn(renamed_and_removed_lints)]` on by default
+
+
+thread 'rustc' has overflowed its stack
+fatal runtime error: stack overflow
+Aborted (core dumped)

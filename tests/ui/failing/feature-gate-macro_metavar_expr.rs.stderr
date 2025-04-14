@@ -1,0 +1,203 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs`
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:8:11
+  |
+8 |         ${count(i)}
+  |           ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:15:11
+   |
+15 |         ${count(i)}
+   |           ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:24:19
+   |
+24 |                 ${count(inner)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:25:19
+   |
+25 |                 ${count(inner, 0)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:26:19
+   |
+26 |                 ${count(inner, 1)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:27:19
+   |
+27 |                 ${count(inner, 2)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:28:19
+   |
+28 |                 ${count(inner, 3)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:31:19
+   |
+31 |                 ${count(outer)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:32:19
+   |
+32 |                 ${count(outer, 0)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:33:19
+   |
+33 |                 ${count(outer, 1)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:34:19
+   |
+34 |                 ${count(outer, 2)},
+   |                   ^^^^^
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:46:15
+   |
+46 |         [$( ${ignore(l)} (${index()}, ${length()}) ),*]
+   |               ^^^^^^
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:46:41
+   |
+46 |         [$( ${ignore(l)} (${index()}, ${length()}) ),*]
+   |                                         ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:59:27
+   |
+59 |                         ${length(1)},
+   |                           ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: unrecognized meta-variable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:61:27
+   |
+61 |                         ${length(0)},
+   |                           ^^^^^^ help: supported expressions are count, ignore, index and len
+
+error: meta-variables within meta-variable expressions must be referenced using a dollar sign
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:80:29
+   |
+80 |                     $b + $${count(j)}
+   |                             ^^^^^
+...
+87 | make_count_adders! { plus_one, 1; plus_five, 5 }
+   | ------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `make_count_adders` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:8:9
+    |
+8   |         ${count(i)}
+    |         ^ expected expression
+...
+111 |     assert_eq!(count_idents!(a, b, c), 3);
+    |                ---------------------- in this macro invocation
+    |
+    = note: this error originates in the macro `count_idents` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:15:9
+    |
+15  |         ${count(i)}
+    |         ^ expected expression
+...
+112 |     assert_eq!(count_idents_2!([a, b, c], [d, e], [f]), 6);
+    |                --------------------------------------- in this macro invocation
+    |
+    = note: this error originates in the macro `count_idents_2` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:24:17
+    |
+24  |                   ${count(inner)},
+    |                   ^ expected expression
+...
+114 | /         count_depth_limits! {
+115 | |             {
+116 | |                 [ A: (a b c) D: (d e f) ]
+117 | |                 [ G: (g h) I: (i j k l m) ]
+...   |
+123 | |             }
+124 | |         },
+    | |_________- in this macro invocation
+    |
+    = note: this error originates in the macro `count_depth_limits` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:31:17
+    |
+31  |                   ${count(outer)},
+    |                   ^ expected expression
+...
+114 | /         count_depth_limits! {
+115 | |             {
+116 | |                 [ A: (a b c) D: (d e f) ]
+117 | |                 [ G: (g h) I: (i j k l m) ]
+...   |
+123 | |             }
+124 | |         },
+    | |_________- in this macro invocation
+    |
+    = note: this error originates in the macro `count_depth_limits` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: attempted to repeat an expression containing no syntax variables matched as repeating at this depth
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:46:11
+   |
+46 |         [$( ${ignore(l)} (${index()}, ${length()}) ),*]
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:59:25
+    |
+59  |                           ${length(1)},
+    |                           ^ expected expression
+...
+129 | /         enumerate_literals_2![
+130 | |             [("foo"), ("bar"), ("baz")],
+131 | |             [("qux"), ("quux"), ("quuz"), ("xyzzy")]
+132 | |         ],
+    | |_________- in this macro invocation
+    |
+    = note: this error originates in the macro `enumerate_literals_2` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:80:27
+    |
+80  |                     $b + $${count(j)}
+    |                           ^ expected expression
+...
+144 |     assert_eq!(plus_one!(a, b, c), 4);
+    |                ------------------ in this macro invocation
+    |
+    = note: this error originates in the macro `plus_one` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected expression, found `$`
+   --> /home/zncv/Applications/mir-semantics-compiletest/ui/macros/rfc-3086-metavar-expr/feature-gate-macro_metavar_expr.rs:80:27
+    |
+80  |                     $b + $${count(j)}
+    |                           ^ expected expression
+...
+145 |     assert_eq!(plus_five!(a, b), 7);
+    |                ---------------- in this macro invocation
+    |
+    = note: this error originates in the macro `plus_five` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 24 previous errors
+

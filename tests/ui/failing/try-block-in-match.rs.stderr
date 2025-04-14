@@ -1,0 +1,36 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block-in-match.rs`
+error: expected one of `.`, `;`, `?`, `}`, or an operator, found `=>`
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block-in-match.rs:8:17
+  |
+8 |         Err(()) => (),
+  |                 ^^ expected one of `.`, `;`, `?`, `}`, or an operator
+  |
+help: you might have meant to write a "greater than or equal to" comparison
+  |
+8 |         Err(()) >= (),
+  |                 ~~
+
+error[E0423]: expected value, found macro `try`
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block-in-match.rs:7:11
+  |
+7 |     match try { } {
+  |           ^^^ not a value
+
+warning: unreachable expression
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/try-block/try-block-in-match.rs:7:19
+   |
+7  |       match try { } {
+   |  _____-------------_^
+   | |     |
+   | |     any code following this expression is unreachable
+8  | |         Err(()) => (),
+9  | |         Ok(()) => (),
+10 | |     }
+   | |_____^ unreachable expression
+   |
+   = note: `#[warn(unreachable_code)]` on by default
+
+error: aborting due to 2 previous errors; 1 warning emitted
+
+For more information about this error, try `rustc --explain E0423`.

@@ -1,0 +1,15 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/numbers-arithmetic/issue-8460.rs`
+warning: the feature `rustc_attrs` is internal to the compiler or standard library
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/numbers-arithmetic/issue-8460.rs:5:12
+  |
+5 | #![feature(rustc_attrs)]
+  |            ^^^^^^^^^^^
+  |
+  = note: using it is strongly discouraged
+  = note: `#[warn(internal_features)]` on by default
+
+
+thread 'rustc' has overflowed its stack
+fatal runtime error: stack overflow
+Aborted (core dumped)

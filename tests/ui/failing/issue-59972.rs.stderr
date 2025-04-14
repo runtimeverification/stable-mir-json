@@ -1,0 +1,63 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs`
+error[E0670]: `async fn` is not permitted in Rust 2015
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs:15:1
+   |
+15 | async fn noop() { }
+   | ^^^^^ to use `async fn`, switch to Rust 2018 or later
+   |
+   = help: pass `--edition 2024` to `rustc`
+   = note: for more on editions, read https://doc.rust-lang.org/edition-guide
+
+error[E0670]: `async fn` is not permitted in Rust 2015
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs:17:1
+   |
+17 | async fn contains_never() {
+   | ^^^^^ to use `async fn`, switch to Rust 2018 or later
+   |
+   = help: pass `--edition 2024` to `rustc`
+   = note: for more on editions, read https://doc.rust-lang.org/edition-guide
+
+error[E0670]: `async fn` is not permitted in Rust 2015
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs:23:1
+   |
+23 | async fn overlap_never() {
+   | ^^^^^ to use `async fn`, switch to Rust 2018 or later
+   |
+   = help: pass `--edition 2024` to `rustc`
+   = note: for more on editions, read https://doc.rust-lang.org/edition-guide
+
+error[E0609]: no field `await` on type `impl std::future::Future<Output = ()>`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs:19:12
+   |
+19 |     noop().await;
+   |            ^^^^^ unknown field
+   |
+   = note: to `.await` a `Future`, switch to Rust 2018 or later
+   = help: pass `--edition 2024` to `rustc`
+   = note: for more on editions, read https://doc.rust-lang.org/edition-guide
+
+error[E0609]: no field `await` on type `impl std::future::Future<Output = ()>`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs:25:12
+   |
+25 |     noop().await;
+   |            ^^^^^ unknown field
+   |
+   = note: to `.await` a `Future`, switch to Rust 2018 or later
+   = help: pass `--edition 2024` to `rustc`
+   = note: for more on editions, read https://doc.rust-lang.org/edition-guide
+
+error[E0609]: no field `await` on type `impl std::future::Future<Output = ()>`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/async-await/issues/issue-59972.rs:28:12
+   |
+28 |     noop().await;
+   |            ^^^^^ unknown field
+   |
+   = note: to `.await` a `Future`, switch to Rust 2018 or later
+   = help: pass `--edition 2024` to `rustc`
+   = note: for more on editions, read https://doc.rust-lang.org/edition-guide
+
+error: aborting due to 6 previous errors
+
+Some errors have detailed explanations: E0609, E0670.
+For more information about an error, try `rustc --explain E0609`.

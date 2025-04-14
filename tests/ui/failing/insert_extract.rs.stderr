@@ -1,0 +1,195 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs`
+error[E0557]: feature has been removed
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:3:12
+  |
+3 | #![feature(platform_intrinsics)]
+  |            ^^^^^^^^^^^^^^^^^^^ feature has been removed
+  |
+  = note: SIMD intrinsics use the regular intrinsics ABI now
+
+warning: the feature `staged_api` is internal to the compiler or standard library
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:4:12
+  |
+4 | #![feature(staged_api)]
+  |            ^^^^^^^^^^
+  |
+  = note: using it is strongly discouraged
+  = note: `#[warn(internal_features)]` on by default
+
+error[E0703]: invalid ABI: found `platform-intrinsic`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:14:8
+   |
+14 | extern "platform-intrinsic" {
+   |        ^^^^^^^^^^^^^^^^^^^^ invalid ABI
+   |
+   = note: invoke `rustc --print=calling-conventions` for a full list of supported calling conventions
+
+error: attributes `#[rustc_const_unstable]`, `#[rustc_const_stable]` and `#[rustc_const_stable_indirect]` require the function or method to be `const`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:16:5
+   |
+16 |     fn simd_insert<T, U>(x: T, idx: u32, val: U) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: make the function or method const
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:16:5
+   |
+16 |     fn simd_insert<T, U>(x: T, idx: u32, val: U) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: attribute `#[rustc_const_stable]` can only be applied to functions that are declared `#[stable]`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:16:5
+   |
+15 |     #[rustc_const_stable(feature = "foo", since = "1.3.37")]
+   |     -------------------------------------------------------- attribute specified here
+16 |     fn simd_insert<T, U>(x: T, idx: u32, val: U) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: attributes `#[rustc_const_unstable]`, `#[rustc_const_stable]` and `#[rustc_const_stable_indirect]` require the function or method to be `const`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:18:5
+   |
+18 |     fn simd_extract<T, U>(x: T, idx: u32) -> U;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: make the function or method const
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:18:5
+   |
+18 |     fn simd_extract<T, U>(x: T, idx: u32) -> U;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: attribute `#[rustc_const_stable]` can only be applied to functions that are declared `#[stable]`
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:18:5
+   |
+17 |     #[rustc_const_stable(feature = "foo", since = "1.3.37")]
+   |     -------------------------------------------------------- attribute specified here
+18 |     fn simd_extract<T, U>(x: T, idx: u32) -> U;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0076]: SIMD vector's only field must be an array
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:8:15
+  |
+8 | #[repr(simd)] struct i8x1(i8);
+  |               ^^^^^^^^^^^ -- not an array
+
+error[E0076]: SIMD vector's only field must be an array
+ --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:9:15
+  |
+9 | #[repr(simd)] struct u16x2(u16, u16);
+  |               ^^^^^^^^^^^^ --- not an array
+
+error[E0044]: foreign items may not have type parameters
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:16:5
+   |
+16 |     fn simd_insert<T, U>(x: T, idx: u32, val: U) -> T;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't have type parameters
+   |
+   = help: replace the type parameters with concrete types like `u32`
+
+error[E0044]: foreign items may not have type parameters
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:18:5
+   |
+18 |     fn simd_extract<T, U>(x: T, idx: u32) -> U;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ can't have type parameters
+   |
+   = help: replace the type parameters with concrete types like `u32`
+
+error[E0015]: cannot call non-const fn `simd_insert::<i8x1, i8>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:24:34
+   |
+24 |         const V: i8x1 = unsafe { simd_insert(U, 0_u32, 42_i8) };
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<i8x1, i8>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:26:33
+   |
+26 |         const Y0: i8 = unsafe { simd_extract(V, 0) };
+   |                                 ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_insert::<i8x1_arr, i8>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:32:38
+   |
+32 |         const V: i8x1_arr = unsafe { simd_insert(U, 0_u32, 42_i8) };
+   |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<i8x1_arr, i8>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:34:33
+   |
+34 |         const Y0: i8 = unsafe { simd_extract(V, 0) };
+   |                                 ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_insert::<u16x2, u16>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:40:35
+   |
+40 |         const V: u16x2 = unsafe { simd_insert(U, 1_u32, 42_u16) };
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<u16x2, u16>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:43:34
+   |
+43 |         const Y0: u16 = unsafe { simd_extract(V, 0) };
+   |                                  ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<u16x2, u16>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:44:34
+   |
+44 |         const Y1: u16 = unsafe { simd_extract(V, 1) };
+   |                                  ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_insert::<f32x4, f32>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:52:35
+   |
+52 |         const V: f32x4 = unsafe { simd_insert(U, 1_u32, 42_f32) };
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<f32x4, f32>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:57:34
+   |
+57 |         const Y0: f32 = unsafe { simd_extract(V, 0) };
+   |                                  ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<f32x4, f32>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:58:34
+   |
+58 |         const Y1: f32 = unsafe { simd_extract(V, 1) };
+   |                                  ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<f32x4, f32>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:59:34
+   |
+59 |         const Y2: f32 = unsafe { simd_extract(V, 2) };
+   |                                  ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error[E0015]: cannot call non-const fn `simd_extract::<f32x4, f32>` in constants
+  --> /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-eval/simd/insert_extract.rs:60:34
+   |
+60 |         const Y3: f32 = unsafe { simd_extract(V, 3) };
+   |                                  ^^^^^^^^^^^^^^^^^^
+   |
+   = note: calls in constants are limited to constant functions, tuple structs and tuple variants
+
+error: aborting due to 22 previous errors; 1 warning emitted
+
+Some errors have detailed explanations: E0015, E0044, E0076, E0557, E0703.
+For more information about an error, try `rustc --explain E0015`.
