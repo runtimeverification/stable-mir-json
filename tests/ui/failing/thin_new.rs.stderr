@@ -1,5 +1,0 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
-     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/box/thin_new.rs`
-thread 'rustc' panicked at src/printer.rs:587:13:
-Allocated pointer is not a built-in pointer type: Some(RigidTy(Adt(AdtDef(DefId { id: 70, name: "std::ptr::DynMetadata" }), GenericArgs([Type(Ty { id: 181, kind: RigidTy(Dynamic([Binder { value: Trait(ExistentialTraitRef { def_id: TraitDef(DefId { id: 73, name: "std::error::Error" }), generic_args: GenericArgs([]) }), bound_vars: [] }], Region { kind: ReErased }, Dyn)) })]))))
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

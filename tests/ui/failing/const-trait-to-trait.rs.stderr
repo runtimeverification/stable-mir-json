@@ -1,5 +1,0 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
-     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/consts/const-trait-to-trait.rs`
-thread 'rustc' panicked at src/printer.rs:587:13:
-Allocated pointer is not a built-in pointer type: Some(RigidTy(Array(Ty { id: 29, kind: RigidTy(Ref(Region { kind: ReErased }, Ty { id: 31, kind: RigidTy(Dynamic([Binder { value: Trait(ExistentialTraitRef { def_id: TraitDef(DefId { id: 13, name: "Trait" }), generic_args: GenericArgs([]) }), bound_vars: [] }], Region { kind: ReErased }, Dyn)) }, Not)) }, TyConst { kind: Value(Ty { id: 30, kind: RigidTy(Uint(Usize)) }, Allocation { bytes: [Some(1), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0), Some(0)], provenance: ProvenanceMap { ptrs: [] }, align: 8, mutability: Mut }), id: TyConstId(0) })))
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

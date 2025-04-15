@@ -1,6 +1,0 @@
-    Blocking waiting for file lock on package cache
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
-     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/mir/mir_misc_casts.rs`
-thread 'rustc' panicked at src/printer.rs:595:13:
-assertion failed: kind.unwrap().is_fn_ptr()
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

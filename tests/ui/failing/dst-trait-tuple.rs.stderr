@@ -1,7 +1,0 @@
-    Blocking waiting for file lock on package cache
-    Blocking waiting for file lock on package cache
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s
-     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/dynamically-sized-types/dst-trait-tuple.rs`
-thread 'rustc' panicked at src/printer.rs:548:13:
-not yet implemented: Unimplemented RigidTy allocation: Tuple([Ty { id: 6, kind: RigidTy(Int(Isize)) }, Ty { id: 25, kind: RigidTy(Ref(Region { kind: ReErased }, Ty { id: 150, kind: RigidTy(Str) }, Not)) }, Ty { id: 107, kind: RigidTy(Adt(AdtDef(DefId { id: 36, name: "Bar1" }), GenericArgs([]))) }])
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

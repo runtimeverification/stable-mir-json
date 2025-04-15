@@ -1,6 +1,0 @@
-    Blocking waiting for file lock on package cache
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
-     Running `target/debug/stable_mir_json -Zno-codegen /home/zncv/Applications/mir-semantics-compiletest/ui/cast/codegen-object-shim.rs`
-thread 'rustc' panicked at src/printer.rs:508:13:
-Added inconsistent entries into link map! (Ty { id: 90, kind: RigidTy(FnDef(FnDef(DefId { id: 23, name: "std::string::ToString::to_string" }), GenericArgs([Type(Ty { id: 116, kind: RigidTy(Dynamic([Binder { value: Trait(ExistentialTraitRef { def_id: TraitDef(DefId { id: 57, name: "std::string::ToString" }), generic_args: GenericArgs([]) }), bound_vars: [] }], Region { kind: ReErased }, Dyn)) })]))) }, Some((FnDef(DefId { id: 23, name: "std::string::ToString::to_string" }), GenericArgs([Type(Ty { id: 116, kind: RigidTy(Dynamic([Binder { value: Trait(ExistentialTraitRef { def_id: TraitDef(DefId { id: 57, name: "std::string::ToString" }), generic_args: GenericArgs([]) }), bound_vars: [] }], Region { kind: ReErased }, Dyn)) })]))), ReifyShim(DefId(5:6219 ~ alloc[da2e]::string::ToString::to_string), None)) -> NormalSym("_ZN5alloc6string8ToString9to_string17h03819bd3e3005f20E"), NormalSym("_ZN5alloc6string8ToString39to_string$u7b$$u7b$reify.shim$u7d$$u7d$17h1833cda3a889e95cE")
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
