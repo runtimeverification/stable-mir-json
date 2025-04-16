@@ -86,6 +86,7 @@ jobs:
           repository: rust-lang/rust
           ref: a2545fd6f # hash of Hardcoded Rust version
           path: rust
+          fetch-depth: 0
 
       - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
         uses: dtolnay/rust-toolchain@master
