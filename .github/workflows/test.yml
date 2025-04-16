@@ -90,4 +90,5 @@ jobs:
           RUSTFLAGS='--deny warnings' cargo build -vv
       - name: 'Run smir integration tests'
         run: |
-          make test-ui
+          git clone https://github.com/rust-lang/rust.git
+          RUST_DIR_ROOT='$PWD/rust' make test-ui
