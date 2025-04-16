@@ -91,4 +91,5 @@ jobs:
       - name: 'Run smir integration tests'
         run: |
           git clone https://github.com/rust-lang/rust.git
-          RUST_DIR_ROOT='$PWD/rust' make test-ui
+          (cd rust && git checkout a2545fd6f) # hash of Hardcoded Rust version
+          RUST_DIR_ROOT='rust' make test-ui
