@@ -67,3 +67,36 @@ jobs:
       - name: 'Run smir integration tests'
         run: |
           make integration-test
+
+  ui-tests:
+    needs: code-quality
+    name: "ui-tests"
+    runs-on: [self-hosted, linux, normal]
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          # Check out pull request HEAD instead of merge commit.
+          ref: ${{ github.event.pull_request.head.sha }}
+          submodules: recursive
+
+      - name: 'Check out Rust repo'
+        uses: actions/checkout@v4
+        with:
+          repository: rust-lang/rust
+          ref: a2545fd6fc66b4323f555223a860c451885d1d2b # hash of Hardcoded Rust version
+          path: rust
+          fetch-depth: 1
+
+      - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
+
+      - name: 'Build stable-mir-json'
+        run: | # Warning check should be redundant since code-quality runs first
+          RUSTFLAGS='--deny warnings' cargo build -vv
+
+      - name: 'Run smir integration tests'
+        run: |
+          RUST_DIR_ROOT='rust' make test-ui
