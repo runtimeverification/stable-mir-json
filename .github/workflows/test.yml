@@ -80,6 +80,13 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
+      - name: 'Check out Rust repo'
+        uses: actions/checkout@v4
+        with:
+          repository: rust-lang/rust
+          ref: a2545fd6f # hash of Hardcoded Rust version
+          path: rust
+
       - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
         uses: dtolnay/rust-toolchain@master
         with:
@@ -88,8 +95,7 @@ jobs:
       - name: 'Build stable-mir-json'
         run: | # Warning check should be redundant since code-quality runs first
           RUSTFLAGS='--deny warnings' cargo build -vv
+
       - name: 'Run smir integration tests'
         run: |
-          git clone https://github.com/rust-lang/rust.git
-          (cd rust && git checkout a2545fd6f) # hash of Hardcoded Rust version
           RUST_DIR_ROOT='rust' make test-ui
