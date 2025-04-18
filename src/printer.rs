@@ -1,6 +1,6 @@
 use std::io::Write;
-use std::{collections::HashMap, fs::File, io, iter::Iterator, str, vec::Vec};
 use std::ops::ControlFlow;
+use std::{collections::HashMap, fs::File, io, iter::Iterator, str, vec::Vec};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -25,7 +25,7 @@ use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
     ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
-    visitor::{Visitor, Visitable},
+    visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -479,12 +479,14 @@ type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 
 struct TyCollector {
-    types: TyMap
+    types: TyMap,
 }
 
 impl TyCollector {
     fn new() -> TyCollector {
-        TyCollector { types: HashMap::new() }
+        TyCollector {
+            types: HashMap::new(),
+        }
     }
 }
 
