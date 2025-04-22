@@ -493,7 +493,9 @@ impl TyCollector {
 impl Visitor for TyCollector {
     type Break = ();
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
-        self.types.insert(*ty, (ty.kind(), None));
+        let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+
+        self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
         ty.super_visit(self)
     }
 }
