@@ -19,7 +19,7 @@
     ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) ),
   # delete unstable Ty IDs for arrays and tuples
     ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType[0])) ),
-    ( .types | map(select(.[0].TupleType) | .[0].TupleType = "elided") ),
+    ( .types | map(select(.[0].TupleType) | .[0].TupleType.types = "elided") ),
   # replace unstable Ty IDs for references by zero
     ( .types | map(select(.[0].PtrType) | .[0].PtrType = "elided") ),
     ( .types | map(select(.[0].RefType) | .[0].RefType = "elided") ),

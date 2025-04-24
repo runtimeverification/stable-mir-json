@@ -1031,7 +1031,7 @@ fn mk_type_metadata(
         T(RawPtr(ty, _)) => Some((k, PtrType(ty))),
         T(Ref(_, ty, _)) => Some((k, RefType(ty))),
         // for tuples the element types are provided
-        T(Tuple(tys)) => Some((k, TupleType(tys))),
+        T(Tuple(tys)) => Some((k, TupleType{types: tys})),
         // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty references
         T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(format!("{}", k)))),
         // other types are not provided either
