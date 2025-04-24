@@ -2034,57 +2034,57 @@
     ],
     [
       {
-        "FunType": "for<'a> fn(&'a (dyn std::ops::Fn() -> i32 + std::marker::Sync + std::panic::RefUnwindSafe + 'a), isize, *const *const u8, u8) -> std::result::Result<isize, !> {std::rt::lang_start_internal}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "extern \"rust-call\" fn(()) -> i32"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "fn()"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "fn(()) -> std::process::ExitCode {<() as std::process::Termination>::report}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "extern \"rust-call\" fn(fn(), ()) -> <fn() as std::ops::FnOnce<()>>::Output {<fn() as std::ops::FnOnce<()>>::call_once}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "fn(()) {std::intrinsics::black_box::<()>}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "extern \"rust-call\" fn({closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "for<'a> extern \"rust-call\" fn(&'a mut {closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnMut<()>>::call_mut}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "FunType": "fn(&'static str) -> ! {core::panicking::panic}"
+        "FunType": "elided"
       }
     ],
     [
       {
-        "ClosureType": "elided"
+        "FunType": "elided"
       }
     ]
   ]
