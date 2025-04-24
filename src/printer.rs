@@ -960,6 +960,15 @@ pub enum TypeMetadata {
         name: String,
         adt_def: AdtDef,
     },
+    UnionType {
+        name: String,
+        adt_def: AdtDef,
+    },
+    ArrayType(stable_mir::ty::Ty, Option<stable_mir::ty::TyConst>),
+    PtrType(stable_mir::ty::Ty),
+    RefType(stable_mir::ty::Ty),
+    TupleType(Vec<stable_mir::ty::Ty>),
+    FunType(String),
 }
 
 fn mk_type_metadata(
@@ -968,11 +977,13 @@ fn mk_type_metadata(
     t: TyKind,
 ) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
     use TypeMetadata::*;
+    use stable_mir::ty::RigidTy::*;
+    use TyKind::RigidTy as T;
     match t {
-        TyKind::RigidTy(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
+        T(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
         // for enums, we need a mapping of variantIdx to discriminant
         // this requires access to the internals and is not provided as an interface function at the moment
-        TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_enum() => {
+        T(Adt(adt_def, _)) if t.is_enum() => {
             let adt_internal = rustc_internal::internal(tcx, adt_def);
             let discriminants = adt_internal
                 .discriminants(tcx)
@@ -989,11 +1000,38 @@ fn mk_type_metadata(
             ))
         }
         // for structs, we record the name for information purposes
-        TyKind::RigidTy(RigidTy::Adt(adt_def, _)) if t.is_struct() => {
+        T(Adt(adt_def, _)) if t.is_struct() => {
             let name = adt_def.name();
             Some((k, StructType { name, adt_def }))
         }
-        _ => None,
+        // for unions, we only record the name
+        T(Adt(adt_def, _)) if t.is_union() => {
+            let name = adt_def.name();
+            Some((k, UnionType { name, adt_def }))
+        }
+        // encode str together with primitive types
+        T(Str) =>
+            Some((k, PrimitiveType(Str))),
+        // for arrays and slices, record element type and optional size
+        T(Array(ty, ty_const)) =>
+            Some((k, ArrayType(ty, Some(ty_const)))),
+        T(Slice(ty)) =>
+            Some((k, ArrayType(ty, None))),
+        // for raw pointers and references store the pointee type
+        T(RawPtr(ty, _)) =>
+            Some((k, PtrType(ty))),
+        T(Ref(_, ty, _))=>
+            Some((k, RefType(ty))),
+        // for tuples the element types are provided
+        T(Tuple(tys))  =>
+            Some((k, TupleType(tys))),
+        // function types (fun ptrs, closures, FnDef) are provided as strings to avoid dangling ty references
+        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => 
+            Some((k, FunType(format!("{}", k)))),
+        // other types are not provided either
+        T(Foreign(_)) | T(Pat(_, _)) | T(Coroutine(_, _, _)) | T(Dynamic(_, _, _)) | T(CoroutineWitness(_, _)) => None,
+        TyKind::Alias(_, _) | TyKind::Param(_) | TyKind::Bound(_, _) => None,
+        _ => None, // redundant because of first 4 cases, but rustc does not understand that
     }
 }
 
