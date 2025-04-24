@@ -4485,140 +4485,406 @@
   ],
   "types": [
     [
-      {
-        "PrimitiveType": {
-          "Uint": "Usize"
+      [
+        {
+          "PrimitiveType": {
+            "Uint": "Usize"
+          }
         }
-      }
+      ],
+      [
+        {
+          "PrimitiveType": "Bool"
+        }
+      ],
+      [
+        {
+          "PrimitiveType": {
+            "Int": "I8"
+          }
+        }
+      ],
+      [
+        {
+          "PrimitiveType": {
+            "Int": "Isize"
+          }
+        }
+      ],
+      [
+        {
+          "PrimitiveType": {
+            "Uint": "U8"
+          }
+        }
+      ],
+      [
+        {
+          "PrimitiveType": {
+            "Int": "I32"
+          }
+        }
+      ]
     ],
     [
-      {
-        "StructType": {
-          "name": "std::ops::Range"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
+      [
+        {
+          "EnumType": {
+            "discriminants": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
             ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::option::Option"
+            "name": "std::option::Option"
+          }
         }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": "Bool"
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "Isize"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
+      ],
+      [
+        {
+          "EnumType": {
+            "discriminants": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
             ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
+            "name": "std::result::Result"
+          }
         }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::process::ExitCode"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::array::TryFromSliceError"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
+      ],
+      [
+        {
+          "EnumType": {
+            "discriminants": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
             ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::option::Option"
+            "name": "std::option::Option"
+          }
         }
-      }
+      ],
+      [
+        {
+          "EnumType": {
+            "discriminants": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "name": "std::result::Result"
+          }
+        }
+      ]
     ],
     [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
+      [
+        {
+          "StructType": {
+            "name": "std::ops::Range"
+          }
         }
-      }
+      ],
+      [
+        {
+          "StructType": {
+            "name": "std::sys::pal::unix::process::process_common::ExitCode"
+          }
+        }
+      ],
+      [
+        {
+          "StructType": {
+            "name": "std::process::ExitCode"
+          }
+        }
+      ],
+      [
+        {
+          "StructType": {
+            "name": "std::array::TryFromSliceError"
+          }
+        }
+      ]
+    ],
+    [],
+    [
+      [
+        {
+          "ArrayType": [
+            null
+          ]
+        }
+      ],
+      [
+        {
+          "ArrayType": [
+            {
+              "id": 1,
+              "kind": {
+                "Value": [
+                  0,
+                  {
+                    "align": 8,
+                    "bytes": [
+                      4,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "mutability": "Mut",
+                    "provenance": {
+                      "ptrs": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      [
+        {
+          "ArrayType": [
+            {
+              "id": 0,
+              "kind": {
+                "Value": [
+                  0,
+                  {
+                    "align": 8,
+                    "bytes": [
+                      2,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0
+                    ],
+                    "mutability": "Mut",
+                    "provenance": {
+                      "ptrs": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "TupleType": "elided"
+        }
+      ],
+      [
+        {
+          "TupleType": "elided"
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "PtrType": "elided"
+        }
+      ],
+      [
+        {
+          "PtrType": "elided"
+        }
+      ],
+      [
+        {
+          "PtrType": "elided"
+        }
+      ],
+      [
+        {
+          "PtrType": "elided"
+        }
+      ],
+      [
+        {
+          "PtrType": "elided"
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ],
+      [
+        {
+          "RefType": "elided"
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "FunType": "fn(usize, usize) -> ! {core::slice::index::slice_end_index_len_fail}"
+        }
+      ],
+      [
+        {
+          "FunType": "fn(usize, usize) -> ! {core::slice::index::slice_index_order_fail}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a> fn(&'a (dyn std::ops::Fn() -> i32 + std::marker::Sync + std::panic::RefUnwindSafe + 'a), isize, *const *const u8, u8) -> std::result::Result<isize, !> {std::rt::lang_start_internal}"
+        }
+      ],
+      [
+        {
+          "FunType": "extern \"rust-call\" fn(()) -> i32"
+        }
+      ],
+      [
+        {
+          "FunType": "fn()"
+        }
+      ],
+      [
+        {
+          "FunType": "{closure@std::rt::lang_start<()>::{closure#0}}"
+        }
+      ],
+      [
+        {
+          "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
+        }
+      ],
+      [
+        {
+          "FunType": "fn(()) -> std::process::ExitCode {<() as std::process::Termination>::report}"
+        }
+      ],
+      [
+        {
+          "FunType": "extern \"rust-call\" fn(fn(), ()) -> <fn() as std::ops::FnOnce<()>>::Output {<fn() as std::ops::FnOnce<()>>::call_once}"
+        }
+      ],
+      [
+        {
+          "FunType": "fn(()) {std::intrinsics::black_box::<()>}"
+        }
+      ],
+      [
+        {
+          "FunType": "extern \"rust-call\" fn({closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a> extern \"rust-call\" fn(&'a mut {closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnMut<()>>::call_mut}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a> fn(&'a [i32], std::ops::Range<usize>) -> &'a <[i32] as std::ops::Index<std::ops::Range<usize>>>::Output {<[i32] as std::ops::Index<std::ops::Range<usize>>>::index}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a, 'b> fn(&'a [i32; 2], &'b [i32; 2]) -> bool {<i32 as std::array::equality::SpecArrayEq<i32, 2>>::spec_eq}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a, 'b> fn(&'a [i32], &'b [i32; 2]) -> bool {<[i32] as std::cmp::PartialEq<[i32; 2]>>::eq}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a> fn(std::ops::Range<usize>, &'a [i32]) -> &'a <std::ops::Range<usize> as std::slice::SliceIndex<[i32]>>::Output {<std::ops::Range<usize> as std::slice::SliceIndex<[i32]>>::index}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a, 'b> unsafe fn(&'a [i32; 2], &'b [i32; 2]) -> bool {std::intrinsics::raw_eq::<[i32; 2]>}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a> fn(&'a [i32; 4], std::ops::Range<usize>) -> &'a <[i32; 4] as std::ops::Index<std::ops::Range<usize>>>::Output {<[i32; 4] as std::ops::Index<std::ops::Range<usize>>>::index}"
+        }
+      ],
+      [
+        {
+          "FunType": "for<'a, 'b> fn(&'a &[i32], &'b [i32; 2]) -> bool {<&[i32] as std::cmp::PartialEq<[i32; 2]>>::eq}"
+        }
+      ],
+      [
+        {
+          "FunType": "fn(&'static str) -> ! {core::panicking::panic}"
+        }
+      ]
     ]
   ]
 }
