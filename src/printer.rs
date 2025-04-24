@@ -976,9 +976,9 @@ fn mk_type_metadata(
     k: stable_mir::ty::Ty,
     t: TyKind,
 ) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
-    use TypeMetadata::*;
     use stable_mir::ty::RigidTy::*;
     use TyKind::RigidTy as T;
+    use TypeMetadata::*;
     match t {
         T(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
         // for enums, we need a mapping of variantIdx to discriminant
@@ -1010,26 +1010,23 @@ fn mk_type_metadata(
             Some((k, UnionType { name, adt_def }))
         }
         // encode str together with primitive types
-        T(Str) =>
-            Some((k, PrimitiveType(Str))),
+        T(Str) => Some((k, PrimitiveType(Str))),
         // for arrays and slices, record element type and optional size
-        T(Array(ty, ty_const)) =>
-            Some((k, ArrayType(ty, Some(ty_const)))),
-        T(Slice(ty)) =>
-            Some((k, ArrayType(ty, None))),
+        T(Array(ty, ty_const)) => Some((k, ArrayType(ty, Some(ty_const)))),
+        T(Slice(ty)) => Some((k, ArrayType(ty, None))),
         // for raw pointers and references store the pointee type
-        T(RawPtr(ty, _)) =>
-            Some((k, PtrType(ty))),
-        T(Ref(_, ty, _))=>
-            Some((k, RefType(ty))),
+        T(RawPtr(ty, _)) => Some((k, PtrType(ty))),
+        T(Ref(_, ty, _)) => Some((k, RefType(ty))),
         // for tuples the element types are provided
-        T(Tuple(tys))  =>
-            Some((k, TupleType(tys))),
+        T(Tuple(tys)) => Some((k, TupleType(tys))),
         // function types (fun ptrs, closures, FnDef) are provided as strings to avoid dangling ty references
-        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => 
-            Some((k, FunType(format!("{}", k)))),
+        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(format!("{}", k)))),
         // other types are not provided either
-        T(Foreign(_)) | T(Pat(_, _)) | T(Coroutine(_, _, _)) | T(Dynamic(_, _, _)) | T(CoroutineWitness(_, _)) => None,
+        T(Foreign(_))
+        | T(Pat(_, _))
+        | T(Coroutine(_, _, _))
+        | T(Dynamic(_, _, _))
+        | T(CoroutineWitness(_, _)) => None,
         TyKind::Alias(_, _) | TyKind::Param(_) | TyKind::Bound(_, _) => None,
         _ => None, // redundant because of first 4 cases, but rustc does not understand that
     }
