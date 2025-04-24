@@ -10,7 +10,7 @@
 { allocs:    .allocs,
   functions: .functions,
   items:     .items,
-  types: [
+  types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) ),
   # delete unstable adt_ref IDs
@@ -27,5 +27,5 @@
     ( .types | map(select(.[0].FunType)) ),
   # replace closure type strings
     ( .types | map(select(.[0].ClosureType) | .[0].ClosureType = "elided") )
-  ]
+  ] | flatten(1) )
 }

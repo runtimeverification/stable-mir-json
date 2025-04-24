@@ -2311,203 +2311,185 @@
   ],
   "types": [
     [
-      [
-        {
-          "PrimitiveType": {
-            "Int": "I8"
-          }
+      {
+        "PrimitiveType": {
+          "Int": "I8"
         }
-      ],
-      [
-        {
-          "PrimitiveType": {
-            "Int": "Isize"
-          }
-        }
-      ],
-      [
-        {
-          "PrimitiveType": {
-            "Uint": "U8"
-          }
-        }
-      ],
-      [
-        {
-          "PrimitiveType": {
-            "Int": "I32"
-          }
-        }
-      ],
-      [
-        {
-          "PrimitiveType": "Bool"
-        }
-      ],
-      [
-        {
-          "PrimitiveType": {
-            "Uint": "U32"
-          }
-        }
-      ]
+      }
     ],
     [
-      [
-        {
-          "EnumType": {
-            "discriminants": [
-              [
-                0,
-                0
-              ],
-              [
-                1,
-                1
-              ]
+      {
+        "PrimitiveType": {
+          "Int": "Isize"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Uint": "U8"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Int": "I32"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": "Bool"
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Uint": "U32"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
             ],
-            "name": "std::result::Result"
-          }
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result"
         }
-      ]
+      }
     ],
     [
-      [
-        {
-          "StructType": {
-            "name": "std::sys::pal::unix::process::process_common::ExitCode"
-          }
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
-      ],
-      [
-        {
-          "StructType": {
-            "name": "std::process::ExitCode"
-          }
-        }
-      ]
-    ],
-    [],
-    [],
-    [
-      [
-        {
-          "TupleType": "elided"
-        }
-      ],
-      [
-        {
-          "TupleType": "elided"
-        }
-      ],
-      [
-        {
-          "TupleType": "elided"
-        }
-      ]
+      }
     ],
     [
-      [
-        {
-          "PtrType": "elided"
+      {
+        "StructType": {
+          "name": "std::process::ExitCode"
         }
-      ],
-      [
-        {
-          "PtrType": "elided"
-        }
-      ]
+      }
     ],
     [
-      [
-        {
-          "RefType": "elided"
-        }
-      ],
-      [
-        {
-          "RefType": "elided"
-        }
-      ],
-      [
-        {
-          "RefType": "elided"
-        }
-      ],
-      [
-        {
-          "RefType": "elided"
-        }
-      ],
-      [
-        {
-          "RefType": "elided"
-        }
-      ]
+      {
+        "TupleType": "elided"
+      }
     ],
     [
-      [
-        {
-          "FunType": "for<'a> fn(&'a (dyn std::ops::Fn() -> i32 + std::marker::Sync + std::panic::RefUnwindSafe + 'a), isize, *const *const u8, u8) -> std::result::Result<isize, !> {std::rt::lang_start_internal}"
-        }
-      ],
-      [
-        {
-          "FunType": "extern \"rust-call\" fn(()) -> i32"
-        }
-      ],
-      [
-        {
-          "FunType": "fn()"
-        }
-      ],
-      [
-        {
-          "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
-        }
-      ],
-      [
-        {
-          "FunType": "fn(()) -> std::process::ExitCode {<() as std::process::Termination>::report}"
-        }
-      ],
-      [
-        {
-          "FunType": "extern \"rust-call\" fn(fn(), ()) -> <fn() as std::ops::FnOnce<()>>::Output {<fn() as std::ops::FnOnce<()>>::call_once}"
-        }
-      ],
-      [
-        {
-          "FunType": "fn(()) {std::intrinsics::black_box::<()>}"
-        }
-      ],
-      [
-        {
-          "FunType": "extern \"rust-call\" fn({closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once}"
-        }
-      ],
-      [
-        {
-          "FunType": "for<'a> extern \"rust-call\" fn(&'a mut {closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnMut<()>>::call_mut}"
-        }
-      ],
-      [
-        {
-          "FunType": "fn(u32) -> u32 {fibonacci}"
-        }
-      ],
-      [
-        {
-          "FunType": "fn(&'static str) -> ! {core::panicking::panic}"
-        }
-      ]
+      {
+        "TupleType": "elided"
+      }
     ],
     [
-      [
-        {
-          "ClosureType": "elided"
-        }
-      ]
+      {
+        "TupleType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "for<'a> fn(&'a (dyn std::ops::Fn() -> i32 + std::marker::Sync + std::panic::RefUnwindSafe + 'a), isize, *const *const u8, u8) -> std::result::Result<isize, !> {std::rt::lang_start_internal}"
+      }
+    ],
+    [
+      {
+        "FunType": "extern \"rust-call\" fn(()) -> i32"
+      }
+    ],
+    [
+      {
+        "FunType": "fn()"
+      }
+    ],
+    [
+      {
+        "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
+      }
+    ],
+    [
+      {
+        "FunType": "fn(()) -> std::process::ExitCode {<() as std::process::Termination>::report}"
+      }
+    ],
+    [
+      {
+        "FunType": "extern \"rust-call\" fn(fn(), ()) -> <fn() as std::ops::FnOnce<()>>::Output {<fn() as std::ops::FnOnce<()>>::call_once}"
+      }
+    ],
+    [
+      {
+        "FunType": "fn(()) {std::intrinsics::black_box::<()>}"
+      }
+    ],
+    [
+      {
+        "FunType": "extern \"rust-call\" fn({closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once}"
+      }
+    ],
+    [
+      {
+        "FunType": "for<'a> extern \"rust-call\" fn(&'a mut {closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnMut<()>>::call_mut}"
+      }
+    ],
+    [
+      {
+        "FunType": "fn(u32) -> u32 {fibonacci}"
+      }
+    ],
+    [
+      {
+        "FunType": "fn(&'static str) -> ! {core::panicking::panic}"
+      }
+    ],
+    [
+      {
+        "ClosureType": "elided"
+      }
     ]
   ]
 }
