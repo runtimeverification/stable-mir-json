@@ -978,7 +978,9 @@ pub enum TypeMetadata {
     ArrayType(stable_mir::ty::Ty, Option<stable_mir::ty::TyConst>),
     PtrType(stable_mir::ty::Ty),
     RefType(stable_mir::ty::Ty),
-    TupleType(Vec<stable_mir::ty::Ty>),
+    TupleType {
+        types: Vec<stable_mir::ty::Ty>
+    },
     FunType(String),
 }
 
