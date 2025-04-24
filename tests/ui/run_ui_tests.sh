@@ -13,6 +13,8 @@ RUST_DIR_ROOT="$1"
 UI_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PASSING_TSV="${UI_DIR}/passing.tsv"
 
+KEEP_FILES=${KEEP_FILES:-""}
+
 echo "Running regression tests for passing UI cases..."
 failed=0
 
@@ -30,7 +32,7 @@ while read -r test; do
     fi
 
     # Clean up generated JSON
-    [ -f "$json_file" ] && rm -f "$json_file"
+    [ -z "$KEEP_FILES" ] && [ -f "$json_file" ] && rm -f "$json_file"
 done < "$PASSING_TSV"
 
 if [ $failed -ne 0 ]; then
