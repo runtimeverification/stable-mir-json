@@ -3373,11 +3373,6 @@
       ],
       [
         {
-          "FunType": "{closure@std::rt::lang_start<()>::{closure#0}}"
-        }
-      ],
-      [
-        {
           "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
         }
       ],
@@ -3434,6 +3429,13 @@
       [
         {
           "FunType": "for<'a, 'b, 'c> fn(core::panicking::AssertKind, &'a i32, &'b i32, std::option::Option<std::fmt::Arguments<'c>>) -> ! {core::panicking::assert_failed::<i32, i32>}"
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "ClosureType": "elided"
         }
       ]
     ]

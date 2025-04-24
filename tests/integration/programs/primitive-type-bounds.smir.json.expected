@@ -2021,11 +2021,6 @@
       ],
       [
         {
-          "FunType": "{closure@std::rt::lang_start<()>::{closure#0}}"
-        }
-      ],
-      [
-        {
           "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
         }
       ],
@@ -2057,6 +2052,13 @@
       [
         {
           "FunType": "fn(&'static str) -> ! {core::panicking::panic}"
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "ClosureType": "elided"
         }
       ]
     ]

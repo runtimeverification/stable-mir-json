@@ -1608,11 +1608,6 @@
       ],
       [
         {
-          "FunType": "{closure@std::rt::lang_start<()>::{closure#0}}"
-        }
-      ],
-      [
-        {
           "FunType": "fn(fn()) {std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>}"
         }
       ],
@@ -1639,6 +1634,13 @@
       [
         {
           "FunType": "for<'a> extern \"rust-call\" fn(&'a mut {closure@std::rt::lang_start<()>::{closure#0}}, ()) -> <{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::Output {<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnMut<()>>::call_mut}"
+        }
+      ]
+    ],
+    [
+      [
+        {
+          "ClosureType": "elided"
         }
       ]
     ]

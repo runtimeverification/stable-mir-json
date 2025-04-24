@@ -24,6 +24,8 @@
     ( .types | map(select(.[0].PtrType) | .[0].PtrType = "elided") ),
     ( .types | map(select(.[0].RefType) | .[0].RefType = "elided") ),
   # keep function type strings
-    ( .types | map(select(.[0].FunType)))
+    ( .types | map(select(.[0].FunType)) ),
+  # replace closure type strings
+    ( .types | map(select(.[0].ClosureType) | .[0].ClosureType = "elided") )
   ]
 }
