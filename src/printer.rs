@@ -24,7 +24,10 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
+    ty::{
+        AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyConstKind, TyKind,
+        VariantIdx,
+    },
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -627,7 +630,15 @@ fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::T
         .is_some()
     {
         match val.kind() {
-            RigidTy(Array(ty, _) | Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
+            RigidTy(Array(ty, ty_const)) => {
+                collect_ty(val_collector, ty);
+                match ty_const.kind() {
+                    TyConstKind::Value(ty, _) => collect_ty(val_collector, *ty),
+                    TyConstKind::ZSTValue(ty) => collect_ty(val_collector, *ty),
+                    _ => (),
+                }
+            }
+            RigidTy(Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
                 collect_ty(val_collector, ty)
             }
             RigidTy(Tuple(tys)) => collect_vec_tys(val_collector, tys),
