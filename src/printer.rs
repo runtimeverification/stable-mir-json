@@ -478,19 +478,19 @@ type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 
-struct TyVisitor {
+struct TyCollector {
     types: TyMap,
 }
 
-impl TyVisitor {
-    fn new() -> TyVisitor {
-        TyVisitor {
+impl TyCollector {
+    fn new() -> TyCollector {
+        TyCollector {
             types: HashMap::new(),
         }
     }
 }
 
-impl Visitor for TyVisitor {
+impl Visitor for TyCollector {
     type Break = ();
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
         let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
@@ -506,7 +506,7 @@ struct InternedValueCollector<'tcx, 'local> {
     locals: &'local [LocalDecl],
     link_map: &'local mut LinkMap<'tcx>,
     visited_allocs: &'local mut AllocMap,
-    ty_visitor: &'local mut TyVisitor,
+    ty_visitor: &'local mut TyCollector,
 }
 
 type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap);
@@ -703,7 +703,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> InternedValues<'tcx> {
     let mut calls_map = HashMap::new();
     let mut visited_allocs = HashMap::new();
-    let mut ty_visitor = TyVisitor::new();
+    let mut ty_visitor = TyCollector::new();
     if link_items_enabled() {
         for item in items.iter() {
             if let MonoItem::Fn(inst) = item {
