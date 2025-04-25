@@ -490,17 +490,34 @@ impl TyCollector {
     }
 }
 
+impl TyCollector {
+    #[inline(always)]
+    fn visit_instance(&mut self, instance: Instance) -> ControlFlow<<Self as Visitor>::Break> {
+        let fn_abi = instance.fn_abi().unwrap();
+        let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
+            fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
+        inputs_outputs.push(fn_abi.ret.ty);
+        inputs_outputs.super_visit(self)
+    }
+}
+
 impl Visitor for TyCollector {
     type Break = ();
+
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
+        if self.types.contains_key(ty) {
+            return ControlFlow::Continue(());
+        }
+
         match ty.kind() {
+            TyKind::RigidTy(RigidTy::Closure(def, ref args)) => {
+                let instance =
+                    Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
+                self.visit_instance(instance)
+            }
             TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
                 let instance = Instance::resolve(def, args).unwrap();
-                let fn_abi = instance.fn_abi().unwrap();
-                let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
-                    fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
-                inputs_outputs.push(fn_abi.ret.ty);
-                inputs_outputs.super_visit(self)
+                self.visit_instance(instance)
             }
             _ => {
                 let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
