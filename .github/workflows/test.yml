@@ -66,6 +66,8 @@ jobs:
 
       - name: 'Run smir integration tests'
         run: |
+          which jq
+          jq --version
           make integration-test
 
   ui-tests:

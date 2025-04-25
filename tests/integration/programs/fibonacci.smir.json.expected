@@ -2333,6 +2333,25 @@
     ],
     [
       {
+        "PrimitiveType": {
+          "Int": "I32"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": "Bool"
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Uint": "U32"
+        }
+      }
+    ],
+    [
+      {
         "EnumType": {
           "discriminants": [
             [
@@ -2357,13 +2376,6 @@
     ],
     [
       {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
         "StructType": {
           "name": "std::process::ExitCode"
         }
@@ -2371,14 +2383,118 @@
     ],
     [
       {
-        "PrimitiveType": "Bool"
+        "TupleType": {
+          "types": "elided"
+        }
       }
     ],
     [
       {
-        "PrimitiveType": {
-          "Uint": "U32"
+        "TupleType": {
+          "types": "elided"
         }
+      }
+    ],
+    [
+      {
+        "TupleType": {
+          "types": "elided"
+        }
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
       }
     ]
   ]

@@ -4493,30 +4493,6 @@
     ],
     [
       {
-        "StructType": {
-          "name": "std::ops::Range"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::option::Option"
-        }
-      }
-    ],
-    [
-      {
         "PrimitiveType": "Bool"
       }
     ],
@@ -4543,46 +4519,8 @@
     ],
     [
       {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
-        }
-      }
-    ],
-    [
-      {
         "PrimitiveType": {
           "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::process::ExitCode"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::array::TryFromSliceError"
         }
       }
     ],
@@ -4618,6 +4556,321 @@
           ],
           "name": "std::result::Result"
         }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::option::Option"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::ops::Range"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::process::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::array::TryFromSliceError"
+        }
+      }
+    ],
+    [
+      {
+        "ArrayType": [
+          null
+        ]
+      }
+    ],
+    [
+      {
+        "ArrayType": [
+          {
+            "id": 1,
+            "kind": {
+              "Value": [
+                0,
+                {
+                  "align": 8,
+                  "bytes": [
+                    4,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "mutability": "Mut",
+                  "provenance": {
+                    "ptrs": []
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "ArrayType": [
+          {
+            "id": 0,
+            "kind": {
+              "Value": [
+                0,
+                {
+                  "align": 8,
+                  "bytes": [
+                    2,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "mutability": "Mut",
+                  "provenance": {
+                    "ptrs": []
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "TupleType": {
+          "types": "elided"
+        }
+      }
+    ],
+    [
+      {
+        "TupleType": {
+          "types": "elided"
+        }
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
+      }
+    ],
+    [
+      {
+        "FunType": "elided"
       }
     ]
   ]
