@@ -31,7 +31,10 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
+    ty::{
+        AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, Region, RegionKind, RigidTy,
+        TyKind, VariantIdx,
+    },
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
 };
@@ -531,11 +534,25 @@ impl Visitor for TyCollector {
                 self.visit_instance(instance)
             }
             _ => {
-                let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
-
-                self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
-                ty.super_visit(self)
+                let control = ty.super_visit(self);
+                match control {
+                    ControlFlow::Continue(_) => {
+                        let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                        self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                        control
+                    }
+                    _ => control,
+                }
             }
+        }
+    }
+
+    fn visit_reg(&mut self, reg: &Region) -> ControlFlow<Self::Break> {
+        match reg.kind {
+            // Breaking on Bound regions, because some have escaping bound vars
+            // which can't be wrapped in dummy binders.
+            RegionKind::ReBound(..) => ControlFlow::Break(()),
+            _ => ControlFlow::Continue(()),
         }
     }
 }
