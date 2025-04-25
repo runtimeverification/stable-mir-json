@@ -981,7 +981,6 @@ pub enum TypeMetadata {
     TupleType {
         types: Vec<stable_mir::ty::Ty>,
     },
-    FunType(String),
 }
 
 fn mk_type_metadata(
@@ -1032,8 +1031,8 @@ fn mk_type_metadata(
         T(Ref(_, ty, _)) => Some((k, RefType(ty))),
         // for tuples the element types are provided
         T(Tuple(tys)) => Some((k, TupleType { types: tys })),
-        // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty references
-        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(format!("{}", k)))),
+        // opaque function types (fun ptrs, closures, FnDef) are not provided at the moment
+        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => None,
         // other types are not provided either
         T(Foreign(_))
         | T(Pat(_, _))

@@ -22,8 +22,6 @@
     ( .types | map(select(.[0].TupleType) | .[0].TupleType.types = "elided") ),
   # replace unstable Ty IDs for references by zero
     ( .types | map(select(.[0].PtrType) | .[0].PtrType = "elided") ),
-    ( .types | map(select(.[0].RefType) | .[0].RefType = "elided") ),
-  # keep function type strings
-    ( .types | map(select(.[0].FunType) | .[0].FunType = "elided") )
+    ( .types | map(select(.[0].RefType) | .[0].RefType = "elided") )
   ] | flatten(1) )
 }
