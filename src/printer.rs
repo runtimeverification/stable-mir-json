@@ -528,6 +528,8 @@ impl Visitor for TyCollector {
                     Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
                 self.visit_instance(instance)
             }
+            // Break on CoroutineWitnesses, because they aren't expected when getting the layout
+            TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => ControlFlow::Break(()),
             TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
                 self.resolved.insert(*ty);
                 let instance = Instance::resolve(def, args).unwrap();
