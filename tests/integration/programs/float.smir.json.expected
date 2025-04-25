@@ -2211,13 +2211,6 @@
     [
       {
         "PrimitiveType": {
-          "Int": "I8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
           "Int": "Isize"
         }
       }
@@ -2293,8 +2286,8 @@
     ],
     [
       {
-        "TupleType": {
-          "types": "elided"
+        "StructType": {
+          "name": "std::panic::Location"
         }
       }
     ],
@@ -2347,52 +2340,7 @@
     ],
     [
       {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ],
     [

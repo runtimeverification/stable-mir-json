@@ -3122,13 +3122,6 @@
     [
       {
         "PrimitiveType": {
-          "Int": "I8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
           "Int": "Isize"
         }
       }
@@ -3255,6 +3248,13 @@
     [
       {
         "StructType": {
+          "name": "std::fmt::Formatter"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
           "name": "std::fmt::Error"
         }
       }
@@ -3262,14 +3262,7 @@
     [
       {
         "StructType": {
-          "name": "std::fmt::Formatter"
-        }
-      }
-    ],
-    [
-      {
-        "TupleType": {
-          "types": "elided"
+          "name": "std::panic::Location"
         }
       }
     ],
@@ -3356,77 +3349,7 @@
     ],
     [
       {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ],
     [
