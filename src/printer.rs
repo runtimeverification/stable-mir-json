@@ -1,6 +1,13 @@
 use std::io::Write;
 use std::ops::ControlFlow;
-use std::{collections::HashMap, fs::File, io, iter::Iterator, str, vec::Vec};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io,
+    iter::Iterator,
+    str,
+    vec::Vec,
+};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -480,12 +487,14 @@ type TyMap =
 
 struct TyCollector {
     types: TyMap,
+    resolved: HashSet<stable_mir::ty::Ty>,
 }
 
 impl TyCollector {
     fn new() -> TyCollector {
         TyCollector {
             types: HashMap::new(),
+            resolved: HashSet::new(),
         }
     }
 }
@@ -505,17 +514,19 @@ impl Visitor for TyCollector {
     type Break = ();
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
-        if self.types.contains_key(ty) {
+        if self.types.contains_key(ty) || self.resolved.contains(ty) {
             return ControlFlow::Continue(());
         }
 
         match ty.kind() {
             TyKind::RigidTy(RigidTy::Closure(def, ref args)) => {
+                self.resolved.insert(*ty);
                 let instance =
                     Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
                 self.visit_instance(instance)
             }
             TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
+                self.resolved.insert(*ty);
                 let instance = Instance::resolve(def, args).unwrap();
                 self.visit_instance(instance)
             }
