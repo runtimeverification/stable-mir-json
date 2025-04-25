@@ -1,6 +1,7 @@
 use std::any::Any;
 use std::io::Write;
 use std::{collections::HashMap, fs::File, io, iter::Iterator, str, vec::Vec};
+use std::ops::ControlFlow;
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -28,6 +29,7 @@ use stable_mir::{
         AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyConstKind, TyKind,
         VariantIdx,
     },
+    visitor::{Visitor, Visitable},
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -480,6 +482,16 @@ type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 
+struct TyVisitor;
+
+impl Visitor for TyVisitor {
+    type Break = ();
+    fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
+        println!("Visiting: {ty:?}");
+        ty.super_visit(self)
+    }
+}
+
 struct InternedValueCollector<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
     _sym: String,
@@ -487,6 +499,7 @@ struct InternedValueCollector<'tcx, 'local> {
     link_map: &'local mut LinkMap<'tcx>,
     visited_allocs: &'local mut AllocMap,
     visited_tys: &'local mut TyMap,
+    ty_visitor: &'local mut TyVisitor,
 }
 
 type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap);
@@ -773,6 +786,8 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
         collect_ty(self, *ty);
+        ty.visit(self.ty_visitor);
+        self.super_ty(ty);
     }
 }
 
@@ -780,6 +795,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
     let mut calls_map = HashMap::new();
     let mut visited_tys = HashMap::new();
     let mut visited_allocs = HashMap::new();
+    let mut ty_visitor = TyVisitor{};
     if link_items_enabled() {
         for item in items.iter() {
             if let MonoItem::Fn(inst) = item {
@@ -802,6 +818,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         link_map: &mut calls_map,
                         visited_tys: &mut visited_tys,
                         visited_allocs: &mut visited_allocs,
+                        ty_visitor: &mut ty_visitor,
                     }
                     .visit_body(&body)
                 } else {
@@ -821,6 +838,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         link_map: &mut calls_map,
                         visited_tys: &mut visited_tys,
                         visited_allocs: &mut visited_allocs,
+                        ty_visitor: &mut ty_visitor,
                     }
                     .visit_body(&body)
                 } else {
