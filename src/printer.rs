@@ -20,9 +20,9 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{EarlyBinder, FnSig, GenericArgs, Ty, TyCtxt, TypeFoldable, TypingEnv};
+use rustc_middle::ty::{EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv};
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_smir::rustc_internal;
+use rustc_smir::rustc_internal::{self, internal};
 use rustc_span::{
     def_id::{DefId, LOCAL_CRATE},
     symbol,
@@ -488,21 +488,23 @@ type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 
-struct TyCollector {
+struct TyCollector<'tcx> {
+    tcx: TyCtxt<'tcx>,
     types: TyMap,
     resolved: HashSet<stable_mir::ty::Ty>,
 }
 
-impl TyCollector {
-    fn new() -> TyCollector {
+impl<'tcx> TyCollector<'_> {
+    fn new(tcx: TyCtxt<'_>) -> TyCollector {
         TyCollector {
+            tcx,
             types: HashMap::new(),
             resolved: HashSet::new(),
         }
     }
 }
 
-impl TyCollector {
+impl<'tcx> TyCollector<'tcx> {
     #[inline(always)]
     fn visit_instance(&mut self, instance: Instance) -> ControlFlow<<Self as Visitor>::Break> {
         let fn_abi = instance.fn_abi().unwrap();
@@ -513,7 +515,7 @@ impl TyCollector {
     }
 }
 
-impl Visitor for TyCollector {
+impl Visitor for TyCollector<'_> {
     type Break = ();
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
@@ -535,6 +537,21 @@ impl Visitor for TyCollector {
                 let instance = Instance::resolve(def, args).unwrap();
                 self.visit_instance(instance)
             }
+            TyKind::RigidTy(RigidTy::FnPtr(binder_stable)) => {
+                self.resolved.insert(*ty);
+                let binder_internal = internal(self.tcx, binder_stable);
+                let sig_stable = rustc_internal::stable(
+                    self.tcx.fn_abi_of_fn_ptr(
+                        TypingEnv::fully_monomorphized().as_query_input(
+                            (binder_internal, &List::empty())
+                        )
+                    ).unwrap()
+                );
+                let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
+                    sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
+                inputs_outputs.push(sig_stable.ret.ty);
+                inputs_outputs.super_visit(self)
+            }
             _ => {
                 let control = ty.super_visit(self);
                 match control {
@@ -548,15 +565,6 @@ impl Visitor for TyCollector {
             }
         }
     }
-
-    fn visit_reg(&mut self, reg: &Region) -> ControlFlow<Self::Break> {
-        match reg.kind {
-            // Breaking on Bound regions, because some have escaping bound vars
-            // which can't be wrapped in dummy binders.
-            RegionKind::ReBound(..) => ControlFlow::Break(()),
-            _ => ControlFlow::Continue(()),
-        }
-    }
 }
 
 struct InternedValueCollector<'tcx, 'local> {
@@ -565,7 +573,7 @@ struct InternedValueCollector<'tcx, 'local> {
     locals: &'local [LocalDecl],
     link_map: &'local mut LinkMap<'tcx>,
     visited_allocs: &'local mut AllocMap,
-    ty_visitor: &'local mut TyCollector,
+    ty_visitor: &'local mut TyCollector<'tcx>,
 }
 
 type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap);
@@ -762,7 +770,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> InternedValues<'tcx> {
     let mut calls_map = HashMap::new();
     let mut visited_allocs = HashMap::new();
-    let mut ty_visitor = TyCollector::new();
+    let mut ty_visitor = TyCollector::new(tcx);
     if link_items_enabled() {
         for item in items.iter() {
             if let MonoItem::Fn(inst) = item {
