@@ -20,7 +20,9 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv};
+use rustc_middle::ty::{
+    EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
+};
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_smir::rustc_internal::{self, internal};
 use rustc_span::{
@@ -31,10 +33,7 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{
-        AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, Region, RegionKind, RigidTy,
-        TyKind, VariantIdx,
-    },
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
 };
@@ -494,7 +493,7 @@ struct TyCollector<'tcx> {
     resolved: HashSet<stable_mir::ty::Ty>,
 }
 
-impl<'tcx> TyCollector<'_> {
+impl TyCollector<'_> {
     fn new(tcx: TyCtxt<'_>) -> TyCollector {
         TyCollector {
             tcx,
@@ -504,7 +503,7 @@ impl<'tcx> TyCollector<'_> {
     }
 }
 
-impl<'tcx> TyCollector<'tcx> {
+impl TyCollector<'_> {
     #[inline(always)]
     fn visit_instance(&mut self, instance: Instance) -> ControlFlow<<Self as Visitor>::Break> {
         let fn_abi = instance.fn_abi().unwrap();
@@ -541,11 +540,12 @@ impl Visitor for TyCollector<'_> {
                 self.resolved.insert(*ty);
                 let binder_internal = internal(self.tcx, binder_stable);
                 let sig_stable = rustc_internal::stable(
-                    self.tcx.fn_abi_of_fn_ptr(
-                        TypingEnv::fully_monomorphized().as_query_input(
-                            (binder_internal, &List::empty())
+                    self.tcx
+                        .fn_abi_of_fn_ptr(
+                            TypingEnv::fully_monomorphized()
+                                .as_query_input((binder_internal, List::empty())),
                         )
-                    ).unwrap()
+                        .unwrap(),
                 );
                 let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
                     sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
