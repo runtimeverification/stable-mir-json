@@ -2,11 +2,14 @@
 
 set -u
 
-USAGE="Usage: $0 RUST_DIR_ROOT\n\n'RUST_DIR_ROOT' is the Rust directory to take ui tests from."
+USAGE="Usage: $0 RUST_DIR_ROOT [VERBOSE]\n
+'RUST_DIR_ROOT' is the Rust directory to take ui tests from. Optional 'VERBOSE' can be set to '1' for verbose output."
 
 if [ $# -lt 1 ]; then
     echo -e "$USAGE"
     exit 1
+else
+    VERBOSE="$2"
 fi
 
 RUST_DIR_ROOT="$1"
@@ -34,7 +37,9 @@ while read -r test; do
         echo "❌ FAILED: $test_path (exit $status)"
         failed=$((failed + 1))
     else
-        # echo "✅ PASSING: $test_path"
+        if [ "$VERBOSE" -eq "1" ]; then
+            echo "✅ PASSING: $test_path"
+        fi
         passed=$((passed + 1))
     fi
 

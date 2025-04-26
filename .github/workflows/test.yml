@@ -101,4 +101,4 @@ jobs:
 
       - name: 'Run smir integration tests'
         run: |
-          RUST_DIR_ROOT='rust' make test-ui
+          RUST_DIR_ROOT='rust' VERBOSE=1 make test-ui
