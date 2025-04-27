@@ -3248,6 +3248,13 @@
     [
       {
         "StructType": {
+          "name": "std::panic::Location"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
           "name": "std::fmt::Formatter"
         }
       }
@@ -3261,13 +3268,6 @@
     ],
     [
       {
-        "StructType": {
-          "name": "std::panic::Location"
-        }
-      }
-    ],
-    [
-      {
         "TupleType": {
           "types": "elided"
         }
@@ -3350,11 +3350,6 @@
     [
       {
         "RefType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
       }
     ]
   ]
