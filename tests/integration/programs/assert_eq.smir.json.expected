@@ -3121,16 +3121,7 @@
   "types": [
     [
       {
-        "PrimitiveType": {
-          "Int": "Isize"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Uint": "U8"
-        }
+        "PrimitiveType": "Bool"
       }
     ],
     [
@@ -3143,13 +3134,39 @@
     [
       {
         "PrimitiveType": {
+          "Int": "Isize"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
           "Uint": "U32"
         }
       }
     ],
     [
       {
-        "PrimitiveType": "Bool"
+        "PrimitiveType": {
+          "Uint": "U8"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::option::Option"
+        }
       }
     ],
     [
@@ -3209,37 +3226,6 @@
     ],
     [
       {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::option::Option"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::process::ExitCode"
-        }
-      }
-    ],
-    [
-      {
         "StructType": {
           "name": "std::fmt::Arguments"
         }
@@ -3248,7 +3234,7 @@
     [
       {
         "StructType": {
-          "name": "std::panic::Location"
+          "name": "std::fmt::Error"
         }
       }
     ],
@@ -3262,7 +3248,21 @@
     [
       {
         "StructType": {
-          "name": "std::fmt::Error"
+          "name": "std::panic::Location"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::process::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],

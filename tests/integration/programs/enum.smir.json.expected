@@ -1463,6 +1463,13 @@
     [
       {
         "PrimitiveType": {
+          "Int": "I32"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
           "Int": "Isize"
         }
       }
@@ -1471,30 +1478,6 @@
       {
         "PrimitiveType": {
           "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
         }
       }
     ],
@@ -1517,8 +1500,18 @@
     ],
     [
       {
-        "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result"
         }
       }
     ],
@@ -1526,6 +1519,13 @@
       {
         "StructType": {
           "name": "std::process::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],

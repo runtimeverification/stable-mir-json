@@ -2456,16 +2456,12 @@
   "types": [
     [
       {
-        "PrimitiveType": {
-          "Int": "Isize"
-        }
+        "PrimitiveType": "Bool"
       }
     ],
     [
       {
-        "PrimitiveType": {
-          "Uint": "U8"
-        }
+        "PrimitiveType": "Str"
       }
     ],
     [
@@ -2477,12 +2473,16 @@
     ],
     [
       {
-        "PrimitiveType": "Bool"
+        "PrimitiveType": {
+          "Int": "Isize"
+        }
       }
     ],
     [
       {
-        "PrimitiveType": "Str"
+        "PrimitiveType": {
+          "Uint": "U8"
+        }
       }
     ],
     [
@@ -2505,7 +2505,7 @@
     [
       {
         "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+          "name": "std::panic::Location"
         }
       }
     ],
@@ -2519,7 +2519,7 @@
     [
       {
         "StructType": {
-          "name": "std::panic::Location"
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],

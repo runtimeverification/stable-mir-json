@@ -3484,6 +3484,44 @@
   "types": [
     [
       {
+        "PrimitiveType": "Bool"
+      }
+    ],
+    [
+      {
+        "PrimitiveType": "Str"
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Int": "I128"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Int": "I16"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Int": "I32"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Int": "I64"
+        }
+      }
+    ],
+    [
+      {
         "PrimitiveType": {
           "Int": "I8"
         }
@@ -3499,20 +3537,6 @@
     [
       {
         "PrimitiveType": {
-          "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
           "Uint": "U32"
         }
       }
@@ -3520,32 +3544,8 @@
     [
       {
         "PrimitiveType": {
-          "Int": "I16"
+          "Uint": "U8"
         }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I64"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I128"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": "Bool"
-      }
-    ],
-    [
-      {
-        "PrimitiveType": "Str"
       }
     ],
     [
@@ -3568,7 +3568,7 @@
     [
       {
         "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+          "name": "std::panic::Location"
         }
       }
     ],
@@ -3582,7 +3582,7 @@
     [
       {
         "StructType": {
-          "name": "std::panic::Location"
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],
