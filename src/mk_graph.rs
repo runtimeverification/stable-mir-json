@@ -444,7 +444,12 @@ impl GraphLabelString for Rvalue {
     fn label(&self) -> String {
         use Rvalue::*;
         match &self {
-            AddressOf(kind, p) => format!("&{:?} {}", kind, p.label()),
+            AddressOf(mutability, p) => {
+                match mutability {
+                    Mutability::Not => format!("&raw {}", p.label()),
+                    Mutability::Mut => format!("&raw mut {}", p.label()),
+                }
+            },
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
