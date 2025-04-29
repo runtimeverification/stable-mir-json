@@ -1463,7 +1463,7 @@
     [
       {
         "PrimitiveType": {
-          "Int": "I8"
+          "Int": "I32"
         }
       }
     ],
@@ -1478,30 +1478,6 @@
       {
         "PrimitiveType": {
           "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
         }
       }
     ],
@@ -1524,8 +1500,18 @@
     ],
     [
       {
-        "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::result::Result"
         }
       }
     ],
@@ -1538,8 +1524,8 @@
     ],
     [
       {
-        "TupleType": {
-          "types": "elided"
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],
@@ -1562,7 +1548,7 @@
     ],
     [
       {
-        "RefType": "elided"
+        "PtrType": "elided"
       }
     ],
     [
@@ -1582,52 +1568,7 @@
     ],
     [
       {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ]
   ]

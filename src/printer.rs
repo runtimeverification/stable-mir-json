@@ -1,6 +1,13 @@
-use std::any::Any;
 use std::io::Write;
-use std::{collections::HashMap, fs::File, io, iter::Iterator, str, vec::Vec};
+use std::ops::ControlFlow;
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io,
+    iter::Iterator,
+    str,
+    vec::Vec,
+};
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
 extern crate rustc_session;
@@ -13,9 +20,11 @@ extern crate stable_mir;
 extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
-use rustc_middle::ty::{EarlyBinder, FnSig, GenericArgs, Ty, TyCtxt, TypeFoldable, TypingEnv};
+use rustc_middle::ty::{
+    EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
+};
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_smir::rustc_internal;
+use rustc_smir::rustc_internal::{self, internal};
 use rustc_span::{
     def_id::{DefId, LOCAL_CRATE},
     symbol,
@@ -24,10 +33,8 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{
-        AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyConstKind, TyKind,
-        VariantIdx,
-    },
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
+    visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
 };
 
@@ -480,13 +487,93 @@ type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 
+struct TyCollector<'tcx> {
+    tcx: TyCtxt<'tcx>,
+    types: TyMap,
+    resolved: HashSet<stable_mir::ty::Ty>,
+}
+
+impl TyCollector<'_> {
+    fn new(tcx: TyCtxt<'_>) -> TyCollector {
+        TyCollector {
+            tcx,
+            types: HashMap::new(),
+            resolved: HashSet::new(),
+        }
+    }
+}
+
+impl TyCollector<'_> {
+    #[inline(always)]
+    fn visit_instance(&mut self, instance: Instance) -> ControlFlow<<Self as Visitor>::Break> {
+        let fn_abi = instance.fn_abi().unwrap();
+        let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
+            fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
+        inputs_outputs.push(fn_abi.ret.ty);
+        inputs_outputs.super_visit(self)
+    }
+}
+
+impl Visitor for TyCollector<'_> {
+    type Break = ();
+
+    fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
+        if self.types.contains_key(ty) || self.resolved.contains(ty) {
+            return ControlFlow::Continue(());
+        }
+
+        match ty.kind() {
+            TyKind::RigidTy(RigidTy::Closure(def, ref args)) => {
+                self.resolved.insert(*ty);
+                let instance =
+                    Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
+                self.visit_instance(instance)
+            }
+            // Break on CoroutineWitnesses, because they aren't expected when getting the layout
+            TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => ControlFlow::Break(()),
+            TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
+                self.resolved.insert(*ty);
+                let instance = Instance::resolve(def, args).unwrap();
+                self.visit_instance(instance)
+            }
+            TyKind::RigidTy(RigidTy::FnPtr(binder_stable)) => {
+                self.resolved.insert(*ty);
+                let binder_internal = internal(self.tcx, binder_stable);
+                let sig_stable = rustc_internal::stable(
+                    self.tcx
+                        .fn_abi_of_fn_ptr(
+                            TypingEnv::fully_monomorphized()
+                                .as_query_input((binder_internal, List::empty())),
+                        )
+                        .unwrap(),
+                );
+                let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
+                    sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
+                inputs_outputs.push(sig_stable.ret.ty);
+                inputs_outputs.super_visit(self)
+            }
+            _ => {
+                let control = ty.super_visit(self);
+                match control {
+                    ControlFlow::Continue(_) => {
+                        let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                        self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                        control
+                    }
+                    _ => control,
+                }
+            }
+        }
+    }
+}
+
 struct InternedValueCollector<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
     _sym: String,
     locals: &'local [LocalDecl],
     link_map: &'local mut LinkMap<'tcx>,
     visited_allocs: &'local mut AllocMap,
-    visited_tys: &'local mut TyMap,
+    ty_visitor: &'local mut TyCollector<'tcx>,
 }
 
 type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap);
@@ -601,103 +688,6 @@ fn collect_alloc(
     };
 }
 
-fn collect_vec_tys(collector: &mut InternedValueCollector, tys: Vec<stable_mir::ty::Ty>) {
-    tys.into_iter().for_each(|ty| collect_ty(collector, ty));
-}
-
-fn collect_arg_tys(collector: &mut InternedValueCollector, args: &stable_mir::ty::GenericArgs) {
-    use stable_mir::ty::{GenericArgKind::*, TyConstKind::*}; // TyConst
-    for arg in args.0.iter() {
-        match arg {
-            Type(ty) => collect_ty(collector, *ty),
-            Const(ty_const) => match ty_const.kind() {
-                Value(ty, _) | ZSTValue(ty) => collect_ty(collector, *ty),
-                _ => {}
-            },
-            _ => {}
-        }
-    }
-}
-
-fn collect_ty(val_collector: &mut InternedValueCollector, val: stable_mir::ty::Ty) {
-    use stable_mir::ty::{RigidTy::*, TyKind::RigidTy};
-
-    let maybe_layout_shape = val.layout().ok().map(|layout| layout.shape());
-
-    if val_collector
-        .visited_tys
-        .insert(val, (val.kind(), maybe_layout_shape))
-        .is_some()
-    {
-        match val.kind() {
-            RigidTy(Array(ty, ty_const)) => {
-                collect_ty(val_collector, ty);
-                match ty_const.kind() {
-                    TyConstKind::Value(ty, _) => collect_ty(val_collector, *ty),
-                    TyConstKind::ZSTValue(ty) => collect_ty(val_collector, *ty),
-                    _ => (),
-                }
-            }
-            RigidTy(Pat(ty, _) | Slice(ty) | RawPtr(ty, _) | Ref(_, ty, _)) => {
-                collect_ty(val_collector, ty)
-            }
-            RigidTy(Tuple(tys)) => collect_vec_tys(val_collector, tys),
-            RigidTy(Adt(def, ref args)) => {
-                for variant in def.variants_iter() {
-                    for field in variant.fields() {
-                        collect_ty(val_collector, field.ty());
-                    }
-                }
-                collect_arg_tys(val_collector, args);
-            }
-            // FIXME: Would be good to grab the coroutine signature
-            RigidTy(Coroutine(_, ref args, _) | CoroutineWitness(_, ref args)) => {
-                collect_arg_tys(val_collector, args)
-            }
-            RigidTy(Closure(def, ref args)) => {
-                // Need to monomorphise again
-                // let ty_internal = rustc_internal::internal(val_collector.tcx, val);
-                // let closure_kind = ty_internal.to_opt_closure_kind().unwrap(); // Errors on span for some reason
-                // Choose FnOnce, got the idea from kani reachability.rs
-                let instance =
-                    Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
-                let fn_abi = instance.fn_abi().unwrap();
-                let mut inputs_and_outputs: Vec<stable_mir::ty::Ty> =
-                    fn_abi.args.iter().map(|arg| arg.ty).collect();
-                if inputs_and_outputs[0].type_id() == val.type_id() {
-                    // TODO: Not sure if it always occurs, but had case where the first ArgAbi had ty same as val.
-                    // This causes an infinite loop
-                    inputs_and_outputs.remove(0);
-                }
-                inputs_and_outputs.push(fn_abi.ret.ty);
-
-                collect_vec_tys(val_collector, inputs_and_outputs);
-                collect_arg_tys(val_collector, args); // Do I need to do this again?
-            }
-            ref _kind @ RigidTy(FnDef(def, ref args)) => {
-                // Need to monomorphise again
-                let instance = Instance::resolve(def, args).unwrap();
-                let fn_abi = instance.fn_abi().unwrap();
-                let mut inputs_and_outputs: Vec<stable_mir::ty::Ty> =
-                    fn_abi.args.iter().map(|arg| arg.ty).collect();
-                inputs_and_outputs.push(fn_abi.ret.ty);
-
-                collect_vec_tys(val_collector, inputs_and_outputs);
-                collect_arg_tys(val_collector, args); // Do I need to do this again?
-            }
-            RigidTy(Foreign(def)) => match def.kind() {
-                ForeignItemKind::Fn(def) => {
-                    // I think this is fully monomorphised???
-                    collect_vec_tys(val_collector, def.fn_sig().value.inputs_and_output)
-                }
-                ForeignItemKind::Type(ty) => collect_ty(val_collector, ty),
-                ForeignItemKind::Static(def) => collect_ty(val_collector, def.ty()),
-            },
-            _ => {} // TODO: I think we need to add arm for FnPtr? Maybe we should create an example that uses it first
-        }
-    }
-}
-
 impl MirVisitor for InternedValueCollector<'_, '_> {
     fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
         use stable_mir::mir::{ConstOperand, Operand::Constant};
@@ -772,14 +762,15 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     }
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
-        collect_ty(self, *ty);
+        ty.visit(self.ty_visitor);
+        self.super_ty(ty);
     }
 }
 
 fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> InternedValues<'tcx> {
     let mut calls_map = HashMap::new();
-    let mut visited_tys = HashMap::new();
     let mut visited_allocs = HashMap::new();
+    let mut ty_visitor = TyCollector::new(tcx);
     if link_items_enabled() {
         for item in items.iter() {
             if let MonoItem::Fn(inst) = item {
@@ -800,8 +791,8 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         _sym: inst.mangled_name(),
                         locals: body.locals(),
                         link_map: &mut calls_map,
-                        visited_tys: &mut visited_tys,
                         visited_allocs: &mut visited_allocs,
+                        ty_visitor: &mut ty_visitor,
                     }
                     .visit_body(&body)
                 } else {
@@ -819,8 +810,8 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         _sym: inst.mangled_name(),
                         locals: &[],
                         link_map: &mut calls_map,
-                        visited_tys: &mut visited_tys,
                         visited_allocs: &mut visited_allocs,
+                        ty_visitor: &mut ty_visitor,
                     }
                     .visit_body(&body)
                 } else {
@@ -833,7 +824,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
             MonoItem::GlobalAsm(_) => {}
         }
     }
-    (calls_map, visited_allocs, visited_tys)
+    (calls_map, visited_allocs, ty_visitor.types)
 }
 
 // Collection Transitive Closure

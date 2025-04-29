@@ -66,4 +66,4 @@ test-ui:
 	  echo "Error: RUST_DIR_ROOT is not set. Please set it to the absolute path to rust compiler checkout."; \
 	  exit 1; \
 	fi
-	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT"
+	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT" "$$VERBOSE"
