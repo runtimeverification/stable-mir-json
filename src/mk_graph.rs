@@ -395,7 +395,7 @@ fn project(local: String, ps: &[ProjectionElem]) -> String {
 
 fn decorate(thing: String, p: &ProjectionElem) -> String {
     match p {
-        ProjectionElem::Deref => format!("*{}", thing),
+        ProjectionElem::Deref => format!("(*{})", thing),
         ProjectionElem::Field(i, _) => format!("{thing}.{i}"),
         ProjectionElem::Index(local) => format!("{thing}[_{local}]"),
         ProjectionElem::ConstantIndex {
