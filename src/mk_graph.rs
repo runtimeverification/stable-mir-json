@@ -14,11 +14,15 @@ extern crate stable_mir;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::{mir::{
-    AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
-    Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
-}, ty::RigidTy};
 use stable_mir::ty::{IndexedVal, Ty};
+use stable_mir::{
+    mir::{
+        AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
+        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind,
+        UnwindAction,
+    },
+    ty::RigidTy,
+};
 
 use crate::{
     printer::{collect_smir, FnSymType, SmirJson},
@@ -94,9 +98,8 @@ impl SmirJson<'_> {
                         for (index, decl) in body.clone().unwrap().local_decls() {
                             vector.push(format!("{index} = {}", decl.ty));
                         }
-                        local_node.set_label(format!("{}", vector.join("\\l")).as_str());
+                        local_node.set_label(vector.join("\\l").to_string().as_str());
                         drop(local_node);
-
 
                         // Cannot define local functions that capture env. variables. Instead we define _closures_.
                         let process_block =
@@ -391,7 +394,9 @@ impl GraphLabelString for Operand {
                 let ty = const_.ty();
                 match &ty.kind() {
                     stable_mir::ty::TyKind::RigidTy(RigidTy::Int(_))
-                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => format!("const ?_{}", const_.ty()),
+                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
+                        format!("const ?_{}", const_.ty())
+                    }
                     _ => format!("const {}", const_.ty()),
                 }
             }
@@ -455,11 +460,9 @@ impl GraphLabelString for Rvalue {
     fn label(&self) -> String {
         use Rvalue::*;
         match &self {
-            AddressOf(mutability, p) => {
-                match mutability {
-                    Mutability::Not => format!("&raw {}", p.label()),
-                    Mutability::Mut => format!("&raw mut {}", p.label()),
-                }
+            AddressOf(mutability, p) => match mutability {
+                Mutability::Not => format!("&raw {}", p.label()),
+                Mutability::Mut => format!("&raw mut {}", p.label()),
             },
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
