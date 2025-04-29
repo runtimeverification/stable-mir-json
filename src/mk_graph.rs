@@ -14,10 +14,10 @@ extern crate stable_mir;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::mir::{
+use stable_mir::{mir::{
     AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
     Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
-};
+}, ty::RigidTy};
 use stable_mir::ty::{IndexedVal, Ty};
 
 use crate::{
@@ -376,7 +376,14 @@ trait GraphLabelString {
 impl GraphLabelString for Operand {
     fn label(&self) -> String {
         match &self {
-            Operand::Constant(ConstOperand { const_, .. }) => format!("const :: {}", const_.ty()),
+            Operand::Constant(ConstOperand { const_, .. }) => {
+                let ty = const_.ty();
+                match &ty.kind() {
+                    stable_mir::ty::TyKind::RigidTy(RigidTy::Int(_))
+                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => format!("const ?_{}", const_.ty()),
+                    _ => format!("const {}", const_.ty()),
+                }
+            }
             Operand::Copy(place) => format!("cp({})", place.label()),
             Operand::Move(place) => format!("mv({})", place.label()),
         }
