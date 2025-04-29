@@ -87,6 +87,17 @@ impl SmirJson<'_> {
                             c.set_color(Color::LightGrey);
                         }
 
+                        // Set out the type information of the locals
+                        let mut local_node = c.node_auto();
+                        let mut vector: Vec<String> = vec![];
+                        vector.push(String::from("LOCALS"));
+                        for (index, decl) in body.clone().unwrap().local_decls() {
+                            vector.push(format!("{index} = {}", decl.ty));
+                        }
+                        local_node.set_label(format!("{}", vector.join("\\l")).as_str());
+                        drop(local_node);
+
+
                         // Cannot define local functions that capture env. variables. Instead we define _closures_.
                         let process_block =
                             |cluster: &mut Scope<'_, '_>, node_id: usize, b: &BasicBlock| {
