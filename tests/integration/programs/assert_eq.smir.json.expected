@@ -3121,8 +3121,13 @@
   "types": [
     [
       {
+        "PrimitiveType": "Bool"
+      }
+    ],
+    [
+      {
         "PrimitiveType": {
-          "Int": "I8"
+          "Int": "I32"
         }
       }
     ],
@@ -3136,27 +3141,32 @@
     [
       {
         "PrimitiveType": {
-          "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
           "Uint": "U32"
         }
       }
     ],
     [
       {
-        "PrimitiveType": "Bool"
+        "PrimitiveType": {
+          "Uint": "U8"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::option::Option"
+        }
       }
     ],
     [
@@ -3216,37 +3226,6 @@
     ],
     [
       {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::option::Option"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "name": "std::process::ExitCode"
-        }
-      }
-    ],
-    [
-      {
         "StructType": {
           "name": "std::fmt::Arguments"
         }
@@ -3268,8 +3247,22 @@
     ],
     [
       {
-        "TupleType": {
-          "types": "elided"
+        "StructType": {
+          "name": "std::panic::Location"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::process::ExitCode"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],
@@ -3311,7 +3304,7 @@
     ],
     [
       {
-        "RefType": "elided"
+        "PtrType": "elided"
       }
     ],
     [
@@ -3351,82 +3344,12 @@
     ],
     [
       {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ],
     [
       {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ]
   ]

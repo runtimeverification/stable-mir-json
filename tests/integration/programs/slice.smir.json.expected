@@ -4486,20 +4486,18 @@
   "types": [
     [
       {
-        "PrimitiveType": {
-          "Uint": "Usize"
-        }
-      }
-    ],
-    [
-      {
         "PrimitiveType": "Bool"
       }
     ],
     [
       {
+        "PrimitiveType": "Str"
+      }
+    ],
+    [
+      {
         "PrimitiveType": {
-          "Int": "I8"
+          "Int": "I32"
         }
       }
     ],
@@ -4520,7 +4518,24 @@
     [
       {
         "PrimitiveType": {
-          "Int": "I32"
+          "Uint": "Usize"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "name": "std::option::Option"
         }
       }
     ],
@@ -4571,24 +4586,14 @@
               1
             ]
           ],
-          "name": "std::option::Option"
+          "name": "std::result::Result"
         }
       }
     ],
     [
       {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
+        "StructType": {
+          "name": "std::array::TryFromSliceError"
         }
       }
     ],
@@ -4602,7 +4607,7 @@
     [
       {
         "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+          "name": "std::panic::Location"
         }
       }
     ],
@@ -4616,7 +4621,7 @@
     [
       {
         "StructType": {
-          "name": "std::array::TryFromSliceError"
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],
@@ -4631,38 +4636,6 @@
       {
         "ArrayType": [
           {
-            "id": 1,
-            "kind": {
-              "Value": [
-                0,
-                {
-                  "align": 8,
-                  "bytes": [
-                    4,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                  ],
-                  "mutability": "Mut",
-                  "provenance": {
-                    "ptrs": []
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    ],
-    [
-      {
-        "ArrayType": [
-          {
-            "id": 0,
             "kind": {
               "Value": [
                 0,
@@ -4691,9 +4664,32 @@
     ],
     [
       {
-        "TupleType": {
-          "types": "elided"
-        }
+        "ArrayType": [
+          {
+            "kind": {
+              "Value": [
+                0,
+                {
+                  "align": 8,
+                  "bytes": [
+                    4,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "mutability": "Mut",
+                  "provenance": {
+                    "ptrs": []
+                  }
+                }
+              ]
+            }
+          }
+        ]
       }
     ],
     [
@@ -4730,7 +4726,7 @@
     ],
     [
       {
-        "RefType": "elided"
+        "PtrType": "elided"
       }
     ],
     [
@@ -4775,102 +4771,12 @@
     ],
     [
       {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ],
     [
       {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ]
   ]

@@ -12,13 +12,13 @@
   items:     .items,
   types: ( [
 # sort by constructors and remove unstable IDs within each
-    ( .types | map(select(.[0].PrimitiveType)) ),
+    ( .types | map(select(.[0].PrimitiveType)) | sort ),
   # delete unstable adt_ref IDs
-    ( .types | map(select(.[0].EnumType) | del(.[0].EnumType.adt_def)) ),
-    ( .types | map(select(.[0].StructType) | del(.[0].StructType.adt_def)) ),
-    ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) ),
+    ( .types | map(select(.[0].EnumType) | del(.[0].EnumType.adt_def)) | sort ),
+    ( .types | map(select(.[0].StructType) | del(.[0].StructType.adt_def)) | sort ),
+    ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) | sort ),
   # delete unstable Ty IDs for arrays and tuples
-    ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType[0])) ),
+    ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType[0]) | del(.[0].ArrayType[0].id)) | sort ),
     ( .types | map(select(.[0].TupleType) | .[0].TupleType.types = "elided") ),
   # replace unstable Ty IDs for references by zero
     ( .types | map(select(.[0].PtrType) | .[0].PtrType = "elided") ),

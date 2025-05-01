@@ -2210,30 +2210,12 @@
   "types": [
     [
       {
-        "PrimitiveType": {
-          "Int": "I8"
-        }
+        "PrimitiveType": "Bool"
       }
     ],
     [
       {
-        "PrimitiveType": {
-          "Int": "Isize"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I32"
-        }
+        "PrimitiveType": "Str"
       }
     ],
     [
@@ -2252,12 +2234,23 @@
     ],
     [
       {
-        "PrimitiveType": "Bool"
+        "PrimitiveType": {
+          "Int": "I32"
+        }
       }
     ],
     [
       {
-        "PrimitiveType": "Str"
+        "PrimitiveType": {
+          "Int": "Isize"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
+          "Uint": "U8"
+        }
       }
     ],
     [
@@ -2280,7 +2273,7 @@
     [
       {
         "StructType": {
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+          "name": "std::panic::Location"
         }
       }
     ],
@@ -2293,8 +2286,8 @@
     ],
     [
       {
-        "TupleType": {
-          "types": "elided"
+        "StructType": {
+          "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],
@@ -2317,7 +2310,7 @@
     ],
     [
       {
-        "RefType": "elided"
+        "PtrType": "elided"
       }
     ],
     [
@@ -2347,57 +2340,7 @@
     ],
     [
       {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
-      }
-    ],
-    [
-      {
-        "FunType": "elided"
+        "RefType": "elided"
       }
     ]
   ]
