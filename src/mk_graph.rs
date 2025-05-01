@@ -14,11 +14,15 @@ extern crate stable_mir;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::mir::{
-    AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
-    Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind, UnwindAction,
-};
 use stable_mir::ty::{IndexedVal, Ty};
+use stable_mir::{
+    mir::{
+        AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
+        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind,
+        UnwindAction,
+    },
+    ty::RigidTy,
+};
 
 use crate::{
     printer::{collect_smir, FnSymType, SmirJson},
@@ -86,6 +90,19 @@ impl SmirJson<'_> {
                         } else {
                             c.set_color(Color::LightGrey);
                         }
+
+                        // Set out the type information of the locals
+                        let mut local_node = c.node_auto();
+                        let mut vector: Vec<String> = vec![];
+                        vector.push(String::from("LOCALS"));
+                        for (index, decl) in body.clone().unwrap().local_decls() {
+                            vector.push(format!("{index} = {}", decl.ty));
+                        }
+                        vector.push("".to_string());
+                        local_node.set_label(vector.join("\\l").to_string().as_str());
+                        local_node.set_style(Style::Filled);
+                        local_node.set("color", "palegreen3", false);
+                        drop(local_node);
 
                         // Cannot define local functions that capture env. variables. Instead we define _closures_.
                         let process_block =
@@ -376,7 +393,16 @@ trait GraphLabelString {
 impl GraphLabelString for Operand {
     fn label(&self) -> String {
         match &self {
-            Operand::Constant(ConstOperand { const_, .. }) => format!("const :: {}", const_.ty()),
+            Operand::Constant(ConstOperand { const_, .. }) => {
+                let ty = const_.ty();
+                match &ty.kind() {
+                    stable_mir::ty::TyKind::RigidTy(RigidTy::Int(_))
+                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
+                        format!("const ?_{}", const_.ty())
+                    }
+                    _ => format!("const {}", const_.ty()),
+                }
+            }
             Operand::Copy(place) => format!("cp({})", place.label()),
             Operand::Move(place) => format!("mv({})", place.label()),
         }
@@ -395,7 +421,7 @@ fn project(local: String, ps: &[ProjectionElem]) -> String {
 
 fn decorate(thing: String, p: &ProjectionElem) -> String {
     match p {
-        ProjectionElem::Deref => format!("*{}", thing),
+        ProjectionElem::Deref => format!("(*{})", thing),
         ProjectionElem::Field(i, _) => format!("{thing}.{i}"),
         ProjectionElem::Index(local) => format!("{thing}[_{local}]"),
         ProjectionElem::ConstantIndex {
@@ -437,7 +463,10 @@ impl GraphLabelString for Rvalue {
     fn label(&self) -> String {
         use Rvalue::*;
         match &self {
-            AddressOf(kind, p) => format!("&{:?} {}", kind, p.label()),
+            AddressOf(mutability, p) => match mutability {
+                Mutability::Not => format!("&raw {}", p.label()),
+                Mutability::Mut => format!("&raw mut {}", p.label()),
+            },
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
