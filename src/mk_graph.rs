@@ -101,7 +101,7 @@ impl SmirJson<'_> {
                         vector.push("".to_string());
                         local_node.set_label(vector.join("\\l").to_string().as_str());
                         local_node.set_style(Style::Filled);
-                        local_node.set("color", "palegreen3");
+                        local_node.set("color", "palegreen3", false);
                         drop(local_node);
 
                         // Cannot define local functions that capture env. variables. Instead we define _closures_.
