@@ -1,3 +1,4 @@
+use std::hash::Hash;
 use std::io::Write;
 use std::ops::ControlFlow;
 use std::{
@@ -486,6 +487,7 @@ type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
+type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
 
 struct TyCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -574,9 +576,10 @@ struct InternedValueCollector<'tcx, 'local> {
     link_map: &'local mut LinkMap<'tcx>,
     visited_allocs: &'local mut AllocMap,
     ty_visitor: &'local mut TyCollector<'tcx>,
+    spans: &'local mut SpanMap,
 }
 
-type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap);
+type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap, SpanMap);
 
 fn update_link_map<'tcx>(
     link_map: &mut LinkMap<'tcx>,
@@ -689,6 +692,26 @@ fn collect_alloc(
 }
 
 impl MirVisitor for InternedValueCollector<'_, '_> {
+    fn visit_span(&mut self, span: &stable_mir::ty::Span) {
+        let span_internal = internal(self.tcx, span);
+        let (source_file, lo_line, lo_col, hi_line, hi_col) = self
+            .tcx
+            .sess
+            .source_map()
+            .span_to_location_info(span_internal);
+        let file_name = match source_file {
+            Some(sf) => sf
+                .name
+                .display(rustc_span::FileNameDisplayPreference::Remapped)
+                .to_string(),
+            None => "no-location".to_string(),
+        };
+        self.spans.insert(
+            span.to_index(),
+            (file_name, lo_line, lo_col, hi_line, hi_col),
+        );
+    }
+
     fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
         use stable_mir::mir::{ConstOperand, Operand::Constant};
         use TerminatorKind::*;
@@ -771,6 +794,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
     let mut calls_map = HashMap::new();
     let mut visited_allocs = HashMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
+    let mut span_map = HashMap::new();
     if link_items_enabled() {
         for item in items.iter() {
             if let MonoItem::Fn(inst) = item {
@@ -793,6 +817,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         link_map: &mut calls_map,
                         visited_allocs: &mut visited_allocs,
                         ty_visitor: &mut ty_visitor,
+                        spans: &mut span_map,
                     }
                     .visit_body(&body)
                 } else {
@@ -812,6 +837,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         link_map: &mut calls_map,
                         visited_allocs: &mut visited_allocs,
                         ty_visitor: &mut ty_visitor,
+                        spans: &mut span_map,
                     }
                     .visit_body(&body)
                 } else {
@@ -824,7 +850,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
             MonoItem::GlobalAsm(_) => {}
         }
     }
-    (calls_map, visited_allocs, ty_visitor.types)
+    (calls_map, visited_allocs, ty_visitor.types, span_map)
 }
 
 // Collection Transitive Closure
@@ -1036,6 +1062,8 @@ fn mk_type_metadata(
     }
 }
 
+type SourceData = (String, usize, usize, usize, usize);
+
 /// the serialised data structure as a whole
 #[derive(Serialize)]
 pub struct SmirJson<'t> {
@@ -1046,6 +1074,7 @@ pub struct SmirJson<'t> {
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
     pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
+    pub spans: Vec<(usize, SourceData)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
 }
 
@@ -1064,7 +1093,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let items = collect_items(tcx);
     let items_clone = items.clone();
     let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-    let (calls_map, visited_allocs, visited_tys) =
+    let (calls_map, visited_allocs, visited_tys, span_map) =
         collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
 
     // FIXME: We dump extra static items here --- this should be handled better
@@ -1112,11 +1141,14 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         //        .filter(|(_, v)| v.is_primitive())
         .collect::<Vec<_>>();
 
+    let mut spans = span_map.into_iter().collect::<Vec<_>>();
+
     // sort output vectors to stabilise output (a bit)
     allocs.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
     functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
     items.sort();
     types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
+    spans.sort();
 
     SmirJson {
         name: local_crate.name,
@@ -1126,6 +1158,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         uneval_consts: unevaluated_consts.into_iter().collect(),
         items,
         types,
+        spans,
         debug,
     }
 }

@@ -60,10 +60,11 @@ remake-ui-tests:
 	# This will run without saving source files. Run the script manually to do this.
 	bash tests/ui/remake_ui_tests.sh "$$RUST_DIR_ROOT"
 
+test-ui: VERBOSE=0
 test-ui:
 	# Check if RUST_DIR_ROOT is set
 	if [ -z "$$RUST_DIR_ROOT" ]; then \
 	  echo "Error: RUST_DIR_ROOT is not set. Please set it to the absolute path to rust compiler checkout."; \
 	  exit 1; \
 	fi
-	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT" "$$VERBOSE"
+	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT" "${VERBOSE}"
