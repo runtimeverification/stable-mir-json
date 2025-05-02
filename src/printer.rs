@@ -487,7 +487,7 @@ type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
-type SpanMap = HashMap<usize, String>;
+type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
 
 struct TyCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -694,12 +694,22 @@ fn collect_alloc(
 impl MirVisitor for InternedValueCollector<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
         let span_internal = internal(self.tcx, span);
-        let diagnostic_string = self
+        let (source_file, lo_line, lo_col, hi_line, hi_col) = self
             .tcx
             .sess
             .source_map()
-            .span_to_diagnostic_string(span_internal);
-        self.spans.insert(span.to_index(), diagnostic_string);
+            .span_to_location_info(span_internal);
+        let file_name = match source_file {
+            Some(sf) => sf
+                .name
+                .display(rustc_span::FileNameDisplayPreference::Remapped)
+                .to_string(),
+            None => "no-location".to_string(),
+        };
+        self.spans.insert(
+            span.to_index(),
+            (file_name, lo_line, lo_col, hi_line, hi_col),
+        );
     }
 
     fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
@@ -1052,6 +1062,8 @@ fn mk_type_metadata(
     }
 }
 
+type SourceData = (String, usize, usize, usize, usize);
+
 /// the serialised data structure as a whole
 #[derive(Serialize)]
 pub struct SmirJson<'t> {
@@ -1062,7 +1074,7 @@ pub struct SmirJson<'t> {
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
     pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
-    pub spans: Vec<(usize, String)>,
+    pub spans: Vec<(usize, SourceData)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
 }
 
