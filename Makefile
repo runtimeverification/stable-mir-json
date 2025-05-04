@@ -60,7 +60,7 @@ remake-ui-tests:
 	# This will run without saving source files. Run the script manually to do this.
 	bash tests/ui/remake_ui_tests.sh "$$RUST_DIR_ROOT"
 
-test-ui: VERBOSE=0
+test-ui: VERBOSE?=0
 test-ui:
 	# Check if RUST_DIR_ROOT is set
 	if [ -z "$$RUST_DIR_ROOT" ]; then \
