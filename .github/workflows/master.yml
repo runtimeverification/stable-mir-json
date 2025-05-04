@@ -23,7 +23,7 @@ jobs:
       - name: 'Update dependents'
         run: |
           set -x
-          VERSION=${{ github.event.push.head.sha }}
+          VERSION=$(git rev-parse HEAD)
           curl --fail                                                          \
             -X POST                                                            \
             -H "Accept: application/vnd.github+json"                           \
