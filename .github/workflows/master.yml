@@ -1,0 +1,32 @@
+name: 'Master Release'
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  update-deps:
+    name: "Update Dependents"
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.push.head.sha }}
+          fetch-depth: 0
+      - name: 'Update dependents'
+        run: |
+          set -x
+          VERSION=${{ github.event.push.head.sha }}
+          curl --fail                                                          \
+            -X POST                                                            \
+            -H "Accept: application/vnd.github+json"                           \
+            -H "Authorization: Bearer ${{ secrets.JENKINS_GITHUB_PAT }}"       \
+            -H "X-GitHub-Api-Version: 2022-11-28"                              \
+            https://api.github.com/repos/runtimeverification/devops/dispatches \
+            -d '{"event_type":"on-demand-test","client_payload":{"repo":"runtimeverification/stable-mir-json","version":"'${VERSION}'"}}'
