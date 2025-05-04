@@ -13,6 +13,7 @@ env:
 jobs:
   update-deps:
     name: "Update Dependents"
+    runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v4
