@@ -60,11 +60,24 @@ impl SmirJson<'_> {
             graph.set_label(&self.name[..]);
             graph.node_attributes().set_shape(Shape::Rectangle);
 
-            let func_map: HashMap<Ty, String> = self
+            let func_map_unfiltered: HashMap<Ty, String> = self
                 .functions
                 .into_iter()
                 .map(|(k, v)| (k.0, function_string(v)))
                 .collect();
+              
+
+            let func_map: HashMap<Ty, String> = func_map_unfiltered
+                .into_iter()
+                .filter(|(_ty, name)| !name.starts_with("_ZN4core3ops8function6FnOnce9call_once17h"))
+                .filter(|(_ty, name)| !name.starts_with("_ZN3std2rt19lang_start_internal17h"))
+                .filter(|(_ty, name)| !name.starts_with("_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"))
+                .filter(|(_ty, name)| !name.starts_with("_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"))
+                .filter(|(_ty, name)| !name.starts_with("_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"))
+                .filter(|(_ty, name)| !name.starts_with("Intr: black_box"))
+                .filter(|(_ty, name)| !name.starts_with("NoOp:"))
+                .collect();
+
 
             let item_names: HashSet<String> =
                 self.items.iter().map(|i| i.symbol_name.clone()).collect();
@@ -79,9 +92,24 @@ impl SmirJson<'_> {
                 }
             }
 
+            let black_list = [
+                "std::rt::lang_start::<()>",
+                "std::rt::lang_start::<()>::{closure#0}",
+                "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>",
+                "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once",
+                "<fn() as std::ops::FnOnce<()>>::call_once",
+                "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once",
+                "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>",
+                "<() as std::process::Termination>::report",
+            ];
+
             for item in self.items {
                 match item.mono_item_kind {
                     MonoItemKind::MonoItemFn { name, body, id: _ } => {
+                        if black_list.contains(&name.as_str()) {
+                            // Skip black listed items
+                            continue;
+                        }
                         let mut c = graph.cluster();
                         c.set_label(&name_lines(&name));
                         c.set_style(Style::Filled);
@@ -268,10 +296,8 @@ impl SmirJson<'_> {
                                                             block_name(callee, 0),
                                                         )
                                                     } else {
-                                                        let unknown = format!("{}", const_.ty());
-                                                        // pathological case, could panic! instead.
-                                                        // all unknown callees will be collapsed into one `unknown` node
-                                                        graph.edge(&this_block, unknown)
+                                                        // HACK: required for larger examples
+                                                        graph.edge(&this_block, &this_block)
                                                     }
                                                 }
                                                 Operand::Copy(place) => graph.edge(
