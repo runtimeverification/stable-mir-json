@@ -1076,6 +1076,7 @@ pub struct SmirJson<'t> {
     pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
     pub spans: Vec<(usize, SourceData)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
+    pub machine: stable_mir::target::MachineInfo,
 }
 
 #[derive(Serialize)]
@@ -1160,6 +1161,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         types,
         spans,
         debug,
+        machine: stable_mir::target::MachineInfo::target(),
     }
 }
 
