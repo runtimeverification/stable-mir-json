@@ -987,6 +987,7 @@ pub enum TypeMetadata {
     StructType {
         name: String,
         adt_def: AdtDef,
+        fields: Vec<stable_mir::ty::Ty>,
     },
     UnionType {
         name: String,
@@ -1029,10 +1030,22 @@ fn mk_type_metadata(
                 },
             ))
         }
-        // for structs, we record the name for information purposes
+        // for structs, we record the name for information purposes and the field types
         T(Adt(adt_def, _)) if t.is_struct() => {
             let name = adt_def.name();
-            Some((k, StructType { name, adt_def }))
+            let fields = rustc_internal::internal(tcx, adt_def)
+                .all_fields() // is_struct, so only one variant
+                .map(move |field| tcx.type_of(field.did).instantiate_identity())
+                .map(rustc_internal::stable)
+                .collect();
+            Some((
+                k,
+                StructType {
+                    name,
+                    adt_def,
+                    fields,
+                },
+            ))
         }
         // for unions, we only record the name
         T(Adt(adt_def, _)) if t.is_union() => {
