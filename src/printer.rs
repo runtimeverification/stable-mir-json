@@ -484,7 +484,7 @@ pub enum AllocInfo {
     Memory(stable_mir::ty::Allocation), // TODO include stable_mir::ty::TyKind?
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
-type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
+type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (TyKind, AllocInfo)>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
@@ -656,14 +656,14 @@ fn collect_alloc(
     let global_alloc = GlobalAlloc::from(val);
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_kind = get_prov_type(kind);
+            let pointed_kind = get_prov_type(kind.clone());
             if debug_enabled() {
                 println!(
                     "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
                     val, pointed_kind, global_alloc
                 );
             }
-            entry.or_insert(AllocInfo::Memory(alloc.clone())); // TODO: include pointed_kind.clone().unwrap() ?
+            entry.or_insert((kind.unwrap(), AllocInfo::Memory(alloc.clone()))); // TODO: include pointed_kind.clone().unwrap() ?
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_kind.clone(), prov.0);
             });
@@ -674,7 +674,7 @@ fn collect_alloc(
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert(AllocInfo::Static(def));
+            entry.or_insert((kind.unwrap(), AllocInfo::Static(def)));
         }
         GlobalAlloc::VTable(ty, traitref) => {
             assert!(
@@ -682,11 +682,11 @@ fn collect_alloc(
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert(AllocInfo::VTable(ty, traitref));
+            entry.or_insert((kind.unwrap(), AllocInfo::VTable(ty, traitref)));
         }
         GlobalAlloc::Function(inst) => {
-            assert!(kind.unwrap().is_fn_ptr());
-            entry.or_insert(AllocInfo::Function(inst));
+            assert!(kind.as_ref().unwrap().is_fn_ptr());
+            entry.or_insert((kind.unwrap(), AllocInfo::Function(inst)));
         }
     };
 }
@@ -1082,7 +1082,7 @@ type SourceData = (String, usize, usize, usize, usize);
 pub struct SmirJson<'t> {
     pub name: String,
     pub crate_id: u64,
-    pub allocs: Vec<(AllocId, AllocInfo)>,
+    pub allocs: Vec<(AllocId, (TyKind, AllocInfo))>,
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
@@ -1112,7 +1112,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
 
     // FIXME: We dump extra static items here --- this should be handled better
     for (_, alloc) in visited_allocs.iter() {
-        if let AllocInfo::Static(def) = alloc {
+        if let (_, AllocInfo::Static(def)) = alloc {
             let mono_item =
                 stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
             let item_name = &mono_item_name(tcx, &mono_item);
