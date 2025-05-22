@@ -627,15 +627,14 @@ fn update_link_map<'tcx>(
     }
 }
 
-fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mir::ty::TyKind> {
+fn get_prov_ty(pointer_kind: stable_mir::ty::TyKind) -> Option<stable_mir::ty::Ty> {
     use stable_mir::ty::RigidTy;
     // check for pointers
-    let kind = maybe_kind?;
-    if let Some(ty) = kind.builtin_deref(true) {
-        return ty.ty.kind().into();
+    if let Some(ty) = pointer_kind.builtin_deref(true) {
+        return ty.ty.into();
     }
-    match kind.rigid().expect("Non-rigid-ty allocation found!") {
-        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => ty.kind().into(),
+    match pointer_kind.rigid().expect("Non-rigid-ty allocation found!") {
+        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => (*ty).into(),
         RigidTy::FnPtr(_) | RigidTy::Adt(..) => None, // TODO: Check for Adt if the GenericArgs are related to prov
         unimplemented => {
             todo!("Unimplemented RigidTy allocation: {:?}", unimplemented);
@@ -645,7 +644,7 @@ fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mi
 
 fn collect_alloc(
     val_collector: &mut InternedValueCollector,
-    kind: Option<stable_mir::ty::TyKind>,
+    ty: stable_mir::ty::Ty,
     val: stable_mir::mir::alloc::AllocId,
 ) {
     use stable_mir::mir::alloc::GlobalAlloc;
@@ -653,40 +652,41 @@ fn collect_alloc(
     if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) {
         return;
     }
+    let kind = ty.kind();
     let global_alloc = GlobalAlloc::from(val);
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_kind = get_prov_type(kind.clone());
+            let pointed_ty = get_prov_ty(kind.clone());
             if debug_enabled() {
                 println!(
                     "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
-                    val, pointed_kind, global_alloc
+                    val, pointed_ty.map(|ty| ty.kind()), global_alloc
                 );
             }
-            entry.or_insert((kind.unwrap(), AllocInfo::Memory(alloc.clone()))); // TODO: include pointed_kind.clone().unwrap() ?
+            entry.or_insert((kind, AllocInfo::Memory(alloc.clone()))); // TODO: include pointed_kind.clone().unwrap() ?
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
-                collect_alloc(val_collector, pointed_kind.clone(), prov.0);
+                collect_alloc(val_collector, pointed_ty.unwrap(), prov.0);
             });
         }
         GlobalAlloc::Static(def) => {
             assert!(
-                kind.clone().unwrap().builtin_deref(true).is_some(),
+                kind.clone().builtin_deref(true).is_some(),
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((kind.unwrap(), AllocInfo::Static(def)));
+            entry.or_insert((kind, AllocInfo::Static(def)));
         }
         GlobalAlloc::VTable(ty, traitref) => {
             assert!(
-                kind.clone().unwrap().builtin_deref(true).is_some(),
+                kind.clone().builtin_deref(true).is_some(),
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((kind.unwrap(), AllocInfo::VTable(ty, traitref)));
+            entry.or_insert((kind, AllocInfo::VTable(ty, traitref)));
         }
         GlobalAlloc::Function(inst) => {
-            assert!(kind.as_ref().unwrap().is_fn_ptr());
-            entry.or_insert((kind.unwrap(), AllocInfo::Function(inst)));
+            assert!(kind.is_fn_ptr());
+            entry.or_insert((kind, AllocInfo::Function(inst)));
         }
     };
 }
@@ -771,7 +771,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     );
                 }
                 alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| {
-                    collect_alloc(self, Some(constant.ty().kind()), prov.0)
+                    collect_alloc(self, constant.ty(), prov.0)
                 });
             }
             ConstantKind::Ty(ty_const) => {
