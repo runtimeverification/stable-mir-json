@@ -481,10 +481,10 @@ pub enum AllocInfo {
         Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>,
     ),
     Static(stable_mir::mir::mono::StaticDef),
-    Memory(stable_mir::ty::Allocation), // TODO include stable_mir::ty::TyKind?
+    Memory(stable_mir::ty::Allocation),
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
-type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (TyKind, AllocInfo)>;
+type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, AllocInfo)>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
@@ -664,7 +664,7 @@ fn collect_alloc(
                     val, pointed_ty.map(|ty| ty.kind()), global_alloc
                 );
             }
-            entry.or_insert((kind, AllocInfo::Memory(alloc.clone()))); // TODO: include pointed_kind.clone().unwrap() ?
+            entry.or_insert((ty, AllocInfo::Memory(alloc.clone())));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_ty.unwrap(), prov.0);
             });
@@ -675,7 +675,7 @@ fn collect_alloc(
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((kind, AllocInfo::Static(def)));
+            entry.or_insert((ty, AllocInfo::Static(def)));
         }
         GlobalAlloc::VTable(ty, traitref) => {
             assert!(
@@ -683,11 +683,11 @@ fn collect_alloc(
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((kind, AllocInfo::VTable(ty, traitref)));
+            entry.or_insert((ty, AllocInfo::VTable(ty, traitref)));
         }
         GlobalAlloc::Function(inst) => {
             assert!(kind.is_fn_ptr());
-            entry.or_insert((kind, AllocInfo::Function(inst)));
+            entry.or_insert((ty, AllocInfo::Function(inst)));
         }
     };
 }
@@ -1083,7 +1083,7 @@ type SourceData = (String, usize, usize, usize, usize);
 pub struct SmirJson<'t> {
     pub name: String,
     pub crate_id: u64,
-    pub allocs: Vec<(AllocId, (TyKind, AllocInfo))>,
+    pub allocs: Vec<(AllocId, (stable_mir::ty::Ty, AllocInfo))>,
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
