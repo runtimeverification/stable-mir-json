@@ -2,7 +2,7 @@
 .functions = ( [ .functions[] | if .[1].NormalSym then .[1].NormalSym = .[1].NormalSym[:-17] else .  end ] )
     | .items = ( [ .items[] | if .symbol_name then .symbol_name = .symbol_name[:-17] else .  end ] )
 # delete unstable alloc, function, and type IDs
-    | .allocs = ( .allocs | map([.[1][1:]]) )
+    | .allocs = ( .allocs | map(del(.alloc_id)) | map(del(.ty)) )
     | .functions = ( [ .functions[] ] | map(del(.[0])) )
     | .types     =  ( [ .types[] ] | map(del(.[0])) )
     |
