@@ -627,8 +627,9 @@ fn update_link_map<'tcx>(
     }
 }
 
-fn get_prov_ty(pointer_kind: stable_mir::ty::TyKind) -> Option<stable_mir::ty::Ty> {
+fn get_prov_ty(pointer_ty: stable_mir::ty::Ty) -> Option<stable_mir::ty::Ty> {
     use stable_mir::ty::RigidTy;
+    let pointer_kind = pointer_ty.kind();
     // check for pointers
     if let Some(ty) = pointer_kind.builtin_deref(true) {
         return ty.ty.into();
@@ -656,7 +657,7 @@ fn collect_alloc(
     let global_alloc = GlobalAlloc::from(val);
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_ty = get_prov_ty(kind.clone());
+            let pointed_ty = get_prov_ty(ty);
             if debug_enabled() {
                 println!(
                     "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
