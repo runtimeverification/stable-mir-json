@@ -634,7 +634,10 @@ fn get_prov_ty(pointer_ty: stable_mir::ty::Ty) -> Option<stable_mir::ty::Ty> {
     if let Some(ty) = pointer_kind.builtin_deref(true) {
         return ty.ty.into();
     }
-    match pointer_kind.rigid().expect("Non-rigid-ty allocation found!") {
+    match pointer_kind
+        .rigid()
+        .expect("Non-rigid-ty allocation found!")
+    {
         RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => (*ty).into(),
         RigidTy::FnPtr(_) | RigidTy::Adt(..) => None, // TODO: Check for Adt if the GenericArgs are related to prov
         unimplemented => {
@@ -661,7 +664,9 @@ fn collect_alloc(
             if debug_enabled() {
                 println!(
                     "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
-                    val, pointed_ty.map(|ty| ty.kind()), global_alloc
+                    val,
+                    pointed_ty.map(|ty| ty.kind()),
+                    global_alloc
                 );
             }
             entry.or_insert((ty, AllocInfo::Memory(alloc.clone())));
@@ -771,9 +776,11 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                         constant.ty().kind()
                     );
                 }
-                alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| {
-                    collect_alloc(self, constant.ty(), prov.0)
-                });
+                alloc
+                    .provenance
+                    .ptrs
+                    .iter()
+                    .for_each(|(_offset, prov)| collect_alloc(self, constant.ty(), prov.0));
             }
             ConstantKind::Ty(ty_const) => {
                 if let TyConstKind::Value(..) = ty_const.kind() {
