@@ -1090,7 +1090,7 @@ type SourceData = (String, usize, usize, usize, usize);
 pub struct SmirJson<'t> {
     pub name: String,
     pub crate_id: u64,
-    pub allocs: Vec<(AllocId, (stable_mir::ty::Ty, AllocInfo))>,
+    pub allocs: Vec<AllocJson>,
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
@@ -1105,6 +1105,13 @@ pub struct SmirJsonDebugInfo<'t> {
     fn_sources: Vec<(LinkMapKey<'t>, ItemSource)>,
     types: TyMap,
     foreign_modules: Vec<(String, Vec<ForeignModule>)>,
+}
+
+#[derive(Serialize)]
+pub struct AllocJson {
+    alloc_id: AllocId,
+    ty: stable_mir::ty::Ty,
+    alloc_info: AllocInfo,
 }
 
 // Serialization Entrypoint
@@ -1153,7 +1160,14 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         .into_iter()
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
-    let mut allocs = visited_allocs.into_iter().collect::<Vec<_>>();
+    let mut allocs = visited_allocs
+        .into_iter()
+        .map(|(alloc_id, (ty, alloc_info))| AllocJson {
+            alloc_id,
+            ty,
+            alloc_info,
+        })
+        .collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
     let mut types = visited_tys
@@ -1166,7 +1180,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let mut spans = span_map.into_iter().collect::<Vec<_>>();
 
     // sort output vectors to stabilise output (a bit)
-    allocs.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
+    allocs.sort_by(|a, b| a.alloc_id.to_index().cmp(&b.alloc_id.to_index()));
     functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
     items.sort();
     types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
