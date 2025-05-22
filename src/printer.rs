@@ -33,7 +33,10 @@ use rustc_span::{
 use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
-    mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
+    mir::{
+        alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator,
+        TerminatorKind,
+    },
     ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
@@ -473,18 +476,8 @@ impl Serialize for ItemSource {
     }
 }
 
-#[derive(Serialize)]
-pub enum AllocInfo {
-    Function(stable_mir::mir::mono::Instance),
-    VTable(
-        stable_mir::ty::Ty,
-        Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>,
-    ),
-    Static(stable_mir::mir::mono::StaticDef),
-    Memory(stable_mir::ty::Allocation),
-}
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
-type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, AllocInfo)>;
+type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc)>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
@@ -651,7 +644,6 @@ fn collect_alloc(
     ty: stable_mir::ty::Ty,
     val: stable_mir::mir::alloc::AllocId,
 ) {
-    use stable_mir::mir::alloc::GlobalAlloc;
     let entry = val_collector.visited_allocs.entry(val);
     if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) {
         return;
@@ -669,30 +661,30 @@ fn collect_alloc(
                     global_alloc
                 );
             }
-            entry.or_insert((ty, AllocInfo::Memory(alloc.clone())));
+            entry.or_insert((ty, global_alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_ty.unwrap(), prov.0);
             });
         }
-        GlobalAlloc::Static(def) => {
+        GlobalAlloc::Static(_) => {
             assert!(
                 kind.clone().builtin_deref(true).is_some(),
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((ty, AllocInfo::Static(def)));
+            entry.or_insert((ty, global_alloc.clone()));
         }
-        GlobalAlloc::VTable(ty, traitref) => {
+        GlobalAlloc::VTable(_, _) => {
             assert!(
                 kind.clone().builtin_deref(true).is_some(),
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((ty, AllocInfo::VTable(ty, traitref)));
+            entry.or_insert((ty, global_alloc.clone()));
         }
-        GlobalAlloc::Function(inst) => {
+        GlobalAlloc::Function(_) => {
             assert!(kind.is_fn_ptr());
-            entry.or_insert((ty, AllocInfo::Function(inst)));
+            entry.or_insert((ty, global_alloc.clone()));
         }
     };
 }
@@ -1090,7 +1082,7 @@ type SourceData = (String, usize, usize, usize, usize);
 pub struct SmirJson<'t> {
     pub name: String,
     pub crate_id: u64,
-    pub allocs: Vec<AllocJson>,
+    pub allocs: Vec<AllocInfo>,
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
@@ -1108,10 +1100,10 @@ pub struct SmirJsonDebugInfo<'t> {
 }
 
 #[derive(Serialize)]
-pub struct AllocJson {
+pub struct AllocInfo {
     alloc_id: AllocId,
     ty: stable_mir::ty::Ty,
-    alloc_info: AllocInfo,
+    global_alloc: GlobalAlloc,
 }
 
 // Serialization Entrypoint
@@ -1127,7 +1119,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
 
     // FIXME: We dump extra static items here --- this should be handled better
     for (_, alloc) in visited_allocs.iter() {
-        if let (_, AllocInfo::Static(def)) = alloc {
+        if let (_, GlobalAlloc::Static(def)) = alloc {
             let mono_item =
                 stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
             let item_name = &mono_item_name(tcx, &mono_item);
@@ -1162,10 +1154,10 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         .collect::<Vec<_>>();
     let mut allocs = visited_allocs
         .into_iter()
-        .map(|(alloc_id, (ty, alloc_info))| AllocJson {
+        .map(|(alloc_id, (ty, global_alloc))| AllocInfo {
             alloc_id,
             ty,
-            alloc_info,
+            global_alloc,
         })
         .collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
