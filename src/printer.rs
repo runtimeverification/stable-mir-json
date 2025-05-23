@@ -412,8 +412,8 @@ fn fn_inst_sym<'tcx>(
             let internal_inst = rustc_internal::internal(tcx, inst);
             let sym_type = if inst.is_empty_shim() {
                 NoOpSym(String::from(""))
-            } else if let Some(intrinsic_name) = inst.intrinsic_name() {
-                IntrinsicSym(intrinsic_name)
+            } else if let Some(_intrinsic_name) = inst.intrinsic_name() {
+                IntrinsicSym(inst.mangled_name())
             } else {
                 NormalSym(inst.mangled_name())
             };
