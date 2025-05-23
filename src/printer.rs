@@ -413,7 +413,7 @@ fn fn_inst_sym<'tcx>(
             } else if let Some(_intrinsic_name) = inst.intrinsic_name() {
                 IntrinsicSym(try_demangle(&inst.mangled_name()).unwrap().to_string())
             } else {
-                NormalSym(inst.mangled_name())
+                NormalSym(try_demangle(&inst.mangled_name()).unwrap().to_string())
             };
             Some((ty, internal_inst.def, sym_type))
         } else {
