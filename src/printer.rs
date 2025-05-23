@@ -332,7 +332,8 @@ impl Ord for Item {
     }
 }
 
-fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
+    let symbol_name = mono_item_name(tcx, &item).to_string();
     match item {
         MonoItem::Fn(inst) => {
             let id = inst.def.def_id();
@@ -340,7 +341,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             let internal_id = rustc_internal::internal(tcx, id);
             Item {
                 mono_item: item,
-                symbol_name: sym_name.clone(),
+                symbol_name,
                 mono_item_kind: MonoItemKind::MonoItemFn {
                     name: name.clone(),
                     id,
@@ -363,7 +364,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             };
             Item {
                 mono_item: item,
-                symbol_name: sym_name,
+                symbol_name,
                 mono_item_kind: MonoItemKind::MonoItemStatic {
                     name: static_def.name(),
                     id: static_def.def_id(),
@@ -376,7 +377,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             let asm = format!("{:#?}", asm);
             Item {
                 mono_item: item,
-                symbol_name: sym_name,
+                symbol_name,
                 mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm },
                 details: None,
             }
@@ -900,7 +901,6 @@ impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
                     mk_item(
                         self.tcx,
                         rustc_internal::stable(internal_mono_item),
-                        item_name,
                     ),
                 );
             }
@@ -970,7 +970,7 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
         .iter()
         .map(|item| {
             let name = mono_item_name(tcx, item);
-            (name.clone(), mk_item(tcx, item.clone(), name))
+            (name.clone(), mk_item(tcx, item.clone()))
         })
         .collect::<HashMap<_, _>>()
 }
@@ -1122,7 +1122,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
                     "Items missing static with id {:?} and name {:?}",
                     def, item_name
                 );
-                items.push(mk_item(tcx, mono_item, item_name.clone()));
+                items.push(mk_item(tcx, mono_item));
             }
         }
     }
