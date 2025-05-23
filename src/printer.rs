@@ -223,15 +223,11 @@ pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Sym
 }
 
 fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
-    if let MonoItem::GlobalAsm(data) = item {
-        hash(data).to_string()
-    } else {
-        mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+    match item {
+        MonoItem::Fn(instance) => try_demangle(&instance.mangled_name()).unwrap().to_string(),
+        MonoItem::Static(_static_def) => rustc_internal::internal(tcx, item).symbol_name(tcx).name.into(),
+        MonoItem::GlobalAsm(opaque) => hash(opaque).to_string(),
     }
-}
-
-fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
-    item.symbol_name(tcx).name.into()
 }
 
 fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
@@ -886,7 +882,7 @@ impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
                 .flatten()
                 .unwrap_or_else(|| panic!("Failed to resolve mono item for {:?}", uconst));
             let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
-            let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
+            let item_name = mono_item_name(self.tcx, &MonoItem::Fn(rustc_internal::stable(inst)));
             if !(self.processed_items.contains_key(&item_name)
                 || self.pending_items.contains_key(&item_name)
                 || self.current_item == hash(&item_name))
