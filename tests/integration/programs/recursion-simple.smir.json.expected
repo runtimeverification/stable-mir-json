@@ -44,22 +44,22 @@
   "functions": [
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
@@ -69,22 +69,22 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN16recursion_simple12sum_to_n_rec17h"
+        "NormalSym": "recursion_simple::sum_to_n_rec::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
@@ -186,7 +186,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "<() as std::process::Termination>::report::h3c61de52d3aaf346"
+      "symbol_name": "<() as std::process::Termination>::report::"
     },
     {
       "details": null,
@@ -251,7 +251,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h280ca10d4cdc089b"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -408,7 +408,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h99733990595be573"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -493,7 +493,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::h93f3b1c71a34fe2f"
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
     },
     {
       "details": null,
@@ -530,7 +530,7 @@
           "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::hba5d3cf0898289b8"
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -738,7 +738,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "recursion_simple::main::h08d6a0945650288a"
+      "symbol_name": "recursion_simple::main::"
     },
     {
       "details": null,
@@ -1168,7 +1168,7 @@
           "name": "sum_to_n_rec"
         }
       },
-      "symbol_name": "recursion_simple::sum_to_n_rec::he6087e74219aae9a"
+      "symbol_name": "recursion_simple::sum_to_n_rec::"
     },
     {
       "details": null,
@@ -1526,7 +1526,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "std::rt::lang_start::h6813f563cc4218d2"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -1887,7 +1887,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "std::rt::lang_start::{{closure}}::hd1e5b255d7ed4911"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -2066,7 +2066,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::he013b6cd6132de39"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     }
   ],
   "types": [

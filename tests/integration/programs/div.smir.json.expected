@@ -49,22 +49,22 @@
   "functions": [
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
@@ -74,17 +74,17 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
@@ -186,7 +186,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "<() as std::process::Termination>::report::hffbdb66f6c1d9211"
+      "symbol_name": "<() as std::process::Termination>::report::"
     },
     {
       "details": null,
@@ -343,7 +343,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h7d8ca50f4bcee240"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -408,7 +408,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h91a3d65f2d111ab4"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -493,7 +493,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::hebc2f0665a24f4af"
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
     },
     {
       "details": null,
@@ -530,7 +530,7 @@
           "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::ha94291a6e18f1b4d"
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -1103,7 +1103,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "div::main::h23e287fa42b34ef6"
+      "symbol_name": "div::main::"
     },
     {
       "details": null,
@@ -1461,7 +1461,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "std::rt::lang_start::hbd108b6d97f9b06a"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -1822,7 +1822,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "std::rt::lang_start::{{closure}}::hb3cdf57509f37c7b"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -2001,7 +2001,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::h5249a92c895d39c3"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     }
   ],
   "types": [

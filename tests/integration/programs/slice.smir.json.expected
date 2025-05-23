@@ -67,32 +67,32 @@
   "functions": [
     [
       {
-        "NormalSym": "_ZN4core5slice5index24slice_end_index_len_fail17h"
+        "NormalSym": "core::slice::index::slice_end_index_len_fail::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core5slice5index22slice_index_order_fail17h"
+        "NormalSym": "core::slice::index::slice_index_order_fail::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
@@ -102,32 +102,32 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core5slice5index74_$LT$impl$u20$core..ops..index..Index$LT$I$GT$$u20$for$u20$$u5b$T$u5d$$GT$5index17h"
+        "NormalSym": "core::slice::index::<impl core::ops::index::Index<I> for [T]>::index::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN69_$LT$T$u20$as$u20$core..array..equality..SpecArrayEq$LT$U$C$_$GT$$GT$7spec_eq17h"
+        "NormalSym": "<T as core::array::equality::SpecArrayEq<U,_>>::spec_eq::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core5array8equality92_$LT$impl$u20$core..cmp..PartialEq$LT$$u5b$U$u3b$$u20$N$u5d$$GT$$u20$for$u20$$u5b$T$u5d$$GT$2eq17h"
+        "NormalSym": "core::array::equality::<impl core::cmp::PartialEq<[U; N]> for [T]>::eq::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN106_$LT$core..ops..range..Range$LT$usize$GT$$u20$as$u20$core..slice..index..SliceIndex$LT$$u5b$T$u5d$$GT$$GT$5index17h"
+        "NormalSym": "<core::ops::range::Range<usize> as core::slice::index::SliceIndex<[T]>>::index::"
       }
     ],
     [
@@ -137,17 +137,17 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core5array85_$LT$impl$u20$core..ops..index..Index$LT$I$GT$$u20$for$u20$$u5b$T$u3b$$u20$N$u5d$$GT$5index17h"
+        "NormalSym": "core::array::<impl core::ops::index::Index<I> for [T; N]>::index::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core5array8equality96_$LT$impl$u20$core..cmp..PartialEq$LT$$u5b$U$u3b$$u20$N$u5d$$GT$$u20$for$u20$$RF$$u5b$T$u5d$$GT$2eq17h"
+        "NormalSym": "core::array::equality::<impl core::cmp::PartialEq<[U; N]> for &[T]>::eq::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
@@ -249,7 +249,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "<() as std::process::Termination>::report::h33c0f3458c5436db"
+      "symbol_name": "<() as std::process::Termination>::report::"
     },
     {
       "details": null,
@@ -405,7 +405,7 @@
           "name": "<i32 as std::array::equality::SpecArrayEq<i32, 2>>::spec_eq"
         }
       },
-      "symbol_name": "<T as core::array::equality::SpecArrayEq<U,_>>::spec_eq::h05cf8c7ebc067cc0"
+      "symbol_name": "<T as core::array::equality::SpecArrayEq<U,_>>::spec_eq::"
     },
     {
       "details": null,
@@ -1298,7 +1298,7 @@
           "name": "<std::ops::Range<usize> as std::slice::SliceIndex<[i32]>>::index"
         }
       },
-      "symbol_name": "<core::ops::range::Range<usize> as core::slice::index::SliceIndex<[T]>>::index::hc9dd095fa490333d"
+      "symbol_name": "<core::ops::range::Range<usize> as core::slice::index::SliceIndex<[T]>>::index::"
     },
     {
       "details": null,
@@ -1443,7 +1443,7 @@
           "name": "std::array::<impl std::ops::Index<std::ops::Range<usize>> for [i32; 4]>::index"
         }
       },
-      "symbol_name": "core::array::<impl core::ops::index::Index<I> for [T; N]>::index::h8e4cb569a34f524b"
+      "symbol_name": "core::array::<impl core::ops::index::Index<I> for [T; N]>::index::"
     },
     {
       "details": null,
@@ -1584,7 +1584,7 @@
           "name": "std::array::equality::<impl std::cmp::PartialEq<[i32; 2]> for &[i32]>::eq"
         }
       },
-      "symbol_name": "core::array::equality::<impl core::cmp::PartialEq<[U; N]> for &[T]>::eq::h74f8bdfab07113be"
+      "symbol_name": "core::array::equality::<impl core::cmp::PartialEq<[U; N]> for &[T]>::eq::"
     },
     {
       "details": null,
@@ -2516,7 +2516,7 @@
           "name": "std::array::equality::<impl std::cmp::PartialEq<[i32; 2]> for [i32]>::eq"
         }
       },
-      "symbol_name": "core::array::equality::<impl core::cmp::PartialEq<[U; N]> for [T]>::eq::h1eb20d1304d91fda"
+      "symbol_name": "core::array::equality::<impl core::cmp::PartialEq<[U; N]> for [T]>::eq::"
     },
     {
       "details": null,
@@ -2673,7 +2673,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h05003d9805ddae31"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -2738,7 +2738,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h19ff14906b46b81d"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -2823,7 +2823,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::he296d6dd3728c972"
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
     },
     {
       "details": null,
@@ -2860,7 +2860,7 @@
           "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::hf29be8cdda0a7294"
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -2974,7 +2974,7 @@
           "name": "core::slice::index::<impl std::ops::Index<std::ops::Range<usize>> for [i32]>::index"
         }
       },
-      "symbol_name": "core::slice::index::<impl core::ops::index::Index<I> for [T]>::index::h3e9fdcc8bc4b3d0e"
+      "symbol_name": "core::slice::index::<impl core::ops::index::Index<I> for [T]>::index::"
     },
     {
       "details": null,
@@ -3582,7 +3582,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "slice::main::h59a7158e62ef4fe0"
+      "symbol_name": "slice::main::"
     },
     {
       "details": null,
@@ -3940,7 +3940,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "std::rt::lang_start::hdeca08713139f399"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -4301,7 +4301,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "std::rt::lang_start::{{closure}}::hae08aa071878c147"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -4480,7 +4480,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::h59c8bf3bd83534f6"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     }
   ],
   "types": [

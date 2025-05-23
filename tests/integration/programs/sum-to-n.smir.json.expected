@@ -41,22 +41,22 @@
   "functions": [
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
@@ -66,27 +66,27 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN8sum_to_n8sum_to_n17h"
+        "NormalSym": "sum_to_n::sum_to_n::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN8sum_to_n13test_sum_to_n17h"
+        "NormalSym": "sum_to_n::test_sum_to_n::"
       }
     ],
     [
@@ -188,7 +188,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "<() as std::process::Termination>::report::h171c763059a29eb1"
+      "symbol_name": "<() as std::process::Termination>::report::"
     },
     {
       "details": null,
@@ -253,7 +253,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h3ffab4b9d12585e8"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -410,7 +410,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::hf0366b307858997e"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -495,7 +495,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::h7bf74c286739fe5e"
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
     },
     {
       "details": null,
@@ -532,7 +532,7 @@
           "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::h3cfc3b9f723a22c5"
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -890,7 +890,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "std::rt::lang_start::h07d8408a7ad22f1e"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -1251,7 +1251,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "std::rt::lang_start::{{closure}}::h2d9aa2ab28720e2f"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -1430,7 +1430,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::heb5e756d786a8242"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     },
     {
       "details": null,
@@ -1495,7 +1495,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "sum_to_n::main::hc4893a5b9e8ee034"
+      "symbol_name": "sum_to_n::main::"
     },
     {
       "details": null,
@@ -2099,7 +2099,7 @@
           "name": "sum_to_n"
         }
       },
-      "symbol_name": "sum_to_n::sum_to_n::ha8037c8f5b9f1867"
+      "symbol_name": "sum_to_n::sum_to_n::"
     },
     {
       "details": null,
@@ -2493,7 +2493,7 @@
           "name": "test_sum_to_n"
         }
       },
-      "symbol_name": "sum_to_n::test_sum_to_n::h9fac6d1224b2f624"
+      "symbol_name": "sum_to_n::test_sum_to_n::"
     }
   ],
   "types": [

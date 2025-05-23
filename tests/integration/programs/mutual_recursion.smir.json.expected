@@ -46,22 +46,22 @@
   "functions": [
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
@@ -71,27 +71,27 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN16mutual_recursion6is_odd17h"
+        "NormalSym": "mutual_recursion::is_odd::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN16mutual_recursion7is_even17h"
+        "NormalSym": "mutual_recursion::is_even::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
@@ -193,7 +193,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "<() as std::process::Termination>::report::hb087d49f0e511144"
+      "symbol_name": "<() as std::process::Termination>::report::"
     },
     {
       "details": null,
@@ -258,7 +258,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::h9af5c3a5be898749"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -415,7 +415,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::ha78265c06a8e885f"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -500,7 +500,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::hd09e8fedb1c94470"
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
     },
     {
       "details": null,
@@ -537,7 +537,7 @@
           "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::h3cef9f41f602ad83"
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -844,7 +844,7 @@
           "name": "is_even"
         }
       },
-      "symbol_name": "mutual_recursion::is_even::hfe5f12c9fea0552e"
+      "symbol_name": "mutual_recursion::is_even::"
     },
     {
       "details": null,
@@ -1151,7 +1151,7 @@
           "name": "is_odd"
         }
       },
-      "symbol_name": "mutual_recursion::is_odd::h0306caf7bd636f15"
+      "symbol_name": "mutual_recursion::is_odd::"
     },
     {
       "details": null,
@@ -1359,7 +1359,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "mutual_recursion::main::h313f0c99534e377b"
+      "symbol_name": "mutual_recursion::main::"
     },
     {
       "details": null,
@@ -1717,7 +1717,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "std::rt::lang_start::h82ae6e6ca1c57c00"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -2078,7 +2078,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "std::rt::lang_start::{{closure}}::hf951a2d0e8784ca7"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -2257,7 +2257,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::h07ef4c1b0bc2cdbd"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     }
   ],
   "types": [

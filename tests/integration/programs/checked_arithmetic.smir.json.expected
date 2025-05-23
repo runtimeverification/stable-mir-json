@@ -5,6 +5,73 @@
         "Memory": {
           "align": 1,
           "bytes": [
+            97,
+            115,
+            115,
+            101,
+            114,
+            116,
+            105,
+            111,
+            110,
+            32,
+            102,
+            97,
+            105,
+            108,
+            101,
+            100,
+            58,
+            32,
+            114,
+            101,
+            115,
+            117,
+            108,
+            116,
+            32,
+            97,
+            115,
+            32,
+            105,
+            54,
+            52,
+            32,
+            61,
+            61,
+            32,
+            97,
+            32,
+            97,
+            115,
+            32,
+            105,
+            54,
+            52,
+            32,
+            43,
+            32,
+            98,
+            32,
+            97,
+            115,
+            32,
+            105,
+            54,
+            52
+          ],
+          "mutability": "Not",
+          "provenance": {
+            "ptrs": []
+          }
+        }
+      }
+    ],
+    [
+      {
+        "Memory": {
+          "align": 1,
+          "bytes": [
             117,
             110,
             115,
@@ -79,94 +146,27 @@
           }
         }
       }
-    ],
-    [
-      {
-        "Memory": {
-          "align": 1,
-          "bytes": [
-            97,
-            115,
-            115,
-            101,
-            114,
-            116,
-            105,
-            111,
-            110,
-            32,
-            102,
-            97,
-            105,
-            108,
-            101,
-            100,
-            58,
-            32,
-            114,
-            101,
-            115,
-            117,
-            108,
-            116,
-            32,
-            97,
-            115,
-            32,
-            105,
-            54,
-            52,
-            32,
-            61,
-            61,
-            32,
-            97,
-            32,
-            97,
-            115,
-            32,
-            105,
-            54,
-            52,
-            32,
-            43,
-            32,
-            98,
-            32,
-            97,
-            115,
-            32,
-            105,
-            54,
-            52
-          ],
-          "mutability": "Not",
-          "provenance": {
-            "ptrs": []
-          }
-        }
-      }
     ]
   ],
   "functions": [
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
@@ -181,47 +181,47 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3num21_$LT$impl$u20$i32$GT$13unchecked_add18precondition_check17h"
+        "NormalSym": "core::num::<impl i32>::unchecked_add::precondition_check::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking14panic_nounwind17h"
+        "NormalSym": "core::panicking::panic_nounwind::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN18checked_arithmetic15checked_add_i3217h"
+        "NormalSym": "checked_arithmetic::checked_add_i32::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3num21_$LT$impl$u20$i32$GT$11checked_add17h"
+        "NormalSym": "core::num::<impl i32>::checked_add::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core6option15Option$LT$T$GT$7is_some17h"
+        "NormalSym": "core::option::Option<T>::is_some::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3num21_$LT$impl$u20$i32$GT$13unchecked_add17h"
+        "NormalSym": "core::num::<impl i32>::unchecked_add::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
@@ -323,7 +323,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "<() as std::process::Termination>::report::h13465de462ec78d6"
+      "symbol_name": "<() as std::process::Termination>::report::"
     },
     {
       "details": null,
@@ -924,7 +924,7 @@
           "name": "checked_add_i32"
         }
       },
-      "symbol_name": "checked_arithmetic::checked_add_i32::h654ae0fb73c8084e"
+      "symbol_name": "checked_arithmetic::checked_add_i32::"
     },
     {
       "details": null,
@@ -1040,7 +1040,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "checked_arithmetic::main::h916fc99227d4b902"
+      "symbol_name": "checked_arithmetic::main::"
     },
     {
       "details": null,
@@ -1072,7 +1072,7 @@
           "name": "std::intrinsics::cold_path"
         }
       },
-      "symbol_name": "core::intrinsics::cold_path::ha65a9598ce5f50b2"
+      "symbol_name": "core::intrinsics::cold_path::"
     },
     {
       "details": null,
@@ -1518,7 +1518,7 @@
           "name": "core::num::<impl i32>::checked_add"
         }
       },
-      "symbol_name": "core::num::<impl i32>::checked_add::h29858f34f436425d"
+      "symbol_name": "core::num::<impl i32>::checked_add::"
     },
     {
       "details": null,
@@ -1726,7 +1726,7 @@
           "name": "core::num::<impl i32>::unchecked_add"
         }
       },
-      "symbol_name": "core::num::<impl i32>::unchecked_add::h8a262b3a5be3f6e8"
+      "symbol_name": "core::num::<impl i32>::unchecked_add::"
     },
     {
       "details": null,
@@ -2080,7 +2080,7 @@
           "name": "core::num::<impl i32>::unchecked_add::precondition_check"
         }
       },
-      "symbol_name": "core::num::<impl i32>::unchecked_add::precondition_check::ha7005eb2e592fd41"
+      "symbol_name": "core::num::<impl i32>::unchecked_add::precondition_check::"
     },
     {
       "details": null,
@@ -2237,7 +2237,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::he521a4b7c95d8a37"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -2302,7 +2302,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once::hea697340843a0c99"
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
     },
     {
       "details": null,
@@ -2387,7 +2387,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::hfd45ce6305bbcc85"
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
     },
     {
       "details": null,
@@ -2595,7 +2595,7 @@
           "name": "std::option::Option::<i32>::is_some"
         }
       },
-      "symbol_name": "core::option::Option<T>::is_some::h2c87b9367138524d"
+      "symbol_name": "core::option::Option<T>::is_some::"
     },
     {
       "details": null,
@@ -2632,7 +2632,7 @@
           "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::h5b58bc3117200b3a"
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -2990,7 +2990,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "std::rt::lang_start::he93191565b350026"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -3351,7 +3351,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "std::rt::lang_start::{{closure}}::h1d9733ed32ea155d"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -3530,7 +3530,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::hcc79370e4f5a26a5"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     }
   ],
   "types": [
