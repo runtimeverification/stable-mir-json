@@ -24,12 +24,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustc-demangle"
+version = "0.1.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
+
+[[package]]
 name = "stable_mir_json"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "dot-writer",
  "home",
+ "rustc-demangle",
 ]
 
 [[package]]
