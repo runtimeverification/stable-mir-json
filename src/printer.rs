@@ -1,3 +1,4 @@
+use rustc_demangle::try_demangle;
 use std::hash::Hash;
 use std::io::Write;
 use std::ops::ControlFlow;
@@ -413,7 +414,7 @@ fn fn_inst_sym<'tcx>(
             let sym_type = if inst.is_empty_shim() {
                 NoOpSym(String::from(""))
             } else if let Some(_intrinsic_name) = inst.intrinsic_name() {
-                IntrinsicSym(inst.mangled_name())
+                IntrinsicSym(try_demangle(&inst.mangled_name()).unwrap().to_string())
             } else {
                 NormalSym(inst.mangled_name())
             };
