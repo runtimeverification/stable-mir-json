@@ -427,7 +427,7 @@ fn fn_inst_sym<'tcx>(
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct LinkMapKey<'tcx>(
     pub stable_mir::ty::Ty,
-    Option<middle::ty::InstanceKind<'tcx>>,
+    pub Option<middle::ty::InstanceKind<'tcx>>,
 );
 
 impl Serialize for LinkMapKey<'_> {
@@ -976,7 +976,7 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 
 // Type metadata required for execution
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 pub enum TypeMetadata {
     PrimitiveType(RigidTy),
     EnumType {
