@@ -3,6 +3,8 @@ TOOLCHAIN_NAME=''
 
 default: build
 
+check: build integration-test style-check
+
 build:
 	cargo build ${RELEASE_FLAG}
 
