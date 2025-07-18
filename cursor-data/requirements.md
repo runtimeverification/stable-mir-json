@@ -2,6 +2,9 @@
 
 ## Functional Requirements
 
+### MIR Data Completeness for Execution Simulation
+* **Execution Simulation**: The MIR data must enable simulating the execution of the Rust program, ensuring all required data is present and the data is self-contained per crate
+
 ### Core Compilation Compatibility
 * **Complete rustc Compatibility**: Compile any given Rust program in the same way as the underlying nightly `rustc` version would
 * **Error Handling**: Not crash on an attempt to compile any Rust program that rustc can handle
@@ -38,29 +41,16 @@
 * **Build System**: Must use build.rs to ensure correct toolchain setup
 
 ### API Stability
-* **Stable MIR API**: Must use only the stable_mir API for accessing compiler internals
+* **Stable MIR API**: Should use the stable_mir API for accessing compiler internals, though access outside the stable_mir API should be avoided when possible
 * **Forward Compatibility**: Should gracefully handle additions to MIR representation
 * **Backward Compatibility**: JSON format should be versioned and backward compatible
 
 ### Integration Requirements
 * **Cargo Integration**: Must provide seamless integration with cargo build systems
 * **Command Line**: Must accept all rustc command line options and flags
-* **Environment Variables**: Should support configuration via environment variables
 * **Output Formats**: Must support both JSON and GraphViz dot output formats
 
 ## Security Requirements
 * **Safe Compilation**: Must not introduce security vulnerabilities during compilation
 * **Input Validation**: Should validate all input arguments and handle malformed Rust code safely
 * **Output Safety**: JSON output should not contain sensitive information from the build environment
-
-## Documentation Requirements
-* **API Documentation**: All public APIs must be documented
-* **Usage Examples**: Must provide clear usage examples for common scenarios
-* **Integration Guide**: Must document cargo integration setup process
-* **Troubleshooting**: Must provide guidance for common issues and debugging
-
-## Future Extensibility Requirements
-* **Plugin Architecture**: Should be designed to allow future extensions and plugins
-* **Output Format Flexibility**: Should allow for additional output formats beyond JSON and dot
-* **Analysis Extensions**: Should provide hooks for additional analysis passes
-* **Custom Serialization**: Should allow customization of what data is included in output
