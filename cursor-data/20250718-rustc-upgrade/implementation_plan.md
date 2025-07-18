@@ -8,53 +8,96 @@ This plan outlines the approach to upgrade stable-mir-json from its current depe
 
 ### Current State
 - **Current Version**: `nightly-2024-11-29` (approximately 7.5 months old)
-- **Target**: Latest available nightly version (likely `nightly-2025-07-17` or similar)
+- **Target**: Latest available nightly version (expecting `nightly-2025-07-17`)
 - **Gap Duration**: ~7.5 months of rustc development changes
 
 ### Core Dependencies at Risk
-1. **stable_mir crate**: Extensive usage throughout codebase for MIR access
-2. **rustc_private crates**: Direct usage of rustc internals:
-   - `rustc_driver`, `rustc_interface`, `rustc_middle`
-   - `rustc_session`, `rustc_smir`, `rustc_span`
-   - `rustc_monomorphize`
-3. **API Translation Layer**: `rustc_internal` for stable/internal API conversion
+1. **stable_mir**: The primary API used throughout the codebase
+2. **rustc_smir**: The bridge between rustc internal types and stable_mir
+3. **rustc_middle**: MIR type definitions and structures
+4. **rustc_hir**: HIR analysis and type information
+5. **Build system dependencies**: Version constraints and feature gates
 
-### Expected Impact Areas
+### Identified High-Risk Areas
 
-#### 1. High-Risk Changes (Likely Breaking)
-- **stable_mir API evolution**: The stable_mir crate has been actively developed and may have breaking changes
-- **rustc_smir bridge changes**: Internal-to-stable API translation layer updates
-- **TyCtxt and typing environment changes**: Rust has been refactoring type system internals
-- **Instance resolution**: Changes to monomorphization and instance resolution APIs
-- **MIR visitor patterns**: Updates to MIR traversal and visitor APIs
+#### High Risk (Likely Breaking Changes)
+- **stable_mir API evolution**: Method signatures, type definitions, and behavioral changes
+  - [Stable MIR Project](https://github.com/rust-lang/project-stable-mir) - Official project page
+  - [Kani StableMIR Migration Guide](https://model-checking.github.io/kani/stable-mir.html) - Shows API evolution patterns
+  - [PR #115092](https://github.com/rust-lang/rust/pull/115092) - Example of stable_mir API additions
+- **MIR structure changes**: New statement types, operand formats, or place projections  
+  - [MIR Transform Changes](https://github.com/rust-lang/rust/pull/115612) - Dataflow const-prop improvements
+  - [LLVM 18 Update](https://github.com/rust-lang/rust/pull/120055) - Major infrastructure update
+- **Type system updates**: Changes to how types are represented or analyzed
+  - [Next-generation trait solver](https://blog.rust-lang.org/2023/05/12/Rust-1.70.0.html) - Ongoing development
+- **Driver interface changes**: How rustc is invoked and configured programmatically
+  - [Rustc API Guidelines](https://rustc-dev-guide.rust-lang.org/api-docs.html) - Official guidance
 
-#### 2. Medium-Risk Changes (Possibly Breaking)
-- **Serialization format compatibility**: Changes to internal data structures affecting JSON output
-- **Span and diagnostic handling**: Updates to source location tracking
-- **Memory allocation tracking**: Changes to allocation ID and tracking systems
-- **Symbol and name mangling**: Updates to symbol handling
+#### Medium Risk (Possible Breaking Changes)  
+- **Diagnostic changes**: Error reporting format or API modifications
+- **Metadata format**: Changes to how crate metadata is stored/accessed
+- **Feature gate dependencies**: Unstable features being stabilized or removed
+  - [Unstable Features Research](https://arxiv.org/abs/2310.17186) - Study on unstable feature usage
+- **Performance optimizations**: Internal reorganizations affecting external APIs
 
-#### 3. Low-Risk Changes (Likely Compatibility)
-- **Build system integration**: Cargo integration should remain stable
-- **Core JSON serialization**: Serde usage should remain compatible
-- **Basic file I/O operations**: Standard library usage should be stable
+#### Low Risk (Likely Compatible)
+- **Bug fixes**: Most bug fixes maintain API compatibility
+- **Documentation updates**: Should not affect functionality
+- **Internal optimizations**: Changes that don't affect public APIs
+
+### Summary of Key Changes Between Versions
+
+Based on the research, major changes in the dependency ecosystem between `nightly-2024-11-29` and `nightly-2025-07-17` include:
+
+1. **LLVM Infrastructure**: 
+   - Update to LLVM 18 (Rust 1.78.0) and later to LLVM 19/20
+   - [LLVM 18 PR](https://github.com/rust-lang/rust/pull/120055) affected codegen and linking
+   - Changes to data layout and target specifications
+
+2. **stable_mir API Expansion**: 
+   - New methods and types added through multiple PRs
+   - [Example PR #115092](https://github.com/rust-lang/rust/pull/115092) shows typical additions
+   - Some existing methods may have changed signatures
+
+3. **MIR Optimization Improvements**: 
+   - [Enhanced dataflow analysis](https://github.com/rust-lang/rust/pull/115612) affecting MIR structure
+   - Improved constant propagation and optimization passes
+   - Changes to MIR transform pipeline
+
+4. **Type System Evolution**: 
+   - Next-generation trait solver changes affecting type checking
+   - Coherence improvements and inference changes
+   - Impact on how types are resolved and checked
+
+5. **Platform Support**: 
+   - Multiple new tier 2/3 targets added
+   - Changes to existing target specifications
+   - WASM and embedded platform improvements
 
 ## Implementation Approach
 
 ### Phase 1: Environment Setup and Discovery (1-2 days)
-1. **Determine Target Nightly Version**
-   - Identify the most recent stable nightly build
-   - Consider using a specific date-based nightly (e.g., `nightly-2025-07-17`)
-   - Verify availability of required components (`rustc-dev`, `rust-src`, `llvm-tools`)
 
-2. **Update Toolchain Configuration**
-   - Update `rust-toolchain.toml` to target nightly version
-   - Ensure CI/build environment compatibility
+#### 1.1 Verify Nightly Availability
+- **Pre-determined expectation**: Target `nightly-2025-07-17` 
+- **Artifact availability check**: All nightly artifacts should be available via rustup
+  - `rustc +nightly-2025-07-17 --version` to verify compiler availability
+  - `cargo +nightly-2025-07-17 --version` to verify cargo availability  
+  - Standard library and rustc-dev components should be available
+- **Fallback options**: If 2025-07-17 unavailable, use latest available nightly from July 2025
+- **Installation verification**: Ensure all necessary rustup components are present
+  - `rustup component add rustc-dev --toolchain nightly-2025-07-17`
+  - `rustup component add rust-src --toolchain nightly-2025-07-17`
 
-3. **Initial Compilation Attempt**
-   - Attempt compilation to identify immediate breaking changes
-   - Document all compilation errors and their categories
-   - Assess scope of required changes
+#### 1.2 Update Build Configuration
+- Modify `rust-toolchain.toml` to target `nightly-2025-07-17`
+- Update any version-specific configuration in build scripts
+- Document the change with rationale in version control
+
+#### 1.3 Initial Compilation Attempt
+- Run `cargo +nightly-2025-07-17 check` to identify immediate compilation failures
+- Capture and categorize all error messages for systematic resolution
+- Create a comprehensive error log for tracking resolution progress
 
 ### Phase 2: Core API Migration (3-5 days)
 1. **stable_mir API Updates**
