@@ -85,3 +85,24 @@ Focussing on the requirements.md document:
 - Requirements.md now reduced from 66 lines to approximately 45 lines with more focused, relevant requirements
 
 ---
+
+## Prompt 5
+
+**User Prompt:**
+```
+Focussing on the `design.md` document now, 
+* shorten the data model and self-containment section, using fewer and longer paragraphs, no sub-headings, and more concise descriptions of the lookup tables used in stable-mir and MIR data
+* In section Key Components/2.Printer Module, add a concise description of the code that extracts the data which goes into the SmirJson data structure.
+* Correct the data flow diagram:
+  -  include the LLVM-backend of the rustc compilation pipeline,
+  - connect: MIR extraction to SmirJson, to JSON serialization, to Self-contained data
+```
+
+**Agent Response Summary:**
+- Shortened and consolidated the "Data Model and Self-Containment" section from multiple sub-sections with bullet points to three longer, flowing paragraphs without sub-headings
+- Combined explanations of lookup tables, self-contained design, and current limitations into more concise descriptions
+- Added detailed description of data extraction code to Printer Module section, explaining visitor patterns, `collect_smir()` function, and specialized collectors (`InterValueCollector`, `UnevaluatedConstantCollector`)
+- Corrected data flow diagram to properly show LLVM backend as part of rustc compilation pipeline and linear flow: MIR extraction → SmirJson → JSON serialization → Self-contained data, with Output File connected to final stage
+- Maintained technical accuracy while improving readability and flow of the design documentation
+
+---
