@@ -20,8 +20,8 @@
 extern crate rustc_driver;
 extern crate rustc_interface;
 extern crate rustc_middle;
-extern crate rustc_session;
 extern crate rustc_public;
+extern crate rustc_session;
 use rustc_driver::Compilation;
 use rustc_interface::interface::Compiler;
 use rustc_middle::ty::TyCtxt;
@@ -44,5 +44,5 @@ pub fn stable_mir_driver(args_outer: &[String], callback_fn: fn(TyCtxt) -> ()) {
     let early_dcx =
         rustc_session::EarlyDiagCtxt::new(rustc_session::config::ErrorOutputType::default());
     rustc_driver::init_rustc_env_logger(&early_dcx);
-    let _ = rustc_driver::run_compiler(args_outer, &mut callbacks);
+    rustc_driver::run_compiler(args_outer, &mut callbacks);
 }

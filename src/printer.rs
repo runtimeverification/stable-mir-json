@@ -11,10 +11,10 @@ use std::{
 };
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
-extern crate rustc_session;
-extern crate rustc_span;
 extern crate rustc_public;
 extern crate rustc_public_bridge;
+extern crate rustc_session;
+extern crate rustc_span;
 // HACK: typically, we would source serde/serde_json separately from the compiler
 //       However, due to issues matching crate versions when we have our own serde
 //       in addition to the rustc serde, we force ourselves to use rustc serde
@@ -24,22 +24,22 @@ use rustc_middle as middle;
 use rustc_middle::ty::{
     EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
 };
+use rustc_public::{
+    mir::mono::{Instance, InstanceKind, MonoItem},
+    mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
+    rustc_internal,
+    rustc_internal::internal,
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, RigidTy, TyKind, VariantIdx},
+    visitor::{Visitable, Visitor},
+    CrateDef, CrateItem, ItemKind,
+};
+use rustc_public_bridge::IndexedVal;
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_span::{
     def_id::{DefId, LOCAL_CRATE},
     symbol,
 };
 use serde::{Serialize, Serializer};
-use rustc_public::{
-    rustc_internal,
-    rustc_internal::internal,
-    mir::mono::{Instance, InstanceKind, MonoItem},
-    mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, RigidTy, TyKind, VariantIdx},
-    visitor::{Visitable, Visitor},
-    CrateDef, CrateItem, ItemKind,
-};
-use rustc_public_bridge::IndexedVal;
 
 // Structs for serializing extra details about mono items
 // ======================================================
@@ -487,8 +487,13 @@ pub enum AllocInfo {
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 type AllocMap = HashMap<rustc_public::mir::alloc::AllocId, AllocInfo>;
-type TyMap =
-    HashMap<rustc_public::ty::Ty, (rustc_public::ty::TyKind, Option<rustc_public::abi::LayoutShape>)>;
+type TyMap = HashMap<
+    rustc_public::ty::Ty,
+    (
+        rustc_public::ty::TyKind,
+        Option<rustc_public::abi::LayoutShape>,
+    ),
+>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
 
 struct TyCollector<'tcx> {
@@ -530,7 +535,8 @@ impl Visitor for TyCollector<'_> {
             TyKind::RigidTy(RigidTy::Closure(def, ref args)) => {
                 self.resolved.insert(*ty);
                 let instance =
-                    Instance::resolve_closure(def, args, rustc_public::ty::ClosureKind::Fn).unwrap();
+                    Instance::resolve_closure(def, args, rustc_public::ty::ClosureKind::Fn)
+                        .unwrap();
                 self.visit_instance(instance)
             }
             // Break on CoroutineWitnesses, because they aren't expected when getting the layout
@@ -690,7 +696,7 @@ fn collect_alloc(
             assert!(kind.unwrap().is_fn_ptr());
             entry.or_insert(AllocInfo::Function(inst));
         }
-        GlobalAlloc::TypeId{ty:_} => todo!("GlobalAlloc:TypeId not implemented"),
+        GlobalAlloc::TypeId { ty: _ } => todo!("GlobalAlloc:TypeId not implemented"),
     };
 }
 
@@ -787,7 +793,11 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
         self.super_mir_const(constant, loc);
     }
 
-    fn visit_ty(&mut self, ty: &rustc_public::ty::Ty, _location: rustc_public::mir::visit::Location) {
+    fn visit_ty(
+        &mut self,
+        ty: &rustc_public::ty::Ty,
+        _location: rustc_public::mir::visit::Location,
+    ) {
         ty.visit(self.ty_visitor);
         self.super_ty(ty);
     }
@@ -1116,8 +1126,9 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     // FIXME: We dump extra static items here --- this should be handled better
     for (_, alloc) in visited_allocs.iter() {
         if let AllocInfo::Static(def) = alloc {
-            let mono_item =
-                rustc_public::mir::mono::MonoItem::Fn(rustc_public::mir::mono::Instance::from(*def));
+            let mono_item = rustc_public::mir::mono::MonoItem::Fn(
+                rustc_public::mir::mono::Instance::from(*def),
+            );
             let item_name = &mono_item_name(tcx, &mono_item);
             if !items_clone.contains_key(item_name) {
                 println!(

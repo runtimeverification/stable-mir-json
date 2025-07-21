@@ -15,16 +15,16 @@ extern crate rustc_public_bridge;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use rustc_public_bridge::IndexedVal;
 use rustc_public::ty::Ty;
 use rustc_public::{
     mir::{
         AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
-        NullOp, Operand, Place, ProjectionElem, RawPtrKind, Rvalue, Statement, StatementKind, 
+        NullOp, Operand, Place, ProjectionElem, RawPtrKind, Rvalue, Statement, StatementKind,
         TerminatorKind, UnwindAction,
     },
     ty::RigidTy,
 };
+use rustc_public_bridge::IndexedVal;
 
 use crate::{
     printer::{collect_smir, FnSymType, SmirJson},
@@ -467,7 +467,7 @@ impl GraphLabelString for Rvalue {
         match &self {
             AddressOf(mutability, p) => match mutability {
                 RawPtrKind::Const => format!("&raw {}", p.label()),
-                RawPtrKind::Mut   => format!("&raw mut {}", p.label()),
+                RawPtrKind::Mut => format!("&raw mut {}", p.label()),
                 RawPtrKind::FakeForPtrMetadata => format!("&raw4meta {}", p.label()),
             },
             Aggregate(kind, operands) => {
