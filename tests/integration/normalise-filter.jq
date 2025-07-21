@@ -9,7 +9,12 @@
 # Apply the normalisation filter
 { allocs:    .allocs,
   functions: .functions,
-  items:     .items,
+  items: (
+# delete all span fields from the items
+    .items | map (del(.mono_item_kind.MonoItemFn?.body.locals[] | .span))
+           | map (del(.mono_item_kind.MonoItemFn?.body.blocks[] | .statements[] | .span))
+           | map (del(.mono_item_kind.MonoItemFn?.body.blocks[] | .terminator.span))
+  ),
   types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) | sort ),
