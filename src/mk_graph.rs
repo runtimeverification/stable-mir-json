@@ -10,16 +10,18 @@ use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
 extern crate rustc_middle;
 use rustc_middle::ty::TyCtxt;
 
-extern crate stable_mir;
+extern crate rustc_public;
+extern crate rustc_public_bridge;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::ty::{IndexedVal, Ty};
-use stable_mir::{
+use rustc_public_bridge::IndexedVal;
+use rustc_public::ty::Ty;
+use rustc_public::{
     mir::{
         AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
-        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind,
-        UnwindAction,
+        NullOp, Operand, Place, ProjectionElem, RawPtrKind, Rvalue, Statement, StatementKind, 
+        TerminatorKind, UnwindAction,
     },
     ty::RigidTy,
 };
@@ -396,8 +398,8 @@ impl GraphLabelString for Operand {
             Operand::Constant(ConstOperand { const_, .. }) => {
                 let ty = const_.ty();
                 match &ty.kind() {
-                    stable_mir::ty::TyKind::RigidTy(RigidTy::Int(_))
-                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
+                    rustc_public::ty::TyKind::RigidTy(RigidTy::Int(_))
+                    | rustc_public::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
                         format!("const ?_{}", const_.ty())
                     }
                     _ => format!("const {}", const_.ty()),
@@ -452,7 +454,7 @@ impl GraphLabelString for AggregateKind {
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
             Closure(_, _) => "Closure".to_string(), // (ClosureDef, GenericArgs),
             Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
-            // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
+            CoroutineClosure(_, _) => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
             RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
             RawPtr(ty, Mutability::Not) => format!("*({})", ty),
         }
@@ -464,8 +466,9 @@ impl GraphLabelString for Rvalue {
         use Rvalue::*;
         match &self {
             AddressOf(mutability, p) => match mutability {
-                Mutability::Not => format!("&raw {}", p.label()),
-                Mutability::Mut => format!("&raw mut {}", p.label()),
+                RawPtrKind::Const => format!("&raw {}", p.label()),
+                RawPtrKind::Mut   => format!("&raw mut {}", p.label()),
+                RawPtrKind::FakeForPtrMetadata => format!("&raw4meta {}", p.label()),
             },
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
