@@ -28,37 +28,12 @@
     ],
     [
       {
-        "NormalSym": "_ZN4core3fmt3num50_$LT$impl$u20$core..fmt..Debug$u20$for$u20$i32$GT$3fmt17h"
-      }
-    ],
-    [
-      {
-        "NormalSym": "_ZN4core3fmt3num53_$LT$impl$u20$core..fmt..LowerHex$u20$for$u20$i32$GT$3fmt17h"
-      }
-    ],
-    [
-      {
-        "NormalSym": "_ZN4core3fmt3num53_$LT$impl$u20$core..fmt..UpperHex$u20$for$u20$i32$GT$3fmt17h"
-      }
-    ],
-    [
-      {
-        "NormalSym": "_ZN4core3fmt3num3imp52_$LT$impl$u20$core..fmt..Display$u20$for$u20$i32$GT$3fmt17h"
-      }
-    ],
-    [
-      {
         "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
       }
     ],
     [
       {
         "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
-      }
-    ],
-    [
-      {
-        "NormalSym": "_ZN4core9panicking19assert_failed_inner17h"
       }
     ],
     [
@@ -85,26 +60,18 @@
                   {
                     "kind": {
                       "StorageLive": 5
-                    },
-                    "span": 1
+                    }
                   },
                   {
                     "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 2
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 8
-                    },
-                    "span": 3
+                      "StorageLive": 7
+                    }
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
-                          "local": 8,
+                          "local": 7,
                           "projection": []
                         },
                         {
@@ -139,31 +106,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 3
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 7,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 8,
-                              "projection": []
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 2
+                    }
                   },
                   {
                     "kind": {
@@ -173,13 +116,35 @@
                           "projection": []
                         },
                         {
+                          "Ref": [
+                            {
+                              "kind": "ReErased"
+                            },
+                            "Shared",
+                            {
+                              "local": 7,
+                              "projection": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 5,
+                          "projection": []
+                        },
+                        {
                           "Cast": [
                             {
                               "PointerCoercion": "Unsize"
                             },
                             {
                               "Copy": {
-                                "local": 7,
+                                "local": 6,
                                 "projection": []
                               }
                             },
@@ -187,8 +152,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 2
+                    }
                   }
                 ],
                 "terminator": {
@@ -197,7 +161,7 @@
                       "args": [
                         {
                           "Move": {
-                            "local": 6,
+                            "local": 5,
                             "projection": []
                           }
                         },
@@ -221,7 +185,7 @@
                         }
                       ],
                       "destination": {
-                        "local": 5,
+                        "local": 0,
                         "projection": []
                       },
                       "func": {
@@ -238,114 +202,62 @@
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 1
+                  }
                 }
               },
               {
                 "statements": [
                   {
                     "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 5
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 5,
-                              "projection": [
-                                {
-                                  "Downcast": 0
-                                },
-                                {
-                                  "Field": [
-                                    0,
-                                    6
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 6
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 8
-                    },
-                    "span": 7
+                      "StorageDead": 7
+                    }
                   },
                   {
                     "kind": {
                       "StorageDead": 5
-                    },
-                    "span": 7
+                    }
                   }
                 ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 4
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 8,
                 "ty": 6
               },
               {
                 "mutability": "Not",
-                "span": 9,
                 "ty": 7
               },
               {
                 "mutability": "Not",
-                "span": 10,
                 "ty": 6
               },
               {
                 "mutability": "Not",
-                "span": 11,
                 "ty": 8
               },
               {
                 "mutability": "Not",
-                "span": 12,
                 "ty": 9
               },
               {
                 "mutability": "Mut",
-                "span": 1,
-                "ty": 10
-              },
-              {
-                "mutability": "Mut",
-                "span": 2,
                 "ty": 5
               },
               {
                 "mutability": "Not",
-                "span": 2,
-                "ty": 11
+                "ty": 10
               },
               {
                 "mutability": "Not",
-                "span": 3,
-                "ty": 12
+                "ty": 11
               }
             ],
-            "span": 13,
+            "span": 11,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -354,7 +266,7 @@
                 "name": "main",
                 "source_info": {
                   "scope": 0,
-                  "span": 9
+                  "span": 7
                 },
                 "value": {
                   "Place": {
@@ -369,7 +281,7 @@
                 "name": "argc",
                 "source_info": {
                   "scope": 0,
-                  "span": 10
+                  "span": 8
                 },
                 "value": {
                   "Place": {
@@ -384,7 +296,7 @@
                 "name": "argv",
                 "source_info": {
                   "scope": 0,
-                  "span": 11
+                  "span": 9
                 },
                 "value": {
                   "Place": {
@@ -399,26 +311,11 @@
                 "name": "sigpipe",
                 "source_info": {
                   "scope": 0,
-                  "span": 12
+                  "span": 10
                 },
                 "value": {
                   "Place": {
                     "local": 4,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": null,
-                "composite": null,
-                "name": "v",
-                "source_info": {
-                  "scope": 1,
-                  "span": 6
-                },
-                "value": {
-                  "Place": {
-                    "local": 0,
                     "projection": []
                   }
                 }
@@ -443,20 +340,17 @@
                   {
                     "kind": {
                       "StorageLive": 2
-                    },
-                    "span": 16
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 3
-                    },
-                    "span": 15
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 4
-                    },
-                    "span": 17
+                    }
                   },
                   {
                     "kind": {
@@ -482,8 +376,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 17
+                    }
                   }
                 ],
                 "terminator": {
@@ -506,17 +399,16 @@
                           "const_": {
                             "id": 1,
                             "kind": "ZeroSized",
-                            "ty": 13
+                            "ty": 12
                           },
-                          "span": 14,
+                          "span": 12,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 15
+                  }
                 }
               },
               {
@@ -524,8 +416,7 @@
                   {
                     "kind": {
                       "StorageDead": 4
-                    },
-                    "span": 19
+                    }
                   }
                 ],
                 "terminator": {
@@ -548,17 +439,16 @@
                           "const_": {
                             "id": 2,
                             "kind": "ZeroSized",
-                            "ty": 14
+                            "ty": 13
                           },
-                          "span": 18,
+                          "span": 16,
                           "user_ty": null
                         }
                       },
                       "target": 2,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 16
+                  }
                 }
               },
               {
@@ -566,56 +456,18 @@
                   {
                     "kind": {
                       "StorageDead": 3
-                    },
-                    "span": 21
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 5
-                    },
-                    "span": 22
+                    }
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
                           "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 2,
-                              "projection": [
-                                {
-                                  "Field": [
-                                    0,
-                                    15
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 22
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 23
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 6,
                           "projection": []
                         },
                         {
@@ -626,7 +478,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    15
+                                    14
                                   ]
                                 },
                                 {
@@ -640,8 +492,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 23
+                    }
                   },
                   {
                     "kind": {
@@ -655,76 +506,55 @@
                             "IntToInt",
                             {
                               "Move": {
-                                "local": 6,
+                                "local": 5,
                                 "projection": []
                               }
                             },
-                            16
+                            15
                           ]
                         }
                       ]
-                    },
-                    "span": 24
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 25
+                    }
                   },
                   {
                     "kind": {
                       "StorageDead": 5
-                    },
-                    "span": 26
+                    }
                   },
                   {
                     "kind": {
                       "StorageDead": 2
-                    },
-                    "span": 27
+                    }
                   }
                 ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 20
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 28,
+                "ty": 15
+              },
+              {
+                "mutability": "Mut",
+                "ty": 10
+              },
+              {
+                "mutability": "Mut",
                 "ty": 16
               },
               {
                 "mutability": "Mut",
-                "span": 3,
-                "ty": 11
-              },
-              {
-                "mutability": "Mut",
-                "span": 16,
-                "ty": 17
-              },
-              {
-                "mutability": "Mut",
-                "span": 15,
                 "ty": 1
               },
               {
                 "mutability": "Mut",
-                "span": 17,
                 "ty": 7
               },
               {
                 "mutability": "Mut",
-                "span": 22,
-                "ty": 18
-              },
-              {
-                "mutability": "Mut",
-                "span": 23,
                 "ty": 9
               }
             ],
@@ -737,7 +567,7 @@
                 "name": "main",
                 "source_info": {
                   "scope": 0,
-                  "span": 9
+                  "span": 7
                 },
                 "value": {
                   "Place": {
@@ -760,26 +590,11 @@
                 "name": "self",
                 "source_info": {
                   "scope": 1,
-                  "span": 29
+                  "span": 25
                 },
                 "value": {
                   "Place": {
                     "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 2,
-                  "span": 30
-                },
-                "value": {
-                  "Place": {
-                    "local": 5,
                     "projection": []
                   }
                 }
@@ -818,7 +633,7 @@
                               "kind": "ZeroSized",
                               "ty": 1
                             },
-                            "span": 32,
+                            "span": 27,
                             "user_ty": null
                           }
                         }
@@ -832,17 +647,16 @@
                           "const_": {
                             "id": 3,
                             "kind": "ZeroSized",
-                            "ty": 19
+                            "ty": 17
                           },
-                          "span": 31,
+                          "span": 26,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 33
+                  }
                 }
               },
               {
@@ -858,7 +672,7 @@
                               "kind": "ZeroSized",
                               "ty": 1
                             },
-                            "span": 32,
+                            "span": 27,
                             "user_ty": null
                           }
                         }
@@ -872,45 +686,40 @@
                           "const_": {
                             "id": 5,
                             "kind": "ZeroSized",
-                            "ty": 20
+                            "ty": 18
                           },
-                          "span": 34,
+                          "span": 29,
                           "user_ty": null
                         }
                       },
                       "target": 2,
                       "unwind": "Unreachable"
                     }
-                  },
-                  "span": 35
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 36
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 37,
                 "ty": 1
               },
               {
                 "mutability": "Not",
-                "span": 38,
                 "ty": 7
               },
               {
                 "mutability": "Not",
-                "span": 39,
                 "ty": 1
               }
             ],
-            "span": 42,
+            "span": 37,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -919,7 +728,7 @@
                 "name": "f",
                 "source_info": {
                   "scope": 0,
-                  "span": 38
+                  "span": 33
                 },
                 "value": {
                   "Place": {
@@ -934,7 +743,7 @@
                 "name": "result",
                 "source_info": {
                   "scope": 1,
-                  "span": 40
+                  "span": 35
                 },
                 "value": {
                   "Place": {
@@ -949,7 +758,7 @@
                 "name": "dummy",
                 "source_info": {
                   "scope": 2,
-                  "span": 41
+                  "span": 36
                 },
                 "value": {
                   "Const": {
@@ -958,7 +767,7 @@
                       "kind": "ZeroSized",
                       "ty": 1
                     },
-                    "span": 32,
+                    "span": 27,
                     "user_ty": null
                   }
                 }
@@ -970,667 +779,6 @@
         }
       },
       "symbol_name": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 3,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 1,
-                              "projection": [
-                                "Deref"
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 45
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 3,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 2,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 6,
-                            "kind": "ZeroSized",
-                            "ty": 21
-                          },
-                          "span": 43,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 44
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 46
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 47,
-                "ty": 22
-              },
-              {
-                "mutability": "Not",
-                "span": 48,
-                "ty": 23
-              },
-              {
-                "mutability": "Not",
-                "span": 49,
-                "ty": 24
-              },
-              {
-                "mutability": "Mut",
-                "span": 48,
-                "ty": 25
-              }
-            ],
-            "span": 50,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 48
-                },
-                "value": {
-                  "Place": {
-                    "local": 1,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 2,
-                "composite": null,
-                "name": "f",
-                "source_info": {
-                  "scope": 0,
-                  "span": 49
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              }
-            ]
-          },
-          "id": 3,
-          "name": "<&i32 as std::fmt::Debug>::fmt"
-        }
-      },
-      "symbol_name": "_ZN42_$LT$$RF$T$u20$as$u20$core..fmt..Debug$GT$3fmt17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageLive": 3
-                    },
-                    "span": 52
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 4
-                    },
-                    "span": 53
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 4,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 2,
-                              "projection": [
-                                "Deref",
-                                {
-                                  "Field": [
-                                    0,
-                                    26
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 53
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 3,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "BitAnd",
-                            {
-                              "Move": {
-                                "local": 4,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 7,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        16,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 26
-                                },
-                                "span": 32,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 52
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 4
-                    },
-                    "span": 54
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 3,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            0,
-                            2
-                          ]
-                        ],
-                        "otherwise": 1
-                      }
-                    }
-                  },
-                  "span": 51
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 3
-                    },
-                    "span": 51
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 1,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 2,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 8,
-                            "kind": "ZeroSized",
-                            "ty": 27
-                          },
-                          "span": 55,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 6,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 56
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 3
-                    },
-                    "span": 51
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 5
-                    },
-                    "span": 58
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 59
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 6,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 2,
-                              "projection": [
-                                "Deref",
-                                {
-                                  "Field": [
-                                    0,
-                                    26
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 59
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "BitAnd",
-                            {
-                              "Move": {
-                                "local": 6,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 9,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        32,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 26
-                                },
-                                "span": 32,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 58
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 60
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 5,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            0,
-                            4
-                          ]
-                        ],
-                        "otherwise": 3
-                      }
-                    }
-                  },
-                  "span": 57
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 5
-                    },
-                    "span": 57
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 1,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 2,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 10,
-                            "kind": "ZeroSized",
-                            "ty": 28
-                          },
-                          "span": 61,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 5,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 62
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 5
-                    },
-                    "span": 57
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 1,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 2,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 11,
-                            "kind": "ZeroSized",
-                            "ty": 29
-                          },
-                          "span": 63,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 5,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 64
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Goto": {
-                      "target": 6
-                    }
-                  },
-                  "span": 65
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 66
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 67,
-                "ty": 22
-              },
-              {
-                "mutability": "Not",
-                "span": 68,
-                "ty": 25
-              },
-              {
-                "mutability": "Not",
-                "span": 69,
-                "ty": 24
-              },
-              {
-                "mutability": "Mut",
-                "span": 52,
-                "ty": 26
-              },
-              {
-                "mutability": "Mut",
-                "span": 53,
-                "ty": 26
-              },
-              {
-                "mutability": "Mut",
-                "span": 58,
-                "ty": 26
-              },
-              {
-                "mutability": "Mut",
-                "span": 59,
-                "ty": 26
-              }
-            ],
-            "span": 72,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 68
-                },
-                "value": {
-                  "Place": {
-                    "local": 1,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 2,
-                "composite": null,
-                "name": "f",
-                "source_info": {
-                  "scope": 0,
-                  "span": 69
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 1,
-                  "span": 70
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 2,
-                  "span": 71
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              }
-            ]
-          },
-          "id": 4,
-          "name": "core::fmt::num::<impl std::fmt::Debug for i32>::fmt"
-        }
-      },
-      "symbol_name": "_ZN4core3fmt3num50_$LT$impl$u20$core..fmt..Debug$u20$for$u20$i32$GT$3fmt17h"
     },
     {
       "details": null,
@@ -1667,51 +815,46 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 12,
+                            "id": 6,
                             "kind": "ZeroSized",
-                            "ty": 30
+                            "ty": 19
                           },
-                          "span": 73,
+                          "span": 38,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 73
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 73
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 73,
-                "ty": 16
+                "ty": 15
               },
               {
                 "mutability": "Not",
-                "span": 73,
-                "ty": 31
+                "ty": 20
               },
               {
                 "mutability": "Not",
-                "span": 73,
                 "ty": 1
               }
             ],
-            "span": 73,
+            "span": 38,
             "spread_arg": 2,
             "var_debug_info": []
           },
-          "id": 5,
+          "id": 3,
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
@@ -1750,8 +893,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 73
+                    }
                   }
                 ],
                 "terminator": {
@@ -1778,11 +920,11 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 13,
+                            "id": 7,
                             "kind": "ZeroSized",
-                            "ty": 32
+                            "ty": 21
                           },
-                          "span": 73,
+                          "span": 38,
                           "user_ty": null
                         }
                       },
@@ -1791,8 +933,7 @@
                         "Cleanup": 3
                       }
                     }
-                  },
-                  "span": 73
+                  }
                 }
               },
               {
@@ -1807,15 +948,13 @@
                       "target": 2,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 73
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 73
+                  "kind": "Return"
                 }
               },
               {
@@ -1830,45 +969,39 @@
                       "target": 4,
                       "unwind": "Terminate"
                     }
-                  },
-                  "span": 73
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Resume",
-                  "span": 73
+                  "kind": "Resume"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 73,
-                "ty": 16
+                "ty": 15
               },
               {
                 "mutability": "Not",
-                "span": 73,
-                "ty": 12
+                "ty": 11
               },
               {
                 "mutability": "Not",
-                "span": 73,
                 "ty": 1
               },
               {
                 "mutability": "Not",
-                "span": 73,
-                "ty": 33
+                "ty": 22
               }
             ],
-            "span": 73,
+            "span": 38,
             "spread_arg": 2,
             "var_debug_info": []
           },
-          "id": 5,
+          "id": 3,
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
@@ -1900,406 +1033,39 @@
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 73
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 73
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 73,
                 "ty": 1
               },
               {
                 "mutability": "Not",
-                "span": 73,
                 "ty": 7
               },
               {
                 "mutability": "Not",
-                "span": 73,
                 "ty": 1
               }
             ],
-            "span": 73,
+            "span": 38,
             "spread_arg": 2,
             "var_debug_info": []
           },
-          "id": 5,
+          "id": 3,
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
       "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 74
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 74,
-                "ty": 1
-              },
-              {
-                "mutability": "Not",
-                "span": 74,
-                "ty": 34
-              }
-            ],
-            "span": 74,
-            "spread_arg": null,
-            "var_debug_info": []
-          },
-          "id": 6,
-          "name": "std::ptr::drop_in_place::<&i32>"
-        }
-      },
-      "symbol_name": "_ZN4core3ptr28drop_in_place$LT$$RF$i32$GT$17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 74
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 74,
-                "ty": 1
-              },
-              {
-                "mutability": "Not",
-                "span": 74,
-                "ty": 31
-              }
-            ],
-            "span": 74,
-            "spread_arg": null,
-            "var_debug_info": []
-          },
-          "id": 6,
-          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
-        }
-      },
-      "symbol_name": "_ZN4core3ptr85drop_in_place$LT$std..rt..lang_start$LT$$LP$$RP$$GT$..$u7b$$u7b$closure$u7d$$u7d$$GT$17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 4,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageLive": 5
-                    },
-                    "span": 77
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 6,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 2,
-                              "projection": []
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 77
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "Cast": [
-                            {
-                              "PointerCoercion": "Unsize"
-                            },
-                            {
-                              "Copy": {
-                                "local": 6,
-                                "projection": []
-                              }
-                            },
-                            36
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 77
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 7
-                    },
-                    "span": 78
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 8,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 3,
-                              "projection": []
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 78
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 7,
-                          "projection": []
-                        },
-                        {
-                          "Cast": [
-                            {
-                              "PointerCoercion": "Unsize"
-                            },
-                            {
-                              "Copy": {
-                                "local": 8,
-                                "projection": []
-                              }
-                            },
-                            36
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 78
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 1,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 5,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 7,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 4,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 14,
-                            "kind": "ZeroSized",
-                            "ty": 35
-                          },
-                          "span": 75,
-                          "user_ty": null
-                        }
-                      },
-                      "target": null,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 76
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 79,
-                "ty": 37
-              },
-              {
-                "mutability": "Not",
-                "span": 80,
-                "ty": 38
-              },
-              {
-                "mutability": "Not",
-                "span": 81,
-                "ty": 25
-              },
-              {
-                "mutability": "Not",
-                "span": 82,
-                "ty": 25
-              },
-              {
-                "mutability": "Not",
-                "span": 83,
-                "ty": 39
-              },
-              {
-                "mutability": "Mut",
-                "span": 77,
-                "ty": 36
-              },
-              {
-                "mutability": "Not",
-                "span": 77,
-                "ty": 23
-              },
-              {
-                "mutability": "Mut",
-                "span": 78,
-                "ty": 36
-              },
-              {
-                "mutability": "Not",
-                "span": 78,
-                "ty": 23
-              }
-            ],
-            "span": 84,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "kind",
-                "source_info": {
-                  "scope": 0,
-                  "span": 80
-                },
-                "value": {
-                  "Place": {
-                    "local": 1,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 2,
-                "composite": null,
-                "name": "left",
-                "source_info": {
-                  "scope": 0,
-                  "span": 81
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 3,
-                "composite": null,
-                "name": "right",
-                "source_info": {
-                  "scope": 0,
-                  "span": 82
-                },
-                "value": {
-                  "Place": {
-                    "local": 3,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 4,
-                "composite": null,
-                "name": "args",
-                "source_info": {
-                  "scope": 0,
-                  "span": 83
-                },
-                "value": {
-                  "Place": {
-                    "local": 4,
-                    "projection": []
-                  }
-                }
-              }
-            ]
-          },
-          "id": 7,
-          "name": "core::panicking::assert_failed::<i32, i32>"
-        }
-      },
-      "symbol_name": "_ZN4core9panicking13assert_failed17h"
     },
     {
       "details": null,
@@ -2321,7 +1087,7 @@
                           "Use": {
                             "Constant": {
                               "const_": {
-                                "id": 15,
+                                "id": 8,
                                 "kind": {
                                   "Allocated": {
                                     "align": 1,
@@ -2334,62 +1100,37 @@
                                     }
                                   }
                                 },
-                                "ty": 17
+                                "ty": 16
                               },
-                              "span": 86,
+                              "span": 27,
                               "user_ty": null
                             }
                           }
                         }
                       ]
-                    },
-                    "span": 86
+                    }
                   }
                 ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 85
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 87,
-                "ty": 17
+                "ty": 16
               },
               {
                 "mutability": "Not",
-                "span": 88,
                 "ty": 1
               }
             ],
-            "span": 89,
+            "span": 43,
             "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 88
-                },
-                "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 4,
-                      "kind": "ZeroSized",
-                      "ty": 1
-                    },
-                    "span": 32,
-                    "user_ty": null
-                  }
-                }
-              }
-            ]
+            "var_debug_info": []
           },
-          "id": 8,
+          "id": 4,
           "name": "<() as std::process::Termination>::report"
         }
       },
@@ -2415,7 +1156,7 @@
                           "Use": {
                             "Constant": {
                               "const_": {
-                                "id": 18,
+                                "id": 11,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -2431,16 +1172,15 @@
                                     }
                                   }
                                 },
-                                "ty": 16
+                                "ty": 15
                               },
-                              "span": 93,
+                              "span": 47,
                               "user_ty": null
                             }
                           }
                         }
                       ]
-                    },
-                    "span": 93
+                    }
                   },
                   {
                     "kind": {
@@ -2455,7 +1195,7 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 16,
+                                  "id": 9,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -2471,16 +1211,16 @@
                                       }
                                     }
                                   },
-                                  "ty": 16
+                                  "ty": 15
                                 },
-                                "span": 90,
+                                "span": 44,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 17,
+                                  "id": 10,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -2496,17 +1236,16 @@
                                       }
                                     }
                                   },
-                                  "ty": 16
+                                  "ty": 15
                                 },
-                                "span": 91,
+                                "span": 45,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 92
+                    }
                   }
                 ],
                 "terminator": {
@@ -2519,7 +1258,7 @@
                             {
                               "Field": [
                                 1,
-                                40
+                                23
                               ]
                             }
                           ]
@@ -2532,7 +1271,7 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 16,
+                                "id": 9,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -2548,16 +1287,16 @@
                                     }
                                   }
                                 },
-                                "ty": 16
+                                "ty": 15
                               },
-                              "span": 90,
+                              "span": 44,
                               "user_ty": null
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 17,
+                                "id": 10,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -2573,9 +1312,9 @@
                                     }
                                   }
                                 },
-                                "ty": 16
+                                "ty": 15
                               },
-                              "span": 91,
+                              "span": 45,
                               "user_ty": null
                             }
                           }
@@ -2584,8 +1323,7 @@
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 92
+                  }
                 }
               },
               {
@@ -2605,7 +1343,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -2613,8 +1351,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 92
+                    }
                   },
                   {
                     "kind": {
@@ -2636,8 +1373,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 95
+                    }
                   },
                   {
                     "kind": {
@@ -2659,8 +1395,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 96
+                    }
                   },
                   {
                     "kind": {
@@ -2689,8 +1424,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 97
+                    }
                   },
                   {
                     "kind": {
@@ -2707,7 +1441,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    25
+                                    24
                                   ]
                                 }
                               ]
@@ -2715,8 +1449,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 98
+                    }
                   },
                   {
                     "kind": {
@@ -2733,7 +1466,7 @@
                                 {
                                   "Field": [
                                     1,
-                                    25
+                                    24
                                   ]
                                 }
                               ]
@@ -2741,8 +1474,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 99
+                    }
                   },
                   {
                     "kind": {
@@ -2762,8 +1494,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 100
+                    }
                   },
                   {
                     "kind": {
@@ -2783,8 +1514,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 101
+                    }
                   },
                   {
                     "kind": {
@@ -2811,8 +1541,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 94
+                    }
                   }
                 ],
                 "terminator": {
@@ -2834,15 +1563,13 @@
                         "otherwise": 2
                       }
                     }
-                  },
-                  "span": 94
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 102
+                  "kind": "Return"
                 }
               },
               {
@@ -2858,7 +1585,7 @@
                           "Aggregate": [
                             {
                               "Adt": [
-                                10,
+                                6,
                                 0,
                                 [],
                                 null,
@@ -2869,8 +1596,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 105
+                    }
                   },
                   {
                     "kind": {
@@ -2883,11 +1609,11 @@
                           "Aggregate": [
                             {
                               "Adt": [
-                                11,
+                                7,
                                 0,
                                 [
                                   {
-                                    "Type": 42
+                                    "Type": 26
                                   }
                                 ],
                                 null,
@@ -2898,8 +1624,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 106
+                    }
                   }
                 ],
                 "terminator": {
@@ -2938,100 +1663,84 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 19,
+                            "id": 12,
                             "kind": "ZeroSized",
-                            "ty": 41
+                            "ty": 25
                           },
-                          "span": 103,
+                          "span": 57,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 104
+                  }
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 107,
                 "ty": 1
               },
               {
                 "mutability": "Not",
-                "span": 108,
-                "ty": 16
+                "ty": 15
               },
               {
                 "mutability": "Not",
-                "span": 109,
-                "ty": 16
+                "ty": 15
               },
               {
                 "mutability": "Mut",
-                "span": 92,
-                "ty": 43
+                "ty": 27
               },
               {
                 "mutability": "Mut",
-                "span": 97,
-                "ty": 44
+                "ty": 28
               },
               {
                 "mutability": "Mut",
-                "span": 95,
-                "ty": 25
+                "ty": 24
               },
               {
                 "mutability": "Mut",
-                "span": 96,
-                "ty": 25
+                "ty": 24
               },
               {
                 "mutability": "Not",
-                "span": 98,
-                "ty": 25
+                "ty": 24
               },
               {
                 "mutability": "Not",
-                "span": 99,
-                "ty": 25
+                "ty": 24
               },
               {
                 "mutability": "Mut",
-                "span": 94,
-                "ty": 40
+                "ty": 23
               },
               {
                 "mutability": "Mut",
-                "span": 100,
-                "ty": 16
+                "ty": 15
               },
               {
                 "mutability": "Mut",
-                "span": 101,
-                "ty": 16
+                "ty": 15
               },
               {
                 "mutability": "Not",
-                "span": 110,
-                "ty": 38
+                "ty": 29
               },
               {
                 "mutability": "Not",
-                "span": 104,
-                "ty": 37
+                "ty": 30
               },
               {
                 "mutability": "Mut",
-                "span": 106,
-                "ty": 39
+                "ty": 31
               }
             ],
-            "span": 111,
+            "span": 65,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -3040,7 +1749,7 @@
                 "name": "a",
                 "source_info": {
                   "scope": 1,
-                  "span": 108
+                  "span": 62
                 },
                 "value": {
                   "Place": {
@@ -3055,7 +1764,7 @@
                 "name": "b",
                 "source_info": {
                   "scope": 2,
-                  "span": 109
+                  "span": 63
                 },
                 "value": {
                   "Place": {
@@ -3070,7 +1779,7 @@
                 "name": "left_val",
                 "source_info": {
                   "scope": 3,
-                  "span": 98
+                  "span": 52
                 },
                 "value": {
                   "Place": {
@@ -3085,7 +1794,7 @@
                 "name": "right_val",
                 "source_info": {
                   "scope": 3,
-                  "span": 99
+                  "span": 53
                 },
                 "value": {
                   "Place": {
@@ -3100,7 +1809,7 @@
                 "name": "kind",
                 "source_info": {
                   "scope": 4,
-                  "span": 110
+                  "span": 64
                 },
                 "value": {
                   "Place": {
@@ -3111,7 +1820,7 @@
               }
             ]
           },
-          "id": 9,
+          "id": 5,
           "name": "main"
         }
       },
@@ -3135,13 +1844,6 @@
       {
         "PrimitiveType": {
           "Int": "Isize"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Uint": "U32"
         }
       }
     ],
@@ -3180,40 +1882,6 @@
             [
               1,
               1
-            ]
-          ],
-          "name": "std::result::Result"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
-          ],
-          "name": "std::result::Result"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
             ],
             [
               2,
@@ -3229,22 +1897,6 @@
         "StructType": {
           "fields": "elided",
           "name": "std::fmt::Arguments"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "fields": "elided",
-          "name": "std::fmt::Error"
-        }
-      }
-    ],
-    [
-      {
-        "StructType": {
-          "fields": "elided",
-          "name": "std::fmt::Formatter"
         }
       }
     ],
@@ -3268,7 +1920,7 @@
       {
         "StructType": {
           "fields": "elided",
-          "name": "std::sys::pal::unix::process::process_common::ExitCode"
+          "name": "std::sys::process::unix::common::ExitCode"
         }
       }
     ],
@@ -3306,31 +1958,6 @@
     [
       {
         "PtrType": "elided"
-      }
-    ],
-    [
-      {
-        "PtrType": "elided"
-      }
-    ],
-    [
-      {
-        "RefType": "elided"
-      }
-    ],
-    [
-      {
-        "RefType": "elided"
-      }
-    ],
-    [
-      {
-        "RefType": "elided"
-      }
-    ],
-    [
-      {
-        "RefType": "elided"
       }
     ],
     [
