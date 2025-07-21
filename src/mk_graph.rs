@@ -138,16 +138,16 @@ impl SmirJson<'_> {
                                             .attributes()
                                             .set_label("other");
                                     }
-                                    Resume {} => {
+                                    Resume => {
                                         label_strs.push("Resume".to_string());
                                     }
-                                    Abort {} => {
+                                    Abort => {
                                         label_strs.push("Abort".to_string());
                                     }
-                                    Return {} => {
+                                    Return => {
                                         label_strs.push("Return".to_string());
                                     }
-                                    Unreachable {} => {
+                                    Unreachable => {
                                         label_strs.push("Unreachable".to_string());
                                     }
                                     TerminatorKind::Drop {
@@ -382,8 +382,8 @@ fn render_stmt(s: &Statement) -> String {
         } => format!("Ascribe {}.{}", place.label(), projections.base),
         Coverage(_) => "Coverage".to_string(),
         Intrinsic(intr) => format!("Intr: {}", intr.label()),
-        ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-        Nop {} => "Nop".to_string(),
+        ConstEvalCounter => "ConstEvalCounter".to_string(),
+        Nop => "Nop".to_string(),
     }
 }
 
@@ -450,7 +450,7 @@ impl GraphLabelString for AggregateKind {
         use AggregateKind::*;
         match &self {
             Array(_ty) => "Array".to_string(),
-            Tuple {} => "Tuple".to_string(),
+            Tuple => "Tuple".to_string(),
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
             Closure(_, _) => "Closure".to_string(), // (ClosureDef, GenericArgs),
             Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),

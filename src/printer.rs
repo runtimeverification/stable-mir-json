@@ -503,7 +503,7 @@ struct TyCollector<'tcx> {
 }
 
 impl TyCollector<'_> {
-    fn new(tcx: TyCtxt<'_>) -> TyCollector {
+    fn new(tcx: TyCtxt<'_>) -> TyCollector<'_> {
         TyCollector {
             tcx,
             types: HashMap::new(),
@@ -798,7 +798,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
         ty: &rustc_public::ty::Ty,
         _location: rustc_public::mir::visit::Location,
     ) {
-        ty.visit(self.ty_visitor);
+        let _ = ty.visit(self.ty_visitor);
         self.super_ty(ty);
     }
 }
@@ -1115,7 +1115,7 @@ pub struct SmirJsonDebugInfo<'t> {
 // Serialization Entrypoint
 // ========================
 
-pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson<'_> {
     let local_crate = rustc_public::local_crate();
     let items = collect_items(tcx);
     let items_clone = items.clone();
