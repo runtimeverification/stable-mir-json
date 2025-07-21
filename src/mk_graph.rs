@@ -10,19 +10,21 @@ use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
 extern crate rustc_middle;
 use rustc_middle::ty::TyCtxt;
 
-extern crate stable_mir;
+extern crate rustc_public;
+extern crate rustc_public_bridge;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::ty::{IndexedVal, Ty};
-use stable_mir::{
+use rustc_public::ty::Ty;
+use rustc_public::{
     mir::{
         AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
-        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind,
-        UnwindAction,
+        NullOp, Operand, Place, ProjectionElem, RawPtrKind, Rvalue, Statement, StatementKind,
+        TerminatorKind, UnwindAction,
     },
     ty::RigidTy,
 };
+use rustc_public_bridge::IndexedVal;
 
 use crate::{
     printer::{collect_smir, FnSymType, SmirJson},
@@ -136,16 +138,16 @@ impl SmirJson<'_> {
                                             .attributes()
                                             .set_label("other");
                                     }
-                                    Resume {} => {
+                                    Resume => {
                                         label_strs.push("Resume".to_string());
                                     }
-                                    Abort {} => {
+                                    Abort => {
                                         label_strs.push("Abort".to_string());
                                     }
-                                    Return {} => {
+                                    Return => {
                                         label_strs.push("Return".to_string());
                                     }
-                                    Unreachable {} => {
+                                    Unreachable => {
                                         label_strs.push("Unreachable".to_string());
                                     }
                                     TerminatorKind::Drop {
@@ -380,8 +382,8 @@ fn render_stmt(s: &Statement) -> String {
         } => format!("Ascribe {}.{}", place.label(), projections.base),
         Coverage(_) => "Coverage".to_string(),
         Intrinsic(intr) => format!("Intr: {}", intr.label()),
-        ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-        Nop {} => "Nop".to_string(),
+        ConstEvalCounter => "ConstEvalCounter".to_string(),
+        Nop => "Nop".to_string(),
     }
 }
 
@@ -396,8 +398,8 @@ impl GraphLabelString for Operand {
             Operand::Constant(ConstOperand { const_, .. }) => {
                 let ty = const_.ty();
                 match &ty.kind() {
-                    stable_mir::ty::TyKind::RigidTy(RigidTy::Int(_))
-                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
+                    rustc_public::ty::TyKind::RigidTy(RigidTy::Int(_))
+                    | rustc_public::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
                         format!("const ?_{}", const_.ty())
                     }
                     _ => format!("const {}", const_.ty()),
@@ -448,11 +450,11 @@ impl GraphLabelString for AggregateKind {
         use AggregateKind::*;
         match &self {
             Array(_ty) => "Array".to_string(),
-            Tuple {} => "Tuple".to_string(),
+            Tuple => "Tuple".to_string(),
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
             Closure(_, _) => "Closure".to_string(), // (ClosureDef, GenericArgs),
             Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
-            // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
+            CoroutineClosure(_, _) => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
             RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
             RawPtr(ty, Mutability::Not) => format!("*({})", ty),
         }
@@ -464,8 +466,9 @@ impl GraphLabelString for Rvalue {
         use Rvalue::*;
         match &self {
             AddressOf(mutability, p) => match mutability {
-                Mutability::Not => format!("&raw {}", p.label()),
-                Mutability::Mut => format!("&raw mut {}", p.label()),
+                RawPtrKind::Const => format!("&raw {}", p.label()),
+                RawPtrKind::Mut => format!("&raw mut {}", p.label()),
+                RawPtrKind::FakeForPtrMetadata => format!("&raw4meta {}", p.label()),
             },
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();

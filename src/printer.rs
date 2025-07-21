@@ -11,10 +11,10 @@ use std::{
 };
 extern crate rustc_middle;
 extern crate rustc_monomorphize;
+extern crate rustc_public;
+extern crate rustc_public_bridge;
 extern crate rustc_session;
-extern crate rustc_smir;
 extern crate rustc_span;
-extern crate stable_mir;
 // HACK: typically, we would source serde/serde_json separately from the compiler
 //       However, due to issues matching crate versions when we have our own serde
 //       in addition to the rustc serde, we force ourselves to use rustc serde
@@ -24,20 +24,22 @@ use rustc_middle as middle;
 use rustc_middle::ty::{
     EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
 };
+use rustc_public::{
+    mir::mono::{Instance, InstanceKind, MonoItem},
+    mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
+    rustc_internal,
+    rustc_internal::internal,
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, RigidTy, TyKind, VariantIdx},
+    visitor::{Visitable, Visitor},
+    CrateDef, CrateItem, ItemKind,
+};
+use rustc_public_bridge::IndexedVal;
 use rustc_session::config::{OutFileName, OutputType};
-use rustc_smir::rustc_internal::{self, internal};
 use rustc_span::{
     def_id::{DefId, LOCAL_CRATE},
     symbol,
 };
 use serde::{Serialize, Serializer};
-use stable_mir::{
-    mir::mono::{Instance, InstanceKind, MonoItem},
-    mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
-    visitor::{Visitable, Visitor},
-    CrateDef, CrateItem, ItemKind,
-};
 
 // Structs for serializing extra details about mono items
 // ======================================================
@@ -169,8 +171,8 @@ struct ForeignModule {
 }
 
 fn get_foreign_module_details() -> Vec<(String, Vec<ForeignModule>)> {
-    let mut crates = vec![stable_mir::local_crate()];
-    crates.append(&mut stable_mir::external_crates());
+    let mut crates = vec![rustc_public::local_crate()];
+    crates.append(&mut rustc_public::external_crates());
     crates
         .into_iter()
         .map(|krate| {
@@ -217,7 +219,7 @@ def_env_var!(link_items_enabled, LINK_ITEMS);
 def_env_var!(link_instance_enabled, LINK_INST);
 
 // Possible input: sym::test
-pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Symbol) -> bool {
+pub fn has_attr(tcx: TyCtxt<'_>, item: &rustc_public::CrateItem, attr: symbol::Symbol) -> bool {
     tcx.has_attr(rustc_internal::internal(tcx, item), attr)
 }
 
@@ -233,7 +235,7 @@ fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoI
     item.symbol_name(tcx).name.into()
 }
 
-fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
+fn fn_inst_for_ty(ty: rustc_public::ty::Ty, direct_call: bool) -> Option<Instance> {
     ty.kind().fn_def().and_then(|(fn_def, args)| {
         if direct_call {
             Instance::resolve(fn_def, args)
@@ -244,7 +246,7 @@ fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance>
     })
 }
 
-fn def_id_to_inst(tcx: TyCtxt<'_>, id: stable_mir::DefId) -> Instance {
+fn def_id_to_inst(tcx: TyCtxt<'_>, id: rustc_public::DefId) -> Instance {
     let internal_id = rustc_internal::internal(tcx, id);
     let internal_inst = rustc_middle::ty::Instance::mono(tcx, internal_id);
     rustc_internal::stable(internal_inst)
@@ -271,12 +273,12 @@ fn hash<T: std::hash::Hash>(obj: T) -> u64 {
 pub enum MonoItemKind {
     MonoItemFn {
         name: String,
-        id: stable_mir::DefId,
+        id: rustc_public::DefId,
         body: Option<Body>,
     },
     MonoItemStatic {
         name: String,
-        id: stable_mir::DefId,
+        id: rustc_public::DefId,
         allocation: Option<Allocation>,
     },
     MonoItemGlobalAsm {
@@ -394,14 +396,14 @@ pub enum FnSymType {
 }
 
 type FnSymInfo<'tcx> = (
-    stable_mir::ty::Ty,
+    rustc_public::ty::Ty,
     middle::ty::InstanceKind<'tcx>,
     FnSymType,
 );
 
 fn fn_inst_sym<'tcx>(
     tcx: TyCtxt<'tcx>,
-    ty: Option<stable_mir::ty::Ty>,
+    ty: Option<rustc_public::ty::Ty>,
     inst: Option<&Instance>,
 ) -> Option<FnSymInfo<'tcx>> {
     use FnSymType::*;
@@ -426,7 +428,7 @@ fn fn_inst_sym<'tcx>(
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct LinkMapKey<'tcx>(
-    pub stable_mir::ty::Ty,
+    pub rustc_public::ty::Ty,
     Option<middle::ty::InstanceKind<'tcx>>,
 );
 
@@ -442,7 +444,7 @@ impl Serialize for LinkMapKey<'_> {
             tup.serialize_element(&format!("{:?}", self.1).as_str())?;
             tup.end()
         } else {
-            <stable_mir::ty::Ty as Serialize>::serialize(&self.0, serializer)
+            <rustc_public::ty::Ty as Serialize>::serialize(&self.0, serializer)
         }
     }
 }
@@ -475,28 +477,33 @@ impl Serialize for ItemSource {
 
 #[derive(Serialize)]
 pub enum AllocInfo {
-    Function(stable_mir::mir::mono::Instance),
+    Function(rustc_public::mir::mono::Instance),
     VTable(
-        stable_mir::ty::Ty,
-        Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>,
+        rustc_public::ty::Ty,
+        Option<rustc_public::ty::Binder<rustc_public::ty::ExistentialTraitRef>>,
     ),
-    Static(stable_mir::mir::mono::StaticDef),
-    Memory(stable_mir::ty::Allocation), // TODO include stable_mir::ty::TyKind?
+    Static(rustc_public::mir::mono::StaticDef),
+    Memory(rustc_public::ty::Allocation), // TODO include rustc_public::ty::TyKind?
 }
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
-type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
-type TyMap =
-    HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
+type AllocMap = HashMap<rustc_public::mir::alloc::AllocId, AllocInfo>;
+type TyMap = HashMap<
+    rustc_public::ty::Ty,
+    (
+        rustc_public::ty::TyKind,
+        Option<rustc_public::abi::LayoutShape>,
+    ),
+>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
 
 struct TyCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     types: TyMap,
-    resolved: HashSet<stable_mir::ty::Ty>,
+    resolved: HashSet<rustc_public::ty::Ty>,
 }
 
 impl TyCollector<'_> {
-    fn new(tcx: TyCtxt<'_>) -> TyCollector {
+    fn new(tcx: TyCtxt<'_>) -> TyCollector<'_> {
         TyCollector {
             tcx,
             types: HashMap::new(),
@@ -509,7 +516,7 @@ impl TyCollector<'_> {
     #[inline(always)]
     fn visit_instance(&mut self, instance: Instance) -> ControlFlow<<Self as Visitor>::Break> {
         let fn_abi = instance.fn_abi().unwrap();
-        let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
+        let mut inputs_outputs: Vec<rustc_public::ty::Ty> =
             fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
         inputs_outputs.push(fn_abi.ret.ty);
         inputs_outputs.super_visit(self)
@@ -519,7 +526,7 @@ impl TyCollector<'_> {
 impl Visitor for TyCollector<'_> {
     type Break = ();
 
-    fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
+    fn visit_ty(&mut self, ty: &rustc_public::ty::Ty) -> ControlFlow<Self::Break> {
         if self.types.contains_key(ty) || self.resolved.contains(ty) {
             return ControlFlow::Continue(());
         }
@@ -528,7 +535,8 @@ impl Visitor for TyCollector<'_> {
             TyKind::RigidTy(RigidTy::Closure(def, ref args)) => {
                 self.resolved.insert(*ty);
                 let instance =
-                    Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
+                    Instance::resolve_closure(def, args, rustc_public::ty::ClosureKind::Fn)
+                        .unwrap();
                 self.visit_instance(instance)
             }
             // Break on CoroutineWitnesses, because they aren't expected when getting the layout
@@ -549,7 +557,7 @@ impl Visitor for TyCollector<'_> {
                         )
                         .unwrap(),
                 );
-                let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
+                let mut inputs_outputs: Vec<rustc_public::ty::Ty> =
                     sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
                 inputs_outputs.push(sig_stable.ret.ty);
                 inputs_outputs.super_visit(self)
@@ -627,8 +635,8 @@ fn update_link_map<'tcx>(
     }
 }
 
-fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mir::ty::TyKind> {
-    use stable_mir::ty::RigidTy;
+fn get_prov_type(maybe_kind: Option<rustc_public::ty::TyKind>) -> Option<rustc_public::ty::TyKind> {
+    use rustc_public::ty::RigidTy;
     // check for pointers
     let kind = maybe_kind?;
     if let Some(ty) = kind.builtin_deref(true) {
@@ -645,10 +653,10 @@ fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mi
 
 fn collect_alloc(
     val_collector: &mut InternedValueCollector,
-    kind: Option<stable_mir::ty::TyKind>,
-    val: stable_mir::mir::alloc::AllocId,
+    kind: Option<rustc_public::ty::TyKind>,
+    val: rustc_public::mir::alloc::AllocId,
 ) {
-    use stable_mir::mir::alloc::GlobalAlloc;
+    use rustc_public::mir::alloc::GlobalAlloc;
     let entry = val_collector.visited_allocs.entry(val);
     if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) {
         return;
@@ -688,11 +696,12 @@ fn collect_alloc(
             assert!(kind.unwrap().is_fn_ptr());
             entry.or_insert(AllocInfo::Function(inst));
         }
+        GlobalAlloc::TypeId { ty: _ } => todo!("GlobalAlloc:TypeId not implemented"),
     };
 }
 
 impl MirVisitor for InternedValueCollector<'_, '_> {
-    fn visit_span(&mut self, span: &stable_mir::ty::Span) {
+    fn visit_span(&mut self, span: &rustc_public::ty::Span) {
         let span_internal = internal(self.tcx, span);
         let (source_file, lo_line, lo_col, hi_line, hi_col) = self
             .tcx
@@ -712,8 +721,8 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
         );
     }
 
-    fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
-        use stable_mir::mir::{ConstOperand, Operand::Constant};
+    fn visit_terminator(&mut self, term: &Terminator, loc: rustc_public::mir::visit::Location) {
+        use rustc_public::mir::{ConstOperand, Operand::Constant};
         use TerminatorKind::*;
         let fn_sym = match &term.kind {
             Call {
@@ -721,7 +730,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                 args: _,
                 ..
             } => {
-                if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized {
+                if *cnst.kind() != rustc_public::ty::ConstantKind::ZeroSized {
                     return;
                 }
                 let inst = fn_inst_for_ty(cnst.ty(), true)
@@ -739,8 +748,8 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
         self.super_terminator(term, loc);
     }
 
-    fn visit_rvalue(&mut self, rval: &Rvalue, loc: stable_mir::mir::visit::Location) {
-        use stable_mir::mir::{CastKind, PointerCoercion};
+    fn visit_rvalue(&mut self, rval: &Rvalue, loc: rustc_public::mir::visit::Location) {
+        use rustc_public::mir::{CastKind, PointerCoercion};
 
         #[allow(clippy::single_match)] // TODO: Unsure if we need to fill these out
         match rval {
@@ -757,10 +766,10 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 
     fn visit_mir_const(
         &mut self,
-        constant: &stable_mir::ty::MirConst,
-        loc: stable_mir::mir::visit::Location,
+        constant: &rustc_public::ty::MirConst,
+        loc: rustc_public::mir::visit::Location,
     ) {
-        use stable_mir::ty::{ConstantKind, TyConstKind}; // TyConst
+        use rustc_public::ty::{ConstantKind, TyConstKind}; // TyConst
         match constant.kind() {
             ConstantKind::Allocated(alloc) => {
                 if debug_enabled() {
@@ -784,8 +793,12 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
         self.super_mir_const(constant, loc);
     }
 
-    fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
-        ty.visit(self.ty_visitor);
+    fn visit_ty(
+        &mut self,
+        ty: &rustc_public::ty::Ty,
+        _location: rustc_public::mir::visit::Location,
+    ) {
+        let _ = ty.visit(self.ty_visitor);
         self.super_ty(ty);
     }
 }
@@ -858,7 +871,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
 
 struct UnevaluatedConstCollector<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
-    unevaluated_consts: &'local mut HashMap<stable_mir::ty::ConstDef, String>,
+    unevaluated_consts: &'local mut HashMap<rustc_public::ty::ConstDef, String>,
     processed_items: &'local mut HashMap<String, Item>,
     pending_items: &'local mut HashMap<String, Item>,
     current_item: u64,
@@ -867,10 +880,10 @@ struct UnevaluatedConstCollector<'tcx, 'local> {
 impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
     fn visit_mir_const(
         &mut self,
-        constant: &stable_mir::ty::MirConst,
-        _location: stable_mir::mir::visit::Location,
+        constant: &rustc_public::ty::MirConst,
+        _location: rustc_public::mir::visit::Location,
     ) {
-        if let stable_mir::ty::ConstantKind::Unevaluated(uconst) = constant.kind() {
+        if let rustc_public::ty::ConstantKind::Unevaluated(uconst) = constant.kind() {
             let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
             let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
             let maybe_inst = rustc_middle::ty::Instance::try_resolve(
@@ -910,7 +923,7 @@ impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
 fn collect_unevaluated_constant_items(
     tcx: TyCtxt<'_>,
     items: HashMap<String, Item>,
-) -> (HashMap<stable_mir::ty::ConstDef, String>, Vec<Item>) {
+) -> (HashMap<rustc_public::ty::ConstDef, String>, Vec<Item>) {
     // setup collector prerequisites
     let mut unevaluated_consts = HashMap::new();
     let mut processed_items = HashMap::new();
@@ -950,7 +963,7 @@ fn collect_unevaluated_constant_items(
 // ==========================
 
 fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
-    let units = tcx.collect_and_partition_mono_items(()).1;
+    let units = tcx.collect_and_partition_mono_items(()).codegen_units;
     units
         .iter()
         .flat_map(|unit| {
@@ -987,27 +1000,27 @@ pub enum TypeMetadata {
     StructType {
         name: String,
         adt_def: AdtDef,
-        fields: Vec<stable_mir::ty::Ty>,
+        fields: Vec<rustc_public::ty::Ty>,
     },
     UnionType {
         name: String,
         adt_def: AdtDef,
     },
-    ArrayType(stable_mir::ty::Ty, Option<stable_mir::ty::TyConst>),
-    PtrType(stable_mir::ty::Ty),
-    RefType(stable_mir::ty::Ty),
+    ArrayType(rustc_public::ty::Ty, Option<rustc_public::ty::TyConst>),
+    PtrType(rustc_public::ty::Ty),
+    RefType(rustc_public::ty::Ty),
     TupleType {
-        types: Vec<stable_mir::ty::Ty>,
+        types: Vec<rustc_public::ty::Ty>,
     },
     FunType(String),
 }
 
 fn mk_type_metadata(
     tcx: TyCtxt<'_>,
-    k: stable_mir::ty::Ty,
+    k: rustc_public::ty::Ty,
     t: TyKind,
-) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
-    use stable_mir::ty::RigidTy::*;
+) -> Option<(rustc_public::ty::Ty, TypeMetadata)> {
+    use rustc_public::ty::RigidTy::*;
     use TyKind::RigidTy as T;
     use TypeMetadata::*;
     match t {
@@ -1086,10 +1099,10 @@ pub struct SmirJson<'t> {
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
-    pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
+    pub types: Vec<(rustc_public::ty::Ty, TypeMetadata)>,
     pub spans: Vec<(usize, SourceData)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
-    pub machine: stable_mir::target::MachineInfo,
+    pub machine: rustc_public::target::MachineInfo,
 }
 
 #[derive(Serialize)]
@@ -1102,8 +1115,8 @@ pub struct SmirJsonDebugInfo<'t> {
 // Serialization Entrypoint
 // ========================
 
-pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
-    let local_crate = stable_mir::local_crate();
+pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson<'_> {
+    let local_crate = rustc_public::local_crate();
     let items = collect_items(tcx);
     let items_clone = items.clone();
     let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
@@ -1113,8 +1126,9 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     // FIXME: We dump extra static items here --- this should be handled better
     for (_, alloc) in visited_allocs.iter() {
         if let AllocInfo::Static(def) = alloc {
-            let mono_item =
-                stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
+            let mono_item = rustc_public::mir::mono::MonoItem::Fn(
+                rustc_public::mir::mono::Instance::from(*def),
+            );
             let item_name = &mono_item_name(tcx, &mono_item);
             if !items_clone.contains_key(item_name) {
                 println!(
@@ -1174,7 +1188,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         types,
         spans,
         debug,
-        machine: stable_mir::target::MachineInfo::target(),
+        machine: rustc_public::target::MachineInfo::target(),
     }
 }
 

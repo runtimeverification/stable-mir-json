@@ -18,3 +18,6 @@ path = "src/bin/cargo_stable_mir_json.rs"
 [package.metadata.rust-analyzer]
 # This package uses rustc crates.
 rustc_private=true
+
+[lints.clippy]
+uninlined_format_args = "allow"
