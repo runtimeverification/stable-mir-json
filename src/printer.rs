@@ -554,6 +554,27 @@ impl Visitor for TyCollector<'_> {
                 inputs_outputs.push(sig_stable.ret.ty);
                 inputs_outputs.super_visit(self)
             }
+            // The visitor won't collect field types for ADTs, therefore doing it explicitly
+            TyKind::RigidTy(RigidTy::Adt(adt_def, _)) => {
+                let tcx = self.tcx;
+                let fields: Vec<stable_mir::ty::Ty> = rustc_internal::internal(tcx, adt_def)
+                    .all_fields()
+                    .map(move |field| tcx.type_of(field.did).instantiate_identity())
+                    .map(rustc_internal::stable)
+                    .collect();
+                for f_ty in fields {
+                    let c = self.visit_ty(&f_ty);
+                    if matches!(c, ControlFlow::Break(())) {
+                        return c;
+                    }
+                }
+                let control = ty.super_visit(self);
+                if matches!(control, ControlFlow::Continue(_)) {
+                    let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                    self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                }
+                control
+            }
             _ => {
                 let control = ty.super_visit(self);
                 match control {
