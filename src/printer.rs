@@ -566,19 +566,14 @@ impl Visitor for TyCollector<'_> {
                     .map(rustc_internal::stable)
                     .collect();
 
-                let mut control = ty.super_visit(self);
+                let control = ty.super_visit(self);
                 if matches!(control, ControlFlow::Continue(_)) {
                     let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
                     self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                    fields.super_visit(self)
+                } else {
+                    control
                 }
-
-                for f_ty in fields {
-                    control = self.visit_ty(&f_ty);
-                    if matches!(control, ControlFlow::Break(())) {
-                        break;
-                    }
-                }
-                control
             }
             _ => {
                 let control = ty.super_visit(self);
