@@ -3,27 +3,6 @@
     [
       {
         "Memory": {
-          "align": 4,
-          "bytes": [
-            2,
-            0,
-            0,
-            0,
-            3,
-            0,
-            0,
-            0
-          ],
-          "mutability": "Not",
-          "provenance": {
-            "ptrs": []
-          }
-        }
-      }
-    ],
-    [
-      {
-        "Memory": {
           "align": 1,
           "bytes": [
             97,
@@ -55,6 +34,27 @@
             32,
             51,
             93
+          ],
+          "mutability": "Not",
+          "provenance": {
+            "ptrs": []
+          }
+        }
+      }
+    ],
+    [
+      {
+        "Memory": {
+          "align": 4,
+          "bytes": [
+            2,
+            0,
+            0,
+            0,
+            3,
+            0,
+            0,
+            0
           ],
           "mutability": "Not",
           "provenance": {
@@ -4511,6 +4511,13 @@
     [
       {
         "PrimitiveType": {
+          "Uint": "U32"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
           "Uint": "U8"
         }
       }
@@ -4526,15 +4533,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::option::Option"
         }
       }
@@ -4543,15 +4545,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::option::Option"
         }
       }
@@ -4560,15 +4557,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::result::Result"
         }
       }
@@ -4577,15 +4569,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::result::Result"
         }
       }

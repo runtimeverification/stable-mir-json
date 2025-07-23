@@ -3126,6 +3126,16 @@
     ],
     [
       {
+        "PrimitiveType": "Char"
+      }
+    ],
+    [
+      {
+        "PrimitiveType": "Str"
+      }
+    ],
+    [
+      {
         "PrimitiveType": {
           "Int": "I32"
         }
@@ -3154,17 +3164,31 @@
     ],
     [
       {
+        "PrimitiveType": {
+          "Uint": "Usize"
+        }
+      }
+    ],
+    [
+      {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
+          "name": "core::fmt::rt::ArgumentType"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            0,
+            1
+          ],
+          "fields": "elided",
           "name": "std::option::Option"
         }
       }
@@ -3173,15 +3197,34 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
+          "name": "std::option::Option"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            0,
+            1
+          ],
+          "fields": "elided",
+          "name": "std::option::Option"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            0,
+            1
+          ],
+          "fields": "elided",
           "name": "std::result::Result"
         }
       }
@@ -3190,15 +3233,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::result::Result"
         }
       }
@@ -3207,20 +3245,55 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ],
-            [
-              2,
-              2
-            ]
+            0,
+            1,
+            2
           ],
+          "fields": "elided",
+          "name": "core::fmt::rt::Count"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            0,
+            1,
+            2
+          ],
+          "fields": "elided",
           "name": "core::panicking::AssertKind"
+        }
+      }
+    ],
+    [
+      {
+        "EnumType": {
+          "discriminants": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fields": "elided",
+          "name": "core::fmt::rt::Alignment"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "fields": "elided",
+          "name": "core::fmt::rt::Argument"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "fields": "elided",
+          "name": "core::fmt::rt::Placeholder"
         }
       }
     ],
@@ -3252,6 +3325,14 @@
       {
         "StructType": {
           "fields": "elided",
+          "name": "std::marker::PhantomData"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "fields": "elided",
           "name": "std::panic::Location"
         }
       }
@@ -3268,15 +3349,37 @@
       {
         "StructType": {
           "fields": "elided",
+          "name": "std::ptr::NonNull"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "fields": "elided",
           "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
     ],
     [
       {
-        "TupleType": {
-          "types": "elided"
-        }
+        "ArrayType": [
+          null
+        ]
+      }
+    ],
+    [
+      {
+        "ArrayType": [
+          null
+        ]
+      }
+    ],
+    [
+      {
+        "ArrayType": [
+          null
+        ]
       }
     ],
     [
@@ -3295,7 +3398,9 @@
     ],
     [
       {
-        "PtrType": "elided"
+        "TupleType": {
+          "types": "elided"
+        }
       }
     ],
     [
@@ -3311,6 +3416,51 @@
     [
       {
         "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
       }
     ],
     [

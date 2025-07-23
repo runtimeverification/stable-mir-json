@@ -5,16 +5,18 @@
     | .allocs    = ( [ .allocs[]    ] | map(del(.[0])) )
     | .functions = ( [ .functions[] ] | map(del(.[0])) )
     | .types     =  ( [ .types[] ] | map(del(.[0])) )
+# remove "Never" type
+    | .types = ( [ .types[] ] | map(select(.[0] != "VoidType")) )
     |
 # Apply the normalisation filter
-{ allocs:    .allocs,
+{ allocs:    ( .allocs | sort ),
   functions: .functions,
   items:     .items,
   types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) | sort ),
   # delete unstable adt_ref IDs and struct field Ty IDs
-    ( .types | map(select(.[0].EnumType) | del(.[0].EnumType.adt_def)) | sort ),
+    ( .types | map(select(.[0].EnumType) | del(.[0].EnumType.adt_def) | .[0].EnumType.fields = "elided") | sort ),
     ( .types | map(select(.[0].StructType) | del(.[0].StructType.adt_def) | .[0].StructType.fields = "elided" ) | sort ),
     ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) | sort ),
   # delete unstable Ty IDs for arrays and tuples

@@ -1781,6 +1781,13 @@
     [
       {
         "PrimitiveType": {
+          "Uint": "U32"
+        }
+      }
+    ],
+    [
+      {
+        "PrimitiveType": {
           "Uint": "U8"
         }
       }
@@ -1789,15 +1796,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::result::Result"
         }
       }
