@@ -1105,7 +1105,11 @@ fn mk_type_metadata(
         | T(Dynamic(_, _, _))
         | T(CoroutineWitness(_, _)) => {
             #[cfg(feature = "debug_log")]
-            println!("\nDEBUG: Skipping unsupported ty {}: {:?}", k.to_index(), k.kind());
+            println!(
+                "\nDEBUG: Skipping unsupported ty {}: {:?}",
+                k.to_index(),
+                k.kind()
+            );
             None
         }
         T(Never) => Some((k, VoidType)),
