@@ -23,23 +23,21 @@
             100,
             58,
             32,
-            45,
-            49,
-            50,
-            56,
+            97,
+            46,
+            97,
             95,
+            116,
+            104,
             105,
-            56,
-            32,
-            60,
-            60,
-            32,
-            49,
+            114,
+            100,
             32,
             61,
             61,
             32,
-            48
+            52,
+            51
           ],
           "mutability": "Not",
           "provenance": {
@@ -71,61 +69,21 @@
             100,
             58,
             32,
-            45,
-            49,
-            55,
-            48,
-            49,
-            52,
-            49,
-            49,
-            56,
-            51,
-            52,
-            54,
-            48,
-            52,
-            54,
-            57,
-            50,
-            51,
-            49,
-            55,
-            51,
-            49,
-            54,
-            56,
-            55,
-            51,
-            48,
-            51,
-            55,
-            49,
-            53,
-            56,
-            56,
-            52,
-            49,
-            48,
-            53,
-            55,
-            50,
-            56,
+            97,
+            46,
+            97,
             95,
-            105,
-            49,
-            50,
-            56,
-            32,
-            60,
-            60,
-            32,
-            49,
+            118,
+            97,
+            108,
+            117,
+            101,
             32,
             61,
             61,
             32,
-            48
+            52,
+            50
           ],
           "mutability": "Not",
           "provenance": {
@@ -157,31 +115,21 @@
             100,
             58,
             32,
-            45,
-            50,
-            49,
-            52,
-            55,
-            52,
-            56,
-            51,
-            54,
-            52,
-            56,
+            97,
+            46,
+            97,
             95,
-            105,
-            51,
-            50,
-            32,
-            60,
-            60,
-            32,
-            49,
+            118,
+            97,
+            108,
+            117,
+            101,
             32,
             61,
             61,
             32,
-            48
+            52,
+            51
           ],
           "mutability": "Not",
           "provenance": {
@@ -213,26 +161,15 @@
             100,
             58,
             32,
-            45,
-            51,
-            50,
-            55,
-            54,
-            56,
-            95,
-            105,
-            49,
-            54,
-            32,
-            60,
-            60,
-            32,
-            49,
-            32,
-            61,
-            61,
-            32,
-            48
+            97,
+            46,
+            97,
+            110,
+            111,
+            116,
+            104,
+            101,
+            114
           ],
           "mutability": "Not",
           "provenance": {
@@ -264,40 +201,14 @@
             100,
             58,
             32,
-            45,
-            57,
-            50,
-            50,
-            51,
-            51,
-            55,
-            50,
-            48,
-            51,
-            54,
-            56,
-            53,
-            52,
-            55,
-            55,
-            53,
-            56,
-            48,
-            56,
-            95,
-            105,
-            54,
-            52,
-            32,
-            60,
-            60,
-            32,
-            49,
+            118,
+            118,
             32,
             61,
             61,
             32,
-            48
+            52,
+            51
           ],
           "mutability": "Not",
           "provenance": {
@@ -1704,114 +1615,154 @@
                     "kind": {
                       "Assign": [
                         {
-                          "local": 2,
+                          "local": 1,
                           "projection": []
                         },
                         {
-                          "Cast": [
-                            "IntToInt",
+                          "Aggregate": [
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 51,
-                                "user_ty": null
-                              }
+                              "Adt": [
+                                7,
+                                0,
+                                [],
+                                null,
+                                null
+                              ]
                             },
-                            25
+                            [
+                              {
+                                "Constant": {
+                                  "const_": {
+                                    "id": 9,
+                                    "kind": {
+                                      "Allocated": {
+                                        "align": 1,
+                                        "bytes": [
+                                          32
+                                        ],
+                                        "mutability": "Mut",
+                                        "provenance": {
+                                          "ptrs": []
+                                        }
+                                      }
+                                    },
+                                    "ty": 2
+                                  },
+                                  "span": 51,
+                                  "user_ty": null
+                                }
+                              },
+                              {
+                                "Constant": {
+                                  "const_": {
+                                    "id": 10,
+                                    "kind": {
+                                      "Allocated": {
+                                        "align": 1,
+                                        "bytes": [
+                                          0
+                                        ],
+                                        "mutability": "Mut",
+                                        "provenance": {
+                                          "ptrs": []
+                                        }
+                                      }
+                                    },
+                                    "ty": 25
+                                  },
+                                  "span": 52,
+                                  "user_ty": null
+                                }
+                              },
+                              {
+                                "Constant": {
+                                  "const_": {
+                                    "id": 11,
+                                    "kind": {
+                                      "Allocated": {
+                                        "align": 8,
+                                        "bytes": [
+                                          32,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0,
+                                          0
+                                        ],
+                                        "mutability": "Mut",
+                                        "provenance": {
+                                          "ptrs": []
+                                        }
+                                      }
+                                    },
+                                    "ty": 26
+                                  },
+                                  "span": 53,
+                                  "user_ty": null
+                                }
+                              }
+                            ]
                           ]
                         }
                       ]
                     },
-                    "span": 52
+                    "span": 54
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
-                          "local": 3,
+                          "local": 2,
                           "projection": []
                         },
                         {
-                          "BinaryOp": [
-                            "Lt",
+                          "Ref": [
                             {
-                              "Move": {
-                                "local": 2,
-                                "projection": []
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
                               }
                             },
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 11,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        8,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 25
-                                },
-                                "span": 52,
-                                "user_ty": null
-                              }
+                              "local": 1,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    0,
+                                    2
+                                  ]
+                                }
+                              ]
                             }
                           ]
                         }
                       ]
                     },
-                    "span": 52
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Assert": {
-                      "cond": {
-                        "Move": {
-                          "local": 3,
-                          "projection": []
-                        }
-                      },
-                      "expected": true,
-                      "msg": {
-                        "Overflow": [
-                          "Shl",
-                          {
+                    "span": 55
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 2,
+                          "projection": [
+                            "Deref"
+                          ]
+                        },
+                        {
+                          "Use": {
                             "Constant": {
                               "const_": {
-                                "id": 9,
+                                "id": 12,
                                 "kind": {
                                   "Allocated": {
                                     "align": 1,
                                     "bytes": [
-                                      128
+                                      42
                                     ],
                                     "mutability": "Mut",
                                     "provenance": {
@@ -1821,42 +1772,63 @@
                                 },
                                 "ty": 2
                               },
-                              "span": 50,
-                              "user_ty": null
-                            }
-                          },
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 10,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      1,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 16
-                              },
-                              "span": 51,
+                              "span": 56,
                               "user_ty": null
                             }
                           }
-                        ]
+                        }
+                      ]
+                    },
+                    "span": 57
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 3,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Copy": {
+                              "local": 1,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    0,
+                                    2
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 58
+                  }
+                ],
+                "terminator": {
+                  "kind": {
+                    "SwitchInt": {
+                      "discr": {
+                        "Move": {
+                          "local": 3,
+                          "projection": []
+                        }
                       },
-                      "target": 1,
-                      "unwind": "Continue"
+                      "targets": {
+                        "branches": [
+                          [
+                            42,
+                            1
+                          ]
+                        ],
+                        "otherwise": 2
+                      }
                     }
                   },
-                  "span": 52
+                  "span": 50
                 }
               },
               {
@@ -1865,91 +1837,36 @@
                     "kind": {
                       "Assign": [
                         {
-                          "local": 1,
+                          "local": 5,
                           "projection": []
                         },
                         {
-                          "BinaryOp": [
-                            "Shl",
+                          "Ref": [
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 9,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 1,
-                                      "bytes": [
-                                        128
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 2
-                                },
-                                "span": 50,
-                                "user_ty": null
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
                               }
                             },
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 51,
-                                "user_ty": null
-                              }
+                              "local": 1,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    0,
+                                    2
+                                  ]
+                                }
+                              ]
                             }
                           ]
                         }
                       ]
                     },
-                    "span": 52
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 1,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            0,
-                            2
-                          ]
-                        ],
-                        "otherwise": 3
-                      }
-                    }
+                    "span": 60
                   },
-                  "span": 53
-                }
-              },
-              {
-                "statements": [
                   {
                     "kind": {
                       "Assign": [
@@ -1958,39 +1875,80 @@
                           "projection": []
                         },
                         {
-                          "Cast": [
-                            "IntToInt",
+                          "Ref": [
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 55,
-                                "user_ty": null
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
                               }
                             },
-                            25
+                            {
+                              "local": 5,
+                              "projection": []
+                            }
                           ]
                         }
                       ]
                     },
-                    "span": 56
+                    "span": 61
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 20,
+                          "projection": []
+                        },
+                        {
+                          "CopyForDeref": {
+                            "local": 6,
+                            "projection": [
+                              "Deref"
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "span": 62
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 20,
+                          "projection": [
+                            "Deref"
+                          ]
+                        },
+                        {
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "id": 13,
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 1,
+                                    "bytes": [
+                                      43
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
+                                    }
+                                  }
+                                },
+                                "ty": 2
+                              },
+                              "span": 63,
+                              "user_ty": null
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 62
                   },
                   {
                     "kind": {
@@ -2000,114 +1958,46 @@
                           "projection": []
                         },
                         {
-                          "BinaryOp": [
-                            "Lt",
-                            {
-                              "Move": {
-                                "local": 6,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 13,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        16,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 25
-                                },
-                                "span": 56,
-                                "user_ty": null
-                              }
+                          "Use": {
+                            "Copy": {
+                              "local": 1,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    0,
+                                    2
+                                  ]
+                                }
+                              ]
                             }
-                          ]
+                          }
                         }
                       ]
                     },
-                    "span": 56
+                    "span": 64
                   }
                 ],
                 "terminator": {
                   "kind": {
-                    "Assert": {
-                      "cond": {
+                    "SwitchInt": {
+                      "discr": {
                         "Move": {
                           "local": 7,
                           "projection": []
                         }
                       },
-                      "expected": true,
-                      "msg": {
-                        "Overflow": [
-                          "Shl",
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 12,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 2,
-                                    "bytes": [
-                                      0,
-                                      128
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 26
-                              },
-                              "span": 54,
-                              "user_ty": null
-                            }
-                          },
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 10,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      1,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 16
-                              },
-                              "span": 55,
-                              "user_ty": null
-                            }
-                          }
-                        ]
-                      },
-                      "target": 4,
-                      "unwind": "Continue"
+                      "targets": {
+                        "branches": [
+                          [
+                            43,
+                            3
+                          ]
+                        ],
+                        "otherwise": 4
+                      }
                     }
                   },
-                  "span": 56
+                  "span": 59
                 }
               },
               {
@@ -2132,7 +2022,7 @@
                                     0,
                                     0,
                                     0,
-                                    35,
+                                    33,
                                     0,
                                     0,
                                     0,
@@ -2170,7 +2060,7 @@
                             "kind": "ZeroSized",
                             "ty": 27
                           },
-                          "span": 57,
+                          "span": 65,
                           "user_ty": null
                         }
                       },
@@ -2178,97 +2068,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 57
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "Shl",
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 12,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 2,
-                                      "bytes": [
-                                        0,
-                                        128
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 26
-                                },
-                                "span": 54,
-                                "user_ty": null
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 55,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 56
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 5,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            0,
-                            5
-                          ]
-                        ],
-                        "otherwise": 6
-                      }
-                    }
-                  },
-                  "span": 58
+                  "span": 65
                 }
               },
               {
@@ -2281,39 +2081,62 @@
                           "projection": []
                         },
                         {
-                          "Cast": [
-                            "IntToInt",
+                          "Ref": [
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 60,
-                                "user_ty": null
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
                               }
                             },
-                            25
+                            {
+                              "local": 1,
+                              "projection": []
+                            }
                           ]
                         }
                       ]
                     },
-                    "span": 61
+                    "span": 67
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 9,
+                          "projection": []
+                        },
+                        {
+                          "Aggregate": [
+                            {
+                              "Adt": [
+                                8,
+                                0,
+                                [
+                                  {
+                                    "Lifetime": {
+                                      "kind": "ReErased"
+                                    }
+                                  }
+                                ],
+                                null,
+                                null
+                              ]
+                            },
+                            [
+                              {
+                                "Copy": {
+                                  "local": 10,
+                                  "projection": []
+                                }
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 68
                   },
                   {
                     "kind": {
@@ -2323,116 +2146,99 @@
                           "projection": []
                         },
                         {
-                          "BinaryOp": [
-                            "Lt",
+                          "Ref": [
                             {
-                              "Move": {
-                                "local": 10,
-                                "projection": []
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
                               }
                             },
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 17,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        32,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 25
-                                },
-                                "span": 61,
-                                "user_ty": null
-                              }
+                              "local": 9,
+                              "projection": []
                             }
                           ]
                         }
                       ]
                     },
-                    "span": 61
+                    "span": 69
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 21,
+                          "projection": []
+                        },
+                        {
+                          "CopyForDeref": {
+                            "local": 11,
+                            "projection": [
+                              "Deref",
+                              {
+                                "Field": [
+                                  0,
+                                  29
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "span": 70
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 12,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Copy": {
+                              "local": 21,
+                              "projection": [
+                                "Deref",
+                                {
+                                  "Field": [
+                                    0,
+                                    2
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 70
                   }
                 ],
                 "terminator": {
                   "kind": {
-                    "Assert": {
-                      "cond": {
-                        "Move": {
-                          "local": 11,
+                    "SwitchInt": {
+                      "discr": {
+                        "Copy": {
+                          "local": 12,
                           "projection": []
                         }
                       },
-                      "expected": true,
-                      "msg": {
-                        "Overflow": [
-                          "Shl",
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 16,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      0,
-                                      0,
-                                      0,
-                                      128
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 16
-                              },
-                              "span": 59,
-                              "user_ty": null
-                            }
-                          },
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 10,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      1,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 16
-                              },
-                              "span": 60,
-                              "user_ty": null
-                            }
-                          }
-                        ]
-                      },
-                      "target": 7,
-                      "unwind": "Continue"
+                      "targets": {
+                        "branches": [
+                          [
+                            43,
+                            5
+                          ]
+                        ],
+                        "otherwise": 6
+                      }
                     }
                   },
-                  "span": 61
+                  "span": 66
                 }
               },
               {
@@ -2444,7 +2250,7 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 18,
+                              "id": 16,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -2457,7 +2263,7 @@
                                     0,
                                     0,
                                     0,
-                                    38,
+                                    33,
                                     0,
                                     0,
                                     0,
@@ -2495,7 +2301,7 @@
                             "kind": "ZeroSized",
                             "ty": 27
                           },
-                          "span": 62,
+                          "span": 71,
                           "user_ty": null
                         }
                       },
@@ -2503,7 +2309,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 62
+                  "span": 71
                 }
               },
               {
@@ -2512,67 +2318,232 @@
                     "kind": {
                       "Assign": [
                         {
-                          "local": 9,
+                          "local": 22,
                           "projection": []
                         },
                         {
-                          "BinaryOp": [
-                            "Shl",
+                          "CopyForDeref": {
+                            "local": 11,
+                            "projection": [
+                              "Deref",
+                              {
+                                "Field": [
+                                  0,
+                                  29
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "span": 73
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 22,
+                          "projection": [
+                            "Deref",
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 16,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        0,
-                                        0,
-                                        0,
-                                        128
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
+                              "Field": [
+                                1,
+                                25
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "id": 17,
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 1,
+                                    "bytes": [
+                                      1
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
                                     }
-                                  },
-                                  "ty": 16
+                                  }
                                 },
-                                "span": 59,
-                                "user_ty": null
+                                "ty": 25
+                              },
+                              "span": 74,
+                              "user_ty": null
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 73
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 23,
+                          "projection": []
+                        },
+                        {
+                          "CopyForDeref": {
+                            "local": 11,
+                            "projection": [
+                              "Deref",
+                              {
+                                "Field": [
+                                  0,
+                                  29
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "span": 75
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 14,
+                          "projection": []
+                        },
+                        {
+                          "Ref": [
+                            {
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
                               }
                             },
                             {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 60,
-                                "user_ty": null
-                              }
+                              "local": 23,
+                              "projection": [
+                                "Deref",
+                                {
+                                  "Field": [
+                                    2,
+                                    26
+                                  ]
+                                }
+                              ]
                             }
                           ]
                         }
                       ]
                     },
-                    "span": 61
+                    "span": 75
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 24,
+                          "projection": []
+                        },
+                        {
+                          "CopyForDeref": {
+                            "local": 11,
+                            "projection": [
+                              "Deref",
+                              {
+                                "Field": [
+                                  0,
+                                  29
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "span": 76
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 15,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Copy": {
+                              "local": 24,
+                              "projection": [
+                                "Deref",
+                                {
+                                  "Field": [
+                                    0,
+                                    2
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 76
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 14,
+                          "projection": [
+                            "Deref"
+                          ]
+                        },
+                        {
+                          "Cast": [
+                            "IntToInt",
+                            {
+                              "Move": {
+                                "local": 15,
+                                "projection": []
+                              }
+                            },
+                            26
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 77
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 16,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Copy": {
+                              "local": 1,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    1,
+                                    25
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 72
                   }
                 ],
                 "terminator": {
@@ -2580,7 +2551,7 @@
                     "SwitchInt": {
                       "discr": {
                         "Move": {
-                          "local": 9,
+                          "local": 16,
                           "projection": []
                         }
                       },
@@ -2591,179 +2562,11 @@
                             8
                           ]
                         ],
-                        "otherwise": 9
+                        "otherwise": 7
                       }
                     }
                   },
-                  "span": 63
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 14,
-                          "projection": []
-                        },
-                        {
-                          "Cast": [
-                            "IntToInt",
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 65,
-                                "user_ty": null
-                              }
-                            },
-                            25
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 66
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 15,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "Lt",
-                            {
-                              "Move": {
-                                "local": 14,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 20,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        64,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 25
-                                },
-                                "span": 66,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 66
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Assert": {
-                      "cond": {
-                        "Move": {
-                          "local": 15,
-                          "projection": []
-                        }
-                      },
-                      "expected": true,
-                      "msg": {
-                        "Overflow": [
-                          "Shl",
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 19,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 8,
-                                    "bytes": [
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      128
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 29
-                              },
-                              "span": 64,
-                              "user_ty": null
-                            }
-                          },
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 10,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      1,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 16
-                              },
-                              "span": 65,
-                              "user_ty": null
-                            }
-                          }
-                        ]
-                      },
-                      "target": 10,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 66
+                  "span": 72
                 }
               },
               {
@@ -2775,7 +2578,7 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 21,
+                              "id": 18,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -2788,7 +2591,7 @@
                                     0,
                                     0,
                                     0,
-                                    43,
+                                    26,
                                     0,
                                     0,
                                     0,
@@ -2816,7 +2619,7 @@
                         }
                       ],
                       "destination": {
-                        "local": 12,
+                        "local": 13,
                         "projection": []
                       },
                       "func": {
@@ -2826,7 +2629,7 @@
                             "kind": "ZeroSized",
                             "ty": 27
                           },
-                          "span": 67,
+                          "span": 78,
                           "user_ty": null
                         }
                       },
@@ -2834,103 +2637,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 67
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 13,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "Shl",
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 19,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 8,
-                                      "bytes": [
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        128
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 29
-                                },
-                                "span": 64,
-                                "user_ty": null
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 65,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 66
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 13,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            0,
-                            11
-                          ]
-                        ],
-                        "otherwise": 12
-                      }
-                    }
-                  },
-                  "span": 68
+                  "span": 78
                 }
               },
               {
@@ -2943,170 +2650,46 @@
                           "projection": []
                         },
                         {
-                          "Cast": [
-                            "IntToInt",
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 70,
-                                "user_ty": null
-                              }
-                            },
-                            25
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 71
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 19,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "Lt",
-                            {
-                              "Move": {
-                                "local": 18,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 23,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        128,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 25
-                                },
-                                "span": 71,
-                                "user_ty": null
-                              }
+                          "Use": {
+                            "Copy": {
+                              "local": 1,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    2,
+                                    26
+                                  ]
+                                }
+                              ]
                             }
-                          ]
+                          }
                         }
                       ]
                     },
-                    "span": 71
+                    "span": 80
                   }
                 ],
                 "terminator": {
                   "kind": {
-                    "Assert": {
-                      "cond": {
+                    "SwitchInt": {
+                      "discr": {
                         "Move": {
-                          "local": 19,
+                          "local": 18,
                           "projection": []
                         }
                       },
-                      "expected": true,
-                      "msg": {
-                        "Overflow": [
-                          "Shl",
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 22,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 16,
-                                    "bytes": [
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      0,
-                                      128
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 30
-                              },
-                              "span": 69,
-                              "user_ty": null
-                            }
-                          },
-                          {
-                            "Constant": {
-                              "const_": {
-                                "id": 10,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      1,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 16
-                              },
-                              "span": 70,
-                              "user_ty": null
-                            }
-                          }
-                        ]
-                      },
-                      "target": 13,
-                      "unwind": "Continue"
+                      "targets": {
+                        "branches": [
+                          [
+                            43,
+                            9
+                          ]
+                        ],
+                        "otherwise": 10
+                      }
                     }
                   },
-                  "span": 71
+                  "span": 79
                 }
               },
               {
@@ -3118,7 +2701,7 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 24,
+                              "id": 19,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3131,7 +2714,7 @@
                                     0,
                                     0,
                                     0,
-                                    52,
+                                    27,
                                     0,
                                     0,
                                     0,
@@ -3159,7 +2742,7 @@
                         }
                       ],
                       "destination": {
-                        "local": 16,
+                        "local": 17,
                         "projection": []
                       },
                       "func": {
@@ -3169,7 +2752,7 @@
                             "kind": "ZeroSized",
                             "ty": 27
                           },
-                          "span": 72,
+                          "span": 81,
                           "user_ty": null
                         }
                       },
@@ -3177,118 +2760,14 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 72
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 17,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "Shl",
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 22,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 16,
-                                      "bytes": [
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        0,
-                                        128
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 30
-                                },
-                                "span": 69,
-                                "user_ty": null
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 10,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        1,
-                                        0,
-                                        0,
-                                        0
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  },
-                                  "ty": 16
-                                },
-                                "span": 70,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 71
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 17,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            0,
-                            14
-                          ]
-                        ],
-                        "otherwise": 15
-                      }
-                    }
-                  },
-                  "span": 73
+                  "span": 81
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 74
+                  "span": 82
                 }
               },
               {
@@ -3300,7 +2779,7 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 25,
+                              "id": 20,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3313,7 +2792,7 @@
                                     0,
                                     0,
                                     0,
-                                    73,
+                                    33,
                                     0,
                                     0,
                                     0,
@@ -3341,7 +2820,7 @@
                         }
                       ],
                       "destination": {
-                        "local": 20,
+                        "local": 19,
                         "projection": []
                       },
                       "func": {
@@ -3351,7 +2830,7 @@
                             "kind": "ZeroSized",
                             "ty": 27
                           },
-                          "span": 75,
+                          "span": 83,
                           "user_ty": null
                         }
                       },
@@ -3359,126 +2838,267 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 75
+                  "span": 83
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 76,
+                "span": 84,
                 "ty": 1
               },
               {
                 "mutability": "Mut",
-                "span": 52,
+                "span": 85,
+                "ty": 30
+              },
+              {
+                "mutability": "Not",
+                "span": 86,
+                "ty": 31
+              },
+              {
+                "mutability": "Mut",
+                "span": 58,
                 "ty": 2
               },
               {
                 "mutability": "Mut",
-                "span": 52,
-                "ty": 25
-              },
-              {
-                "mutability": "Mut",
-                "span": 52,
-                "ty": 31
-              },
-              {
-                "mutability": "Mut",
-                "span": 57,
+                "span": 65,
                 "ty": 32
               },
               {
                 "mutability": "Mut",
-                "span": 56,
-                "ty": 26
-              },
-              {
-                "mutability": "Mut",
-                "span": 56,
-                "ty": 25
-              },
-              {
-                "mutability": "Mut",
-                "span": 56,
+                "span": 87,
                 "ty": 31
               },
               {
+                "mutability": "Not",
+                "span": 88,
+                "ty": 33
+              },
+              {
                 "mutability": "Mut",
-                "span": 62,
+                "span": 64,
+                "ty": 2
+              },
+              {
+                "mutability": "Mut",
+                "span": 71,
                 "ty": 32
               },
               {
                 "mutability": "Mut",
-                "span": 61,
-                "ty": 16
-              },
-              {
-                "mutability": "Mut",
-                "span": 61,
-                "ty": 25
-              },
-              {
-                "mutability": "Mut",
-                "span": 61,
-                "ty": 31
+                "span": 89,
+                "ty": 34
               },
               {
                 "mutability": "Mut",
                 "span": 67,
-                "ty": 32
-              },
-              {
-                "mutability": "Mut",
-                "span": 66,
                 "ty": 29
               },
               {
-                "mutability": "Mut",
-                "span": 66,
-                "ty": 25
+                "mutability": "Not",
+                "span": 90,
+                "ty": 35
+              },
+              {
+                "mutability": "Not",
+                "span": 91,
+                "ty": 2
               },
               {
                 "mutability": "Mut",
-                "span": 66,
-                "ty": 31
+                "span": 78,
+                "ty": 32
+              },
+              {
+                "mutability": "Not",
+                "span": 92,
+                "ty": 36
+              },
+              {
+                "mutability": "Mut",
+                "span": 76,
+                "ty": 2
               },
               {
                 "mutability": "Mut",
                 "span": 72,
-                "ty": 32
-              },
-              {
-                "mutability": "Mut",
-                "span": 71,
-                "ty": 30
-              },
-              {
-                "mutability": "Mut",
-                "span": 71,
                 "ty": 25
               },
               {
                 "mutability": "Mut",
-                "span": 71,
+                "span": 81,
+                "ty": 32
+              },
+              {
+                "mutability": "Mut",
+                "span": 80,
+                "ty": 26
+              },
+              {
+                "mutability": "Mut",
+                "span": 83,
+                "ty": 32
+              },
+              {
+                "mutability": "Mut",
+                "span": 88,
                 "ty": 31
               },
               {
                 "mutability": "Mut",
-                "span": 75,
-                "ty": 32
+                "span": 90,
+                "ty": 29
+              },
+              {
+                "mutability": "Mut",
+                "span": 90,
+                "ty": 29
+              },
+              {
+                "mutability": "Mut",
+                "span": 90,
+                "ty": 29
+              },
+              {
+                "mutability": "Mut",
+                "span": 90,
+                "ty": 29
               }
             ],
-            "span": 77,
+            "span": 93,
             "spread_arg": null,
-            "var_debug_info": []
+            "var_debug_info": [
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "a",
+                "source_info": {
+                  "scope": 1,
+                  "span": 85
+                },
+                "value": {
+                  "Place": {
+                    "local": 1,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "r1",
+                "source_info": {
+                  "scope": 2,
+                  "span": 86
+                },
+                "value": {
+                  "Place": {
+                    "local": 2,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "r1",
+                "source_info": {
+                  "scope": 3,
+                  "span": 87
+                },
+                "value": {
+                  "Place": {
+                    "local": 5,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "r2",
+                "source_info": {
+                  "scope": 4,
+                  "span": 88
+                },
+                "value": {
+                  "Place": {
+                    "local": 6,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "e",
+                "source_info": {
+                  "scope": 5,
+                  "span": 89
+                },
+                "value": {
+                  "Place": {
+                    "local": 9,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "ee",
+                "source_info": {
+                  "scope": 6,
+                  "span": 90
+                },
+                "value": {
+                  "Place": {
+                    "local": 11,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "vv",
+                "source_info": {
+                  "scope": 7,
+                  "span": 91
+                },
+                "value": {
+                  "Place": {
+                    "local": 12,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "r3",
+                "source_info": {
+                  "scope": 8,
+                  "span": 92
+                },
+                "value": {
+                  "Place": {
+                    "local": 14,
+                    "projection": []
+                  }
+                }
+              }
+            ]
           },
           "id": 6,
           "name": "main"
         }
       },
-      "symbol_name": "_ZN7shl_min4main17h"
+      "symbol_name": "_ZN9weirdRefs4main17h"
     }
   ],
   "types": [
@@ -3495,28 +3115,7 @@
     [
       {
         "PrimitiveType": {
-          "Int": "I128"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I16"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
           "Int": "I32"
-        }
-      }
-    ],
-    [
-      {
-        "PrimitiveType": {
-          "Int": "I64"
         }
       }
     ],
@@ -3550,6 +3149,13 @@
     ],
     [
       {
+        "PrimitiveType": {
+          "Uint": "Usize"
+        }
+      }
+    ],
+    [
+      {
         "EnumType": {
           "discriminants": [
             0,
@@ -3557,6 +3163,22 @@
           ],
           "fields": "elided",
           "name": "std::result::Result"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "fields": "elided",
+          "name": "Enclosing"
+        }
+      }
+    ],
+    [
+      {
+        "StructType": {
+          "fields": "elided",
+          "name": "MyStruct"
         }
       }
     ],
@@ -3604,6 +3226,31 @@
     [
       {
         "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
       }
     ],
     [

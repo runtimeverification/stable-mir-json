@@ -9,7 +9,7 @@
     | .types = ( [ .types[] ] | map(select(.[0] != "VoidType")) )
     |
 # Apply the normalisation filter
-{ allocs:    .allocs,
+{ allocs:    ( .allocs | sort ),
   functions: .functions,
   items:     .items,
   types: ( [
