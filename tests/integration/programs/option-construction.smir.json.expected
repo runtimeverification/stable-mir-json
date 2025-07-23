@@ -1796,6 +1796,11 @@
   "types": [
     [
       {
+        "PrimitiveType": "Str"
+      }
+    ],
+    [
+      {
         "PrimitiveType": {
           "Int": "I32"
         }
@@ -1826,15 +1831,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::option::Option"
         }
       }
@@ -1843,15 +1843,10 @@
       {
         "EnumType": {
           "discriminants": [
-            [
-              0,
-              0
-            ],
-            [
-              1,
-              1
-            ]
+            0,
+            1
           ],
+          "fields": "elided",
           "name": "std::result::Result"
         }
       }
@@ -1900,6 +1895,11 @@
     [
       {
         "PtrType": "elided"
+      }
+    ],
+    [
+      {
+        "RefType": "elided"
       }
     ],
     [
