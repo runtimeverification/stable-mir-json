@@ -22,7 +22,7 @@ extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
 use rustc_middle::ty::{
-    EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
+    EarlyBinder, FnSig, GenericArgs, GenericArgsRef, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
 };
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_smir::rustc_internal::{self, internal};
@@ -34,7 +34,7 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
-    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind, VariantIdx},
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
 };
@@ -555,13 +555,17 @@ impl Visitor for TyCollector<'_> {
                 inputs_outputs.super_visit(self)
             }
             // The visitor won't collect field types for ADTs, therefore doing it explicitly
-            TyKind::RigidTy(RigidTy::Adt(adt_def, _)) => {
+            TyKind::RigidTy(RigidTy::Adt(adt_def, args)) => {
                 let tcx = self.tcx;
-                let fields: Vec<stable_mir::ty::Ty> = rustc_internal::internal(tcx, adt_def)
+                let adt = rustc_internal::internal(tcx, adt_def);
+
+                let args: GenericArgsRef = rustc_internal::internal(tcx, args);
+                let fields: Vec<stable_mir::ty::Ty> = adt
                     .all_fields()
-                    .map(move |field| tcx.type_of(field.did).instantiate_identity())
+                    .map(move |field| field.ty(tcx, args))
                     .map(rustc_internal::stable)
                     .collect();
+
                 for f_ty in fields {
                     let c = self.visit_ty(&f_ty);
                     if matches!(c, ControlFlow::Break(())) {
@@ -627,23 +631,21 @@ fn update_link_map<'tcx>(
             );
         }
         curr_val.0 .0 |= new_val.0 .0;
-        if debug_enabled() {
-            println!(
-                "Regenerated link map entry: {:?}:{:?} -> {:?}",
-                &key,
-                key.0.kind().fn_def(),
-                new_val
-            );
-        }
+        #[cfg(feature = "debug_log")]
+        println!(
+            "Regenerated link map entry: {:?}:{:?} -> {:?}",
+            &key,
+            key.0.kind().fn_def(),
+            new_val
+        );
     } else {
-        if debug_enabled() {
-            println!(
-                "Generated link map entry from call: {:?}:{:?} -> {:?}",
-                &key,
-                key.0.kind().fn_def(),
-                new_val
-            );
-        }
+        #[cfg(feature = "debug_log")]
+        println!(
+            "Generated link map entry from call: {:?}:{:?} -> {:?}",
+            &key,
+            key.0.kind().fn_def(),
+            new_val
+        );
         link_map.insert(key.clone(), new_val);
     }
 }
@@ -678,12 +680,11 @@ fn collect_alloc(
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
             let pointed_kind = get_prov_type(kind);
-            if debug_enabled() {
-                println!(
-                    "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
-                    val, pointed_kind, global_alloc
-                );
-            }
+            #[cfg(feature = "debug_log")]
+            println!(
+                "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
+                val, pointed_kind, global_alloc
+            );
             entry.or_insert(AllocInfo::Memory(alloc.clone())); // TODO: include pointed_kind.clone().unwrap() ?
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_kind.clone(), prov.0);
@@ -784,13 +785,12 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
         use stable_mir::ty::{ConstantKind, TyConstKind}; // TyConst
         match constant.kind() {
             ConstantKind::Allocated(alloc) => {
-                if debug_enabled() {
-                    println!(
-                        "visited_mir_const::Allocated({:?}) as {:?}",
-                        alloc,
-                        constant.ty().kind()
-                    );
-                }
+                #[cfg(feature = "debug_log")]
+                println!(
+                    "visited_mir_const::Allocated({:?}) as {:?}",
+                    alloc,
+                    constant.ty().kind()
+                );
                 alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| {
                     collect_alloc(self, Some(constant.ty().kind()), prov.0)
                 });
@@ -910,9 +910,8 @@ impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
                 || self.pending_items.contains_key(&item_name)
                 || self.current_item == hash(&item_name))
             {
-                if debug_enabled() {
-                    println!("Adding unevaluated const body for: {}", item_name);
-                }
+                #[cfg(feature = "debug_log")]
+                println!("Adding unevaluated const body for: {}", item_name);
                 self.unevaluated_consts
                     .insert(uconst.def, item_name.clone());
                 self.pending_items.insert(
@@ -1003,7 +1002,8 @@ pub enum TypeMetadata {
     EnumType {
         name: String,
         adt_def: AdtDef,
-        discriminants: Vec<(VariantIdx, u128)>,
+        discriminants: Vec<u128>,
+        fields: Vec<Vec<stable_mir::ty::Ty>>,
     },
     StructType {
         name: String,
@@ -1021,6 +1021,7 @@ pub enum TypeMetadata {
         types: Vec<stable_mir::ty::Ty>,
     },
     FunType(String),
+    VoidType,
 }
 
 fn mk_type_metadata(
@@ -1035,12 +1036,23 @@ fn mk_type_metadata(
         T(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
         // for enums, we need a mapping of variantIdx to discriminant
         // this requires access to the internals and is not provided as an interface function at the moment
-        T(Adt(adt_def, _)) if t.is_enum() => {
+        T(Adt(adt_def, args)) if t.is_enum() => {
             let adt_internal = rustc_internal::internal(tcx, adt_def);
             let discriminants = adt_internal
                 .discriminants(tcx)
-                .map(|(v_idx, discr)| (rustc_internal::stable(v_idx), discr.val))
+                .map(|(_, discr)| discr.val)
                 .collect::<Vec<_>>();
+            let fields = adt_internal
+                .variants()
+                .into_iter()
+                .map(|def| {
+                    def.fields
+                        .iter()
+                        .map(|f| f.ty(tcx, rustc_internal::internal(tcx, &args)))
+                        .map(rustc_internal::stable)
+                        .collect::<Vec<stable_mir::ty::Ty>>()
+                })
+                .collect();
             let name = adt_def.name();
             Some((
                 k,
@@ -1048,15 +1060,16 @@ fn mk_type_metadata(
                     name,
                     adt_def,
                     discriminants,
+                    fields,
                 },
             ))
         }
         // for structs, we record the name for information purposes and the field types
-        T(Adt(adt_def, _)) if t.is_struct() => {
+        T(Adt(adt_def, args)) if t.is_struct() => {
             let name = adt_def.name();
             let fields = rustc_internal::internal(tcx, adt_def)
                 .all_fields() // is_struct, so only one variant
-                .map(move |field| tcx.type_of(field.did).instantiate_identity())
+                .map(move |f| f.ty(tcx, rustc_internal::internal(tcx, &args)))
                 .map(rustc_internal::stable)
                 .collect();
             Some((
@@ -1090,9 +1103,23 @@ fn mk_type_metadata(
         | T(Pat(_, _))
         | T(Coroutine(_, _, _))
         | T(Dynamic(_, _, _))
-        | T(CoroutineWitness(_, _)) => None,
-        TyKind::Alias(_, _) | TyKind::Param(_) | TyKind::Bound(_, _) => None,
-        _ => None, // redundant because of first 4 cases, but rustc does not understand that
+        | T(CoroutineWitness(_, _)) => {
+            #[cfg(feature = "debug_log")]
+            println!("\nDEBUG: Skipping unsupported ty {}: {:?}", k.to_index(), k.kind());
+            None
+        }
+        T(Never) => Some((k, VoidType)),
+        TyKind::Alias(_, _) | TyKind::Param(_) | TyKind::Bound(_, _) => {
+            #[cfg(feature = "debug_log")]
+            println!("\nSkipping undesired ty {}: {:?}", k.to_index(), k.kind());
+            None
+        }
+        _ => {
+            // redundant because of first 4 cases, but rustc does not understand that
+            #[cfg(feature = "debug_log")]
+            println!("\nDEBUG: Funny other Ty {}: {:?}", k.to_index(), k.kind());
+            None
+        }
     }
 }
 
