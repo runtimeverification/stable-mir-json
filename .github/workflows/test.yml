@@ -62,6 +62,11 @@ jobs:
         run: | # Warning check should be redundant since code-quality runs first
           RUSTFLAGS='--deny warnings' cargo build -vv
 
+      - name: 'Install a good-enough jq version'
+        uses: dcarbone/install-jq-action@v3
+        with:
+          version: 1.7.1
+
       - name: 'Run smir integration tests'
         run: |
           which jq
