@@ -66,6 +66,7 @@ jobs:
         uses: dcarbone/install-jq-action@v3
         with:
           version: 1.7.1
+          force: true
 
       - name: 'Run smir integration tests'
         run: |
