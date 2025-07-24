@@ -2268,7 +2268,43 @@
             1
           ],
           "fields": "elided",
-          "name": "std::result::Result"
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 0
+                  },
+                  "value": {
+                    "Int": {
+                      "length": "I64",
+                      "signed": true
+                    }
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "name": "std::result::Result<isize, !>"
         }
       }
     ],
@@ -2276,7 +2312,38 @@
       {
         "StructType": {
           "fields": "elided",
-          "name": "std::panic::Location"
+          "layout": {
+            "abi": {
+              "Aggregate": {
+                "sized": true
+              }
+            },
+            "abi_align": 8,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  },
+                  {
+                    "num_bits": 128
+                  },
+                  {
+                    "num_bits": 160
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 192
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "name": "std::panic::Location<'_>"
         }
       }
     ],
@@ -2284,6 +2351,42 @@
       {
         "StructType": {
           "fields": "elided",
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 255,
+                    "start": 0
+                  },
+                  "value": {
+                    "Int": {
+                      "length": "I8",
+                      "signed": false
+                    }
+                  }
+                }
+              }
+            },
+            "abi_align": 1,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 8
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
           "name": "std::process::ExitCode"
         }
       }
@@ -2292,6 +2395,42 @@
       {
         "StructType": {
           "fields": "elided",
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 255,
+                    "start": 0
+                  },
+                  "value": {
+                    "Int": {
+                      "length": "I8",
+                      "signed": false
+                    }
+                  }
+                }
+              }
+            },
+            "abi_align": 1,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 8
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
           "name": "std::sys::pal::unix::process::process_common::ExitCode"
         }
       }
@@ -2299,53 +2438,368 @@
     [
       {
         "TupleType": {
+          "layout": {
+            "abi": {
+              "Aggregate": {
+                "sized": true
+              }
+            },
+            "abi_align": 1,
+            "fields": {
+              "Arbitrary": {
+                "offsets": []
+              }
+            },
+            "size": {
+              "num_bits": 0
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
           "types": "elided"
         }
       }
     ],
     [
       {
-        "PtrType": "elided"
+        "PtrType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 0
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "PtrType": "elided"
+        "PtrType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 0
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "PtrType": "elided"
+        "PtrType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 0
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "RefType": "elided"
+        "RefType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 1
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "RefType": "elided"
+        "RefType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 1
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "RefType": "elided"
+        "RefType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 1
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "RefType": "elided"
+        "RefType": {
+          "layout": {
+            "abi": {
+              "Scalar": {
+                "Initialized": {
+                  "valid_range": {
+                    "end": 18446744073709551615,
+                    "start": 1
+                  },
+                  "value": {
+                    "Pointer": 0
+                  }
+                }
+              }
+            },
+            "abi_align": 8,
+            "fields": "Primitive",
+            "size": {
+              "num_bits": 64
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "RefType": "elided"
+        "RefType": {
+          "layout": {
+            "abi": {
+              "ScalarPair": [
+                {
+                  "Initialized": {
+                    "valid_range": {
+                      "end": 18446744073709551615,
+                      "start": 1
+                    },
+                    "value": {
+                      "Pointer": 0
+                    }
+                  }
+                },
+                {
+                  "Initialized": {
+                    "valid_range": {
+                      "end": 18446744073709551615,
+                      "start": 0
+                    },
+                    "value": {
+                      "Int": {
+                        "length": "I64",
+                        "signed": false
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "abi_align": 8,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  },
+                  {
+                    "num_bits": 64
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 128
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ],
     [
       {
-        "RefType": "elided"
+        "RefType": {
+          "layout": {
+            "abi": {
+              "ScalarPair": [
+                {
+                  "Initialized": {
+                    "valid_range": {
+                      "end": 18446744073709551615,
+                      "start": 1
+                    },
+                    "value": {
+                      "Pointer": 0
+                    }
+                  }
+                },
+                {
+                  "Initialized": {
+                    "valid_range": {
+                      "end": 18446744073709551615,
+                      "start": 1
+                    },
+                    "value": {
+                      "Pointer": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "abi_align": 8,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  },
+                  {
+                    "num_bits": 64
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 128
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "pointee_type": "elided"
+        }
       }
     ]
   ]
