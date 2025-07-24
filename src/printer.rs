@@ -592,11 +592,13 @@ impl Visitor for TyCollector<'_> {
                                 valid_range: r,
                             },
                         ) => {
-                            #[cfg(feature = "debug_log")]
+                            #[cfg(feature = "assertions")]
                             println!(
                                 "Address thing with layout containing value {_v:?} and range {r:?}"
                             );
                             assert!(r.end <= usize::MAX as u128);
+                            #[cfg(feature = "assertions")]
+                            println!("Asserted: {:?} <= {}", r.end, usize::MAX);
                         }
                         ValueAbi::ScalarPair(
                             stable_mir::abi::Scalar::Initialized {
@@ -1239,6 +1241,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     {
         use stable_mir::target::MachineInfo;
         let t = MachineInfo::target();
+        #[cfg(feature = "debug_log")]
         println!(
             "Machine info: {:?} bits, max uint {:?}",
             t.pointer_width.bits(),
