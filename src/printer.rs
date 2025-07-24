@@ -1077,7 +1077,6 @@ fn mk_type_metadata(
                 },
             ))
         }
-        // for structs, we record the name for information purposes and the field types
         T(Adt(adt_def, args)) if t.is_struct() => {
             let fields = rustc_internal::internal(tcx, adt_def)
                 .all_fields() // is_struct, so only one variant
@@ -1094,17 +1093,14 @@ fn mk_type_metadata(
                 },
             ))
         }
-        // for unions, we only record the name
-        T(Adt(adt_def, _)) if t.is_union() => {
-            Some((
-                k,
-                UnionType {
-                    name,
-                    adt_def,
-                    layout,
-                },
-            ))
-        }
+        T(Adt(adt_def, _)) if t.is_union() => Some((
+            k,
+            UnionType {
+                name,
+                adt_def,
+                layout,
+            },
+        )),
         // encode str together with primitive types
         T(Str) => Some((k, PrimitiveType(Str))),
         // for arrays and slices, record element type and optional size
