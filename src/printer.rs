@@ -1235,6 +1235,20 @@ pub struct SmirJsonDebugInfo<'t> {
 // ========================
 
 pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+    #[cfg(feature = "assertions")]
+    {
+        use stable_mir::target::MachineInfo;
+        let t = MachineInfo::target();
+        println!(
+            "Machine info: {:?} bits, max uint {:?}",
+            t.pointer_width.bits(),
+            t.pointer_width.unsigned_int_max()
+        );
+        assert!(t.pointer_width.bits() == 64); // assume 64-bit platform
+        assert!(usize::MAX as u128 == (1_u128 << 64) - 1);
+        assert!(t.pointer_width.unsigned_int_max().unwrap() == usize::MAX as u128);
+    }
+
     let local_crate = stable_mir::local_crate();
     let items = collect_items(tcx);
     let items_clone = items.clone();

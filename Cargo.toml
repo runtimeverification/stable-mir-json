@@ -16,7 +16,10 @@ name = "cargo_stable_mir_json"
 path = "src/bin/cargo_stable_mir_json.rs"
 
 [features]
-debug_log = []
+debug_log = [ "assertions" ]
+assertions = []
+default = [ "assertions" ]
+
 
 [package.metadata.rust-analyzer]
 # This package uses rustc crates.
