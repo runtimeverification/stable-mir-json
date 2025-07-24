@@ -31,6 +31,7 @@ use rustc_span::{
     symbol,
 };
 use serde::{Serialize, Serializer};
+use stable_mir::abi::ValueAbi;
 use stable_mir::{
     abi::LayoutShape,
     mir::mono::{Instance, InstanceKind, MonoItem},
@@ -578,6 +579,44 @@ impl Visitor for TyCollector<'_> {
             }
             _ => {
                 let control = ty.super_visit(self);
+
+                if matches!(
+                    ty.kind(),
+                    TyKind::RigidTy(RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _))
+                ) {
+                    let abi = ty.layout().unwrap().shape().abi;
+                    match abi {
+                        ValueAbi::Scalar(
+                            _s @ stable_mir::abi::Scalar::Initialized {
+                                value: _v,
+                                valid_range: r,
+                            },
+                        ) => {
+                            #[cfg(feature = "debug_log")]
+                            println!(
+                                "Address thing with layout containing value {_v:?} and range {r:?}"
+                            );
+                            assert!(r.end <= usize::MAX as u128);
+                        }
+                        ValueAbi::ScalarPair(
+                            stable_mir::abi::Scalar::Initialized {
+                                value: _v1,
+                                valid_range: r1,
+                            },
+                            stable_mir::abi::Scalar::Initialized {
+                                value: _v2,
+                                valid_range: r2,
+                            },
+                        ) => {
+                            #[cfg(feature = "debug_log")]
+                            println!("Address thing with layout pair containing values {:?} and ranges {:?}", (_v1, _v2), (r1, r2));
+                            assert!(r1.end <= usize::MAX as u128);
+                            assert!(r2.end <= usize::MAX as u128);
+                        }
+                        _other => (),
+                    }
+                };
+
                 match control {
                     ControlFlow::Continue(_) => {
                         let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
