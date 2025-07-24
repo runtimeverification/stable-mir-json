@@ -31,7 +31,6 @@ use rustc_span::{
     symbol,
 };
 use serde::{Serialize, Serializer};
-use stable_mir::abi::ValueAbi;
 use stable_mir::{
     abi::LayoutShape,
     mir::mono::{Instance, InstanceKind, MonoItem},
@@ -579,46 +578,6 @@ impl Visitor for TyCollector<'_> {
             }
             _ => {
                 let control = ty.super_visit(self);
-
-                if matches!(
-                    ty.kind(),
-                    TyKind::RigidTy(RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _))
-                ) {
-                    let abi = ty.layout().unwrap().shape().abi;
-                    match abi {
-                        ValueAbi::Scalar(
-                            _s @ stable_mir::abi::Scalar::Initialized {
-                                value: _v,
-                                valid_range: r,
-                            },
-                        ) => {
-                            #[cfg(feature = "assertions")]
-                            println!(
-                                "Address thing with layout containing value {_v:?} and range {r:?}"
-                            );
-                            assert!(r.end <= usize::MAX as u128);
-                            #[cfg(feature = "assertions")]
-                            println!("Asserted: {:?} <= {}", r.end, usize::MAX);
-                        }
-                        ValueAbi::ScalarPair(
-                            stable_mir::abi::Scalar::Initialized {
-                                value: _v1,
-                                valid_range: r1,
-                            },
-                            stable_mir::abi::Scalar::Initialized {
-                                value: _v2,
-                                valid_range: r2,
-                            },
-                        ) => {
-                            #[cfg(feature = "debug_log")]
-                            println!("Address thing with layout pair containing values {:?} and ranges {:?}", (_v1, _v2), (r1, r2));
-                            assert!(r1.end <= usize::MAX as u128);
-                            assert!(r2.end <= usize::MAX as u128);
-                        }
-                        _other => (),
-                    }
-                };
-
                 match control {
                     ControlFlow::Continue(_) => {
                         let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
@@ -1237,21 +1196,6 @@ pub struct SmirJsonDebugInfo<'t> {
 // ========================
 
 pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
-    #[cfg(feature = "assertions")]
-    {
-        use stable_mir::target::MachineInfo;
-        let t = MachineInfo::target();
-        #[cfg(feature = "debug_log")]
-        println!(
-            "Machine info: {:?} bits, max uint {:?}",
-            t.pointer_width.bits(),
-            t.pointer_width.unsigned_int_max()
-        );
-        assert!(t.pointer_width.bits() == 64); // assume 64-bit platform
-        assert!(usize::MAX as u128 == (1_u128 << 64) - 1);
-        assert!(t.pointer_width.unsigned_int_max().unwrap() == usize::MAX as u128);
-    }
-
     let local_crate = stable_mir::local_crate();
     let items = collect_items(tcx);
     let items_clone = items.clone();
