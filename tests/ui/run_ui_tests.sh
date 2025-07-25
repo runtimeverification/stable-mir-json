@@ -18,6 +18,11 @@ PASSING_TSV="${UI_DIR}/passing.tsv"
 
 KEEP_FILES=${KEEP_FILES:-""}
 
+if [ -z "${RUN_SMIR:-""}" ]; then
+    echo "RUN_SMIR unset, using cargo to run the tests"
+    RUN_SMIR="cargo run -- -Zno-codegen"
+fi
+
 echo "Running regression tests for passing UI cases..."
 failed=0
 passed=0
@@ -28,7 +33,7 @@ while read -r test; do
     test_name="$(basename "$test" .rs)"
     json_file="${PWD}/${test_name}.smir.json"
 
-    cargo run -- -Zno-codegen "$test_path" > /dev/null 2>&1
+    ${RUN_SMIR} "$test_path" > /dev/null 2>&1
     status=$?
 
     total=$((total + 1))

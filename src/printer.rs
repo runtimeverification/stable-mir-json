@@ -32,6 +32,7 @@ use rustc_span::{
 };
 use serde::{Serialize, Serializer};
 use stable_mir::{
+    abi::LayoutShape,
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
     ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
@@ -566,19 +567,14 @@ impl Visitor for TyCollector<'_> {
                     .map(rustc_internal::stable)
                     .collect();
 
-                let mut control = ty.super_visit(self);
+                let control = ty.super_visit(self);
                 if matches!(control, ControlFlow::Continue(_)) {
                     let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
                     self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                    fields.super_visit(self)
+                } else {
+                    control
                 }
-
-                for f_ty in fields {
-                    control = self.visit_ty(&f_ty);
-                    if matches!(control, ControlFlow::Break(())) {
-                        break;
-                    }
-                }
-                control
             }
             _ => {
                 let control = ty.super_visit(self);
@@ -1005,21 +1001,35 @@ pub enum TypeMetadata {
         adt_def: AdtDef,
         discriminants: Vec<u128>,
         fields: Vec<Vec<stable_mir::ty::Ty>>,
+        layout: Option<LayoutShape>,
     },
     StructType {
         name: String,
         adt_def: AdtDef,
         fields: Vec<stable_mir::ty::Ty>,
+        layout: Option<LayoutShape>,
     },
     UnionType {
         name: String,
         adt_def: AdtDef,
+        layout: Option<LayoutShape>,
     },
-    ArrayType(stable_mir::ty::Ty, Option<stable_mir::ty::TyConst>),
-    PtrType(stable_mir::ty::Ty),
-    RefType(stable_mir::ty::Ty),
+    ArrayType {
+        elem_type: stable_mir::ty::Ty,
+        size: Option<stable_mir::ty::TyConst>,
+        layout: Option<LayoutShape>,
+    },
+    PtrType {
+        pointee_type: stable_mir::ty::Ty,
+        layout: Option<LayoutShape>,
+    },
+    RefType {
+        pointee_type: stable_mir::ty::Ty,
+        layout: Option<LayoutShape>,
+    },
     TupleType {
         types: Vec<stable_mir::ty::Ty>,
+        layout: Option<LayoutShape>,
     },
     FunType(String),
     VoidType,
@@ -1029,10 +1039,12 @@ fn mk_type_metadata(
     tcx: TyCtxt<'_>,
     k: stable_mir::ty::Ty,
     t: TyKind,
+    layout: Option<LayoutShape>,
 ) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
     use stable_mir::ty::RigidTy::*;
     use TyKind::RigidTy as T;
     use TypeMetadata::*;
+    let name = format!("{k}"); // prints name with type parameters
     match t {
         T(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
         // for enums, we need a mapping of variantIdx to discriminant
@@ -1054,7 +1066,6 @@ fn mk_type_metadata(
                         .collect::<Vec<stable_mir::ty::Ty>>()
                 })
                 .collect();
-            let name = adt_def.name();
             Some((
                 k,
                 EnumType {
@@ -1062,12 +1073,11 @@ fn mk_type_metadata(
                     adt_def,
                     discriminants,
                     fields,
+                    layout,
                 },
             ))
         }
-        // for structs, we record the name for information purposes and the field types
         T(Adt(adt_def, args)) if t.is_struct() => {
-            let name = adt_def.name();
             let fields = rustc_internal::internal(tcx, adt_def)
                 .all_fields() // is_struct, so only one variant
                 .map(move |f| f.ty(tcx, rustc_internal::internal(tcx, &args)))
@@ -1079,26 +1089,56 @@ fn mk_type_metadata(
                     name,
                     adt_def,
                     fields,
+                    layout,
                 },
             ))
         }
-        // for unions, we only record the name
-        T(Adt(adt_def, _)) if t.is_union() => {
-            let name = adt_def.name();
-            Some((k, UnionType { name, adt_def }))
-        }
+        T(Adt(adt_def, _)) if t.is_union() => Some((
+            k,
+            UnionType {
+                name,
+                adt_def,
+                layout,
+            },
+        )),
         // encode str together with primitive types
         T(Str) => Some((k, PrimitiveType(Str))),
         // for arrays and slices, record element type and optional size
-        T(Array(ty, ty_const)) => Some((k, ArrayType(ty, Some(ty_const)))),
-        T(Slice(ty)) => Some((k, ArrayType(ty, None))),
+        T(Array(elem_type, ty_const)) => Some((
+            k,
+            ArrayType {
+                elem_type,
+                size: Some(ty_const),
+                layout,
+            },
+        )),
+        T(Slice(elem_type)) => Some((
+            k,
+            ArrayType {
+                elem_type,
+                size: None,
+                layout,
+            },
+        )),
         // for raw pointers and references store the pointee type
-        T(RawPtr(ty, _)) => Some((k, PtrType(ty))),
-        T(Ref(_, ty, _)) => Some((k, RefType(ty))),
+        T(RawPtr(pointee_type, _)) => Some((
+            k,
+            PtrType {
+                pointee_type,
+                layout,
+            },
+        )),
+        T(Ref(_, pointee_type, _)) => Some((
+            k,
+            RefType {
+                pointee_type,
+                layout,
+            },
+        )),
         // for tuples the element types are provided
-        T(Tuple(tys)) => Some((k, TupleType { types: tys })),
+        T(Tuple(types)) => Some((k, TupleType { types, layout })),
         // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty references
-        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(format!("{}", k)))),
+        T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(name))),
         // other types are not provided either
         T(Foreign(_))
         | T(Pat(_, _))
@@ -1203,8 +1243,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
 
     let mut types = visited_tys
         .into_iter()
-        .map(|(k, (v, _))| (k, v))
-        .filter_map(|(k, t)| mk_type_metadata(tcx, k, t))
+        .filter_map(|(k, (t, l))| mk_type_metadata(tcx, k, t, l))
         //        .filter(|(_, v)| v.is_primitive())
         .collect::<Vec<_>>();
 
