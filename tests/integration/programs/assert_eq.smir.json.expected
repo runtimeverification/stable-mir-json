@@ -5674,65 +5674,6 @@
                   "Initialized": {
                     "valid_range": {
                       "end": 18446744073709551615,
-                      "start": 0
-                    },
-                    "value": {
-                      "Int": {
-                        "length": "I64",
-                        "signed": false
-                      }
-                    }
-                  }
-                }
-              ]
-            },
-            "abi_align": 8,
-            "fields": {
-              "Arbitrary": {
-                "offsets": [
-                  {
-                    "num_bits": 0
-                  },
-                  {
-                    "num_bits": 64
-                  }
-                ]
-              }
-            },
-            "size": {
-              "num_bits": 128
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "pointee_type": "elided"
-        }
-      }
-    ],
-    [
-      {
-        "RefType": {
-          "layout": {
-            "abi": {
-              "ScalarPair": [
-                {
-                  "Initialized": {
-                    "valid_range": {
-                      "end": 18446744073709551615,
-                      "start": 1
-                    },
-                    "value": {
-                      "Pointer": 0
-                    }
-                  }
-                },
-                {
-                  "Initialized": {
-                    "valid_range": {
-                      "end": 18446744073709551615,
                       "start": 1
                     },
                     "value": {

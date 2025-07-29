@@ -557,13 +557,18 @@ impl Visitor for TyCollector<'_> {
             }
             // The visitor won't collect field types for ADTs, therefore doing it explicitly
             TyKind::RigidTy(RigidTy::Adt(adt_def, args)) => {
-                let tcx = self.tcx;
-                let adt = rustc_internal::internal(tcx, adt_def);
+                let adt = rustc_internal::internal(self.tcx, adt_def);
 
-                let args: GenericArgsRef = rustc_internal::internal(tcx, args);
+                let args: GenericArgsRef = rustc_internal::internal(self.tcx, args);
                 let fields: Vec<stable_mir::ty::Ty> = adt
                     .all_fields()
-                    .map(move |field| field.ty(tcx, args))
+                    .map(|field| {
+                        self.tcx.instantiate_and_normalize_erasing_regions(
+                            &args,
+                            TypingEnv::fully_monomorphized(),
+                            self.tcx.type_of(field.did),
+                        )
+                    })
                     .map(rustc_internal::stable)
                     .collect();
 
@@ -1051,6 +1056,7 @@ fn mk_type_metadata(
         // this requires access to the internals and is not provided as an interface function at the moment
         T(Adt(adt_def, args)) if t.is_enum() => {
             let adt_internal = rustc_internal::internal(tcx, adt_def);
+            let args = rustc_internal::internal(tcx, args);
             let discriminants = adt_internal
                 .discriminants(tcx)
                 .map(|(_, discr)| discr.val)
@@ -1061,7 +1067,12 @@ fn mk_type_metadata(
                 .map(|def| {
                     def.fields
                         .iter()
-                        .map(|f| f.ty(tcx, rustc_internal::internal(tcx, &args)))
+                        .map(|field| {
+                            tcx.instantiate_and_normalize_erasing_regions(
+                                &args,
+                                TypingEnv::fully_monomorphized(),
+                                tcx.type_of(field.did),
+                            )})
                         .map(rustc_internal::stable)
                         .collect::<Vec<stable_mir::ty::Ty>>()
                 })
@@ -1078,9 +1089,15 @@ fn mk_type_metadata(
             ))
         }
         T(Adt(adt_def, args)) if t.is_struct() => {
+            let args = rustc_internal::internal(tcx, args);
             let fields = rustc_internal::internal(tcx, adt_def)
                 .all_fields() // is_struct, so only one variant
-                .map(move |f| f.ty(tcx, rustc_internal::internal(tcx, &args)))
+                .map(|field| {
+                    tcx.instantiate_and_normalize_erasing_regions(
+                        &args,
+                        TypingEnv::fully_monomorphized(),
+                        tcx.type_of(field.did),
+                    )})
                 .map(rustc_internal::stable)
                 .collect();
             Some((
@@ -1104,14 +1121,20 @@ fn mk_type_metadata(
         // encode str together with primitive types
         T(Str) => Some((k, PrimitiveType(Str))),
         // for arrays and slices, record element type and optional size
-        T(Array(elem_type, ty_const)) => Some((
-            k,
-            ArrayType {
-                elem_type,
-                size: Some(ty_const),
-                layout,
-            },
-        )),
+        T(Array(elem_type, ty_const)) => {
+            if matches!(ty_const.kind(), stable_mir::ty::TyConstKind::Unevaluated(_, _)) {
+                panic!("Unevaluated constant {ty_const:?} in type {k}");
+            }
+            Some((
+                k,
+                ArrayType {
+                    elem_type,
+                    size: Some(ty_const),
+                    layout,
+                },
+            ))
+        }
+
         T(Slice(elem_type)) => Some((
             k,
             ArrayType {
