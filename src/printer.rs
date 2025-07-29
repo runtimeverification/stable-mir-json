@@ -564,7 +564,7 @@ impl Visitor for TyCollector<'_> {
                     .all_fields()
                     .map(|field| {
                         self.tcx.instantiate_and_normalize_erasing_regions(
-                            &args,
+                            args,
                             TypingEnv::fully_monomorphized(),
                             self.tcx.type_of(field.did),
                         )
@@ -1069,10 +1069,11 @@ fn mk_type_metadata(
                         .iter()
                         .map(|field| {
                             tcx.instantiate_and_normalize_erasing_regions(
-                                &args,
+                                args,
                                 TypingEnv::fully_monomorphized(),
                                 tcx.type_of(field.did),
-                            )})
+                            )
+                        })
                         .map(rustc_internal::stable)
                         .collect::<Vec<stable_mir::ty::Ty>>()
                 })
@@ -1094,10 +1095,11 @@ fn mk_type_metadata(
                 .all_fields() // is_struct, so only one variant
                 .map(|field| {
                     tcx.instantiate_and_normalize_erasing_regions(
-                        &args,
+                        args,
                         TypingEnv::fully_monomorphized(),
                         tcx.type_of(field.did),
-                    )})
+                    )
+                })
                 .map(rustc_internal::stable)
                 .collect();
             Some((
@@ -1122,7 +1124,10 @@ fn mk_type_metadata(
         T(Str) => Some((k, PrimitiveType(Str))),
         // for arrays and slices, record element type and optional size
         T(Array(elem_type, ty_const)) => {
-            if matches!(ty_const.kind(), stable_mir::ty::TyConstKind::Unevaluated(_, _)) {
+            if matches!(
+                ty_const.kind(),
+                stable_mir::ty::TyConstKind::Unevaluated(_, _)
+            ) {
                 panic!("Unevaluated constant {ty_const:?} in type {k}");
             }
             Some((
