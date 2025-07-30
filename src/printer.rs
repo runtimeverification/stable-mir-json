@@ -1,3 +1,4 @@
+use rustc_demangle::try_demangle;
 use std::hash::Hash;
 use std::io::Write;
 use std::ops::ControlFlow;
@@ -223,15 +224,11 @@ pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Sym
 }
 
 fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
-    if let MonoItem::GlobalAsm(data) = item {
-        hash(data).to_string()
-    } else {
-        mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
+    match item {
+        MonoItem::Fn(instance) => try_demangle(&instance.mangled_name()).unwrap().to_string(),
+        MonoItem::Static(_static_def) => rustc_internal::internal(tcx, item).symbol_name(tcx).name.into(),
+        MonoItem::GlobalAsm(opaque) => hash(opaque).to_string(),
     }
-}
-
-fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
-    item.symbol_name(tcx).name.into()
 }
 
 fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
@@ -332,7 +329,8 @@ impl Ord for Item {
     }
 }
 
-fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
+fn mk_item(tcx: TyCtxt<'_>, item: MonoItem) -> Item {
+    let symbol_name = mono_item_name(tcx, &item).to_string();
     match item {
         MonoItem::Fn(inst) => {
             let id = inst.def.def_id();
@@ -340,7 +338,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             let internal_id = rustc_internal::internal(tcx, id);
             Item {
                 mono_item: item,
-                symbol_name: sym_name.clone(),
+                symbol_name,
                 mono_item_kind: MonoItemKind::MonoItemFn {
                     name: name.clone(),
                     id,
@@ -363,7 +361,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             };
             Item {
                 mono_item: item,
-                symbol_name: sym_name,
+                symbol_name,
                 mono_item_kind: MonoItemKind::MonoItemStatic {
                     name: static_def.name(),
                     id: static_def.def_id(),
@@ -376,7 +374,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             let asm = format!("{:#?}", asm);
             Item {
                 mono_item: item,
-                symbol_name: sym_name,
+                symbol_name,
                 mono_item_kind: MonoItemKind::MonoItemGlobalAsm { asm },
                 details: None,
             }
@@ -413,10 +411,10 @@ fn fn_inst_sym<'tcx>(
             let internal_inst = rustc_internal::internal(tcx, inst);
             let sym_type = if inst.is_empty_shim() {
                 NoOpSym(String::from(""))
-            } else if let Some(intrinsic_name) = inst.intrinsic_name() {
-                IntrinsicSym(intrinsic_name)
+            } else if let Some(_intrinsic_name) = inst.intrinsic_name() {
+                IntrinsicSym(try_demangle(&inst.mangled_name()).unwrap().to_string())
             } else {
-                NormalSym(inst.mangled_name())
+                NormalSym(try_demangle(&inst.mangled_name()).unwrap().to_string())
             };
             Some((ty, internal_inst.def, sym_type))
         } else {
@@ -899,7 +897,7 @@ impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
                 .flatten()
                 .unwrap_or_else(|| panic!("Failed to resolve mono item for {:?}", uconst));
             let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
-            let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
+            let item_name = mono_item_name(self.tcx, &MonoItem::Fn(rustc_internal::stable(inst)));
             if !(self.processed_items.contains_key(&item_name)
                 || self.pending_items.contains_key(&item_name)
                 || self.current_item == hash(&item_name))
@@ -913,7 +911,6 @@ impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
                     mk_item(
                         self.tcx,
                         rustc_internal::stable(internal_mono_item),
-                        item_name,
                     ),
                 );
             }
@@ -983,7 +980,7 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
         .iter()
         .map(|item| {
             let name = mono_item_name(tcx, item);
-            (name.clone(), mk_item(tcx, item.clone(), name))
+            (name.clone(), mk_item(tcx, item.clone()))
         })
         .collect::<HashMap<_, _>>()
 }
@@ -1222,7 +1219,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
                     "Items missing static with id {:?} and name {:?}",
                     def, item_name
                 );
-                items.push(mk_item(tcx, mono_item, item_name.clone()));
+                items.push(mk_item(tcx, mono_item));
             }
         }
     }
