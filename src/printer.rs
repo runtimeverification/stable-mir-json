@@ -22,7 +22,7 @@ extern crate serde;
 extern crate serde_json;
 use rustc_middle as middle;
 use rustc_middle::ty::{
-    EarlyBinder, FnSig, GenericArgs, GenericArgsRef, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
+    EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
 };
 use rustc_session::config::{OutFileName, OutputType};
 use rustc_smir::rustc_internal::{self, internal};
@@ -557,20 +557,12 @@ impl Visitor for TyCollector<'_> {
             }
             // The visitor won't collect field types for ADTs, therefore doing it explicitly
             TyKind::RigidTy(RigidTy::Adt(adt_def, args)) => {
-                let adt = rustc_internal::internal(self.tcx, adt_def);
-
-                let args: GenericArgsRef = rustc_internal::internal(self.tcx, args);
-                let fields: Vec<stable_mir::ty::Ty> = adt
-                    .all_fields()
-                    .map(|field| {
-                        self.tcx.instantiate_and_normalize_erasing_regions(
-                            args,
-                            TypingEnv::fully_monomorphized(),
-                            self.tcx.type_of(field.did),
-                        )
-                    })
-                    .map(rustc_internal::stable)
-                    .collect();
+                let fields = adt_def
+                    .variants()
+                    .iter()
+                    .flat_map(|v| v.fields())
+                    .map(|f| f.ty_with_args(&args))
+                    .collect::<Vec<_>>();
 
                 let control = ty.super_visit(self);
                 if matches!(control, ControlFlow::Continue(_)) {
@@ -1056,25 +1048,17 @@ fn mk_type_metadata(
         // this requires access to the internals and is not provided as an interface function at the moment
         T(Adt(adt_def, args)) if t.is_enum() => {
             let adt_internal = rustc_internal::internal(tcx, adt_def);
-            let args = rustc_internal::internal(tcx, args);
             let discriminants = adt_internal
                 .discriminants(tcx)
                 .map(|(_, discr)| discr.val)
                 .collect::<Vec<_>>();
-            let fields = adt_internal
+            let fields = adt_def
                 .variants()
-                .into_iter()
-                .map(|def| {
-                    def.fields
+                .iter()
+                .map(|v| {
+                    v.fields()
                         .iter()
-                        .map(|field| {
-                            tcx.instantiate_and_normalize_erasing_regions(
-                                args,
-                                TypingEnv::fully_monomorphized(),
-                                tcx.type_of(field.did),
-                            )
-                        })
-                        .map(rustc_internal::stable)
+                        .map(|f| f.ty_with_args(&args))
                         .collect::<Vec<stable_mir::ty::Ty>>()
                 })
                 .collect();
@@ -1090,17 +1074,13 @@ fn mk_type_metadata(
             ))
         }
         T(Adt(adt_def, args)) if t.is_struct() => {
-            let args = rustc_internal::internal(tcx, args);
-            let fields = rustc_internal::internal(tcx, adt_def)
-                .all_fields() // is_struct, so only one variant
-                .map(|field| {
-                    tcx.instantiate_and_normalize_erasing_regions(
-                        args,
-                        TypingEnv::fully_monomorphized(),
-                        tcx.type_of(field.did),
-                    )
-                })
-                .map(rustc_internal::stable)
+            let fields = adt_def
+                .variants()
+                .pop() // NB struct, there should be a single variant
+                .unwrap()
+                .fields()
+                .iter()
+                .map(|f| f.ty_with_args(&args))
                 .collect();
             Some((
                 k,
