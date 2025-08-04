@@ -52,6 +52,9 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             rustToolchain
+            zlib
+            jq
+            gnumake
           ];
 
           env = {

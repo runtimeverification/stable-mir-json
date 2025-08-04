@@ -1,8 +1,11 @@
 {
   callPackage,
   lib,
+  stdenv,
 
   makeRustPlatform,
+  zlib,
+
   rustToolchain,
 }:
 
@@ -21,6 +24,14 @@ in
   cargoLock = {
     lockFile = ../../Cargo.lock;
   };
+
+  nativeBuildInputs = [
+    zlib
+  ];
+
+  preFixup = lib.optionalString stdenv.hostPlatform.isDarwin ''
+    install_name_tool -add_rpath "${rustToolchain}/lib" "$out/bin/stable_mir_json"
+  '';
 
   RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
 
