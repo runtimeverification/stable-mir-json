@@ -1,0 +1,68 @@
+{
+  description = "stable-mir-json development environment";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+    };
+  };
+
+  outputs =
+    {
+      self,
+      nixpkgs,
+      rust-overlay,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+        };
+
+        rustToolchain = pkgs.rust-bin.nightly."2024-11-29".default.override {
+          extensions = [
+            "rust-src"
+            "rustc-dev"
+          ];
+        };
+
+        stable-mir-json = pkgs.callPackage ./nix/stable-mir-json {
+          inherit rustToolchain;
+        };
+
+        stable-mir-json-integration-tests = pkgs.callPackage ./nix/test/integration.nix {
+          inherit stable-mir-json;
+        };
+      in
+      {
+        packages = {
+          inherit stable-mir-json;
+          default = stable-mir-json;
+          inherit rustToolchain;
+        };
+
+        checks = {
+          inherit stable-mir-json-integration-tests;
+          stable-mir-json-unit-tests = stable-mir-json.overrideAttrs { doCheck = true; };
+        };
+
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            rustToolchain
+          ];
+
+          env = {
+            RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
+          };
+        };
+      }
+    );
+}
