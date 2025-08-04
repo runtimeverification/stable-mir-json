@@ -31,3 +31,52 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28"                              \
             https://api.github.com/repos/runtimeverification/devops/dispatches \
             -d '{"event_type":"on-demand-test","client_payload":{"repo":"runtimeverification/stable-mir-json","version":"'${VERSION}'"}}'
+
+  nix-cache:
+    name: 'Populate Nix Cache'
+    strategy:
+      matrix:
+        runner: [normal, ARM64]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.push.head.sha }}
+          fetch-depth: 0
+
+      - name: 'Build and cache stable-mir-json'
+        uses: workflow/nix-shell-action@v3
+        env:
+          GC_DONT_GC: 1
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_PUBLIC_TOKEN }}
+        with:
+          packages: jq
+          script: |
+            STABLE_MIR_JSON=$(nix build --extra-experimental-features 'nix-command flakes' .#stable-mir-json --json | jq -r '.[].outputs | to_entries[].value')
+            DRV=$(nix-store --query --deriver ${STABLE_MIR_JSON})
+            nix-store --query --requisites --include-outputs ${DRV} | cachix push k-framework
+
+  nix-binary-cache:
+    name: 'Populate Nix Binary Cache'
+    strategy:
+      matrix:
+        runner: [normal, ARM64]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: 'Check out code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.push.head.sha }}
+          fetch-depth: 0
+
+      - name: 'Publish stable-mir-json to k-framework-binary cache'
+        uses: workflow/nix-shell-action@v3
+        env:
+          CACHIX_AUTH_TOKEN: '${{ secrets.CACHIX_PRIVATE_KFB_TOKEN }}'
+          GC_DONT_GC: '1'
+        with:
+          packages: jq
+          script: |
+            export PATH="$(nix build github:runtimeverification/kup --no-link --json | jq -r '.[].outputs | to_entries[].value')/bin:$PATH"
+            kup publish k-framework-binary .#stable-mir-json --keep-days 180
