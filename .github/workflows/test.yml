@@ -41,6 +41,19 @@ jobs:
           rustup component add rustfmt
           cargo fmt --check
 
+      - name: 'Install Nix'
+        uses: cachix/install-nix-action@v31.5.1
+        with:
+          install_url: https://releases.nixos.org/nix/nix-2.30.1/install
+          extra_nix_config: |
+            substituters = https://cache.nixos.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+      - name: "Check `nixfmt`"
+        run: |
+          NIX_FILES=$(bash -O globstar -c 'ls **/*.nix')
+          nix shell nixpkgs#nixfmt-rfc-style --command nixfmt --check ${NIX_FILES}
+
   integration-tests:
     needs: code-quality
     name: "Integration tests"

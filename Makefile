@@ -45,6 +45,7 @@ golden:
 
 format: 
 	cargo fmt
+	bash -O globstar -c 'nixfmt **/*.nix'
 
 style-check: format
 	cargo clippy
