@@ -27,12 +27,7 @@
           inherit system overlays;
         };
 
-        rustToolchain = pkgs.rust-bin.nightly."2024-11-29".default.override {
-          extensions = [
-            "rust-src"
-            "rustc-dev"
-          ];
-        };
+        rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
 
         stable-mir-json = pkgs.callPackage ./nix/stable-mir-json {
           inherit rustToolchain;
