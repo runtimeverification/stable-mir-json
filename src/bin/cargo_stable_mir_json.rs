@@ -165,7 +165,7 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
         "export LD_LIBRARY_PATH={}",
         ld_library_path.display(),
     )?;
-    
+
     #[cfg(target_os = "macos")]
     {
         // Also set DYLD_LIBRARY_PATH on macOS
@@ -175,7 +175,7 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
             ld_library_path.display(),
         )?;
     }
-    
+
     writeln!(run_script)?;
     writeln!(
         run_script,
