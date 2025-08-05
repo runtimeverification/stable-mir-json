@@ -188,7 +188,7 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
 fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
     // Detect operating system
     let target_os = std::env::consts::OS;
-    
+
     if target_os == "macos" {
         // macOS: Check DYLD_LIBRARY_PATH or use default path
         if let Some(paths) = env::var_os("DYLD_LIBRARY_PATH") {
@@ -203,7 +203,10 @@ fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
         } else {
             // Use default macOS library path including Rust toolchain
             let rustup_home = env::var("HOME").unwrap_or_else(|_| "/Users".to_string());
-            let rust_toolchain_path = format!("{}/.rustup/toolchains/nightly-2024-11-29-aarch64-apple-darwin/lib", rustup_home);
+            let rust_toolchain_path = format!(
+                "{}/.rustup/toolchains/nightly-2024-11-29-aarch64-apple-darwin/lib",
+                rustup_home
+            );
             let default_path = format!("{}:/usr/local/lib:/usr/lib", rust_toolchain_path);
             let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
             writeln!(ld_library_file, "{}", default_path)?;
