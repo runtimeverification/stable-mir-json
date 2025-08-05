@@ -10,8 +10,8 @@
     |
 # Apply the normalisation filter
 { allocs:    ( .allocs | sort ),
-  functions: .functions,
-  items:     .items,
+  functions: (.functions | sort ),
+  items:     (.items | sort ),
   types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) | sort ),
