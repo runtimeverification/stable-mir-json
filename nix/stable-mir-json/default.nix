@@ -15,32 +15,33 @@ in
 (makeRustPlatform {
   cargo = rustToolchain;
   rustc = rustToolchain;
-}).buildRustPackage {
-  pname = "stable-mir-json";
-  version = cargoToml.package.version;
+}).buildRustPackage
+  {
+    pname = "stable-mir-json";
+    version = cargoToml.package.version;
 
-  src = callPackage ../stable-mir-json-source { };
+    src = callPackage ../stable-mir-json-source { };
 
-  cargoLock = {
-    lockFile = ../../Cargo.lock;
-  };
+    cargoLock = {
+      lockFile = ../../Cargo.lock;
+    };
 
-  nativeBuildInputs = [
-    zlib
-  ];
+    nativeBuildInputs = [
+      zlib
+    ];
 
-  preFixup = lib.optionalString stdenv.hostPlatform.isDarwin ''
-    install_name_tool -add_rpath "${rustToolchain}/lib" "$out/bin/stable_mir_json"
-  '';
+    preFixup = lib.optionalString stdenv.hostPlatform.isDarwin ''
+      install_name_tool -add_rpath "${rustToolchain}/lib" "$out/bin/stable_mir_json"
+    '';
 
-  RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
+    RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
 
-  doCheck = false;
+    doCheck = false;
 
-  meta = {
-    description = "A Rust compiler driver that outputs Stable MIR as JSON";
-    homepage = "https://github.com/runtimeverification/stable-mir-json";
-    license = lib.licenses.bsd3;
-    mainProgram = "stable_mir_json";
-  };
-}
+    meta = {
+      description = "A Rust compiler driver that outputs Stable MIR as JSON";
+      homepage = "https://github.com/runtimeverification/stable-mir-json";
+      license = lib.licenses.bsd3;
+      mainProgram = "stable_mir_json";
+    };
+  }
