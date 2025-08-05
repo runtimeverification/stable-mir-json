@@ -43,42 +43,42 @@
   "functions": [
     [
       {
-        "NormalSym": "_ZN3std2rt19lang_start_internal17h"
+        "NormalSym": "std::rt::lang_start_internal::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
+        "NormalSym": "std::sys::backtrace::__rust_begin_short_backtrace::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+        "NormalSym": "<() as std::process::Termination>::report::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "IntrinsicSym": "black_box"
+        "IntrinsicSym": "core::intrinsics::black_box::ha16ea91007d49fe5"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core3ops8function6FnOnce9call_once17h"
+        "NormalSym": "core::ops::function::FnOnce::call_once::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+        "NormalSym": "std::rt::lang_start::{{closure}}::"
       }
     ],
     [
       {
-        "NormalSym": "_ZN4core9panicking5panic17h"
+        "NormalSym": "core::panicking::panic::"
       }
     ],
     [
@@ -88,6 +88,100 @@
     ]
   ],
   "items": [
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 1,
+            "blocks": [
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 0,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "id": 8,
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 1,
+                                    "bytes": [
+                                      0
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
+                                    }
+                                  }
+                                },
+                                "ty": 17
+                              },
+                              "span": 46,
+                              "user_ty": null
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 46
+                  }
+                ],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 45
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 47,
+                "ty": 17
+              },
+              {
+                "mutability": "Not",
+                "span": 48,
+                "ty": 1
+              }
+            ],
+            "span": 49,
+            "spread_arg": null,
+            "var_debug_info": [
+              {
+                "argument_index": 1,
+                "composite": null,
+                "name": "self",
+                "source_info": {
+                  "scope": 0,
+                  "span": 48
+                },
+                "value": {
+                  "Const": {
+                    "const_": {
+                      "id": 4,
+                      "kind": "ZeroSized",
+                      "ty": 1
+                    },
+                    "span": 32,
+                    "user_ty": null
+                  }
+                }
+              }
+            ]
+          },
+          "id": 5,
+          "name": "<() as std::process::Termination>::report"
+        }
+      },
+      "symbol_name": "<() as std::process::Termination>::report::"
+    },
     {
       "details": null,
       "mono_item_kind": {
@@ -298,7 +392,351 @@
           "name": "main"
         }
       },
-      "symbol_name": "_ZN12char_trivial4main17h"
+      "symbol_name": "char_trivial::main::"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 2,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [],
+                      "destination": {
+                        "local": 0,
+                        "projection": []
+                      },
+                      "func": {
+                        "Move": {
+                          "local": 1,
+                          "projection": []
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 43
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 43,
+                "ty": 1
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 7
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 1
+              }
+            ],
+            "span": 43,
+            "spread_arg": 2,
+            "var_debug_info": []
+          },
+          "id": 3,
+          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
+        }
+      },
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 2,
+            "blocks": [
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 3,
+                          "projection": []
+                        },
+                        {
+                          "Ref": [
+                            {
+                              "kind": "ReErased"
+                            },
+                            {
+                              "Mut": {
+                                "kind": "Default"
+                              }
+                            },
+                            {
+                              "local": 1,
+                              "projection": []
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 43
+                  }
+                ],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Move": {
+                            "local": 3,
+                            "projection": []
+                          }
+                        },
+                        {
+                          "Move": {
+                            "local": 2,
+                            "projection": []
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 0,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "id": 7,
+                            "kind": "ZeroSized",
+                            "ty": 23
+                          },
+                          "span": 43,
+                          "user_ty": null
+                        }
+                      },
+                      "target": 1,
+                      "unwind": {
+                        "Cleanup": 3
+                      }
+                    }
+                  },
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Drop": {
+                      "place": {
+                        "local": 1,
+                        "projection": []
+                      },
+                      "target": 2,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Drop": {
+                      "place": {
+                        "local": 1,
+                        "projection": []
+                      },
+                      "target": 4,
+                      "unwind": "Terminate"
+                    }
+                  },
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Resume",
+                  "span": 43
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 43,
+                "ty": 16
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 12
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 1
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 24
+              }
+            ],
+            "span": 43,
+            "spread_arg": 2,
+            "var_debug_info": []
+          },
+          "id": 3,
+          "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
+        }
+      },
+      "symbol_name": "core::ops::function::FnOnce::call_once::"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 2,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Move": {
+                            "local": 1,
+                            "projection": [
+                              "Deref"
+                            ]
+                          }
+                        },
+                        {
+                          "Move": {
+                            "local": 2,
+                            "projection": []
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 0,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "id": 6,
+                            "kind": "ZeroSized",
+                            "ty": 21
+                          },
+                          "span": 43,
+                          "user_ty": null
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 43
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 43,
+                "ty": 16
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 22
+              },
+              {
+                "mutability": "Not",
+                "span": 43,
+                "ty": 1
+              }
+            ],
+            "span": 43,
+            "spread_arg": 2,
+            "var_debug_info": []
+          },
+          "id": 3,
+          "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
+        }
+      },
+      "symbol_name": "core::ops::function::FnOnce::call_once{{vtable.shim}}::"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 1,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 44
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 44,
+                "ty": 1
+              },
+              {
+                "mutability": "Not",
+                "span": 44,
+                "ty": 22
+              }
+            ],
+            "span": 44,
+            "spread_arg": null,
+            "var_debug_info": []
+          },
+          "id": 4,
+          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
+        }
+      },
+      "symbol_name": "core::ptr::drop_in_place<std::rt::lang_start<()>::{{closure}}>::"
     },
     {
       "details": null,
@@ -656,7 +1094,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "_ZN3std2rt10lang_start17h"
+      "symbol_name": "std::rt::lang_start::"
     },
     {
       "details": null,
@@ -1017,7 +1455,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
+      "symbol_name": "std::rt::lang_start::{{closure}}::"
     },
     {
       "details": null,
@@ -1196,445 +1634,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 1,
-                            "projection": [
-                              "Deref"
-                            ]
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 2,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 6,
-                            "kind": "ZeroSized",
-                            "ty": 21
-                          },
-                          "span": 43,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 43
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 43,
-                "ty": 16
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 22
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 1
-              }
-            ],
-            "span": 43,
-            "spread_arg": 2,
-            "var_debug_info": []
-          },
-          "id": 3,
-          "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
-        }
-      },
-      "symbol_name": "_ZN4core3ops8function6FnOnce40call_once$u7b$$u7b$vtable.shim$u7d$$u7d$17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Move": {
-                          "local": 1,
-                          "projection": []
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 43
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 43,
-                "ty": 1
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 7
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 1
-              }
-            ],
-            "span": 43,
-            "spread_arg": 2,
-            "var_debug_info": []
-          },
-          "id": 3,
-          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
-        }
-      },
-      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 3,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            {
-                              "Mut": {
-                                "kind": "Default"
-                              }
-                            },
-                            {
-                              "local": 1,
-                              "projection": []
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 43
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 3,
-                            "projection": []
-                          }
-                        },
-                        {
-                          "Move": {
-                            "local": 2,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 7,
-                            "kind": "ZeroSized",
-                            "ty": 23
-                          },
-                          "span": 43,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 1,
-                      "unwind": {
-                        "Cleanup": 3
-                      }
-                    }
-                  },
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Drop": {
-                      "place": {
-                        "local": 1,
-                        "projection": []
-                      },
-                      "target": 2,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Drop": {
-                      "place": {
-                        "local": 1,
-                        "projection": []
-                      },
-                      "target": 4,
-                      "unwind": "Terminate"
-                    }
-                  },
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Resume",
-                  "span": 43
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 43,
-                "ty": 16
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 12
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 1
-              },
-              {
-                "mutability": "Not",
-                "span": 43,
-                "ty": 24
-              }
-            ],
-            "span": 43,
-            "spread_arg": 2,
-            "var_debug_info": []
-          },
-          "id": 3,
-          "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
-        }
-      },
-      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 44
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 44,
-                "ty": 1
-              },
-              {
-                "mutability": "Not",
-                "span": 44,
-                "ty": 22
-              }
-            ],
-            "span": 44,
-            "spread_arg": null,
-            "var_debug_info": []
-          },
-          "id": 4,
-          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
-        }
-      },
-      "symbol_name": "_ZN4core3ptr85drop_in_place$LT$std..rt..lang_start$LT$$LP$$RP$$GT$..$u7b$$u7b$closure$u7d$$u7d$$GT$17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Constant": {
-                              "const_": {
-                                "id": 8,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 1,
-                                    "bytes": [
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                },
-                                "ty": 17
-                              },
-                              "span": 46,
-                              "user_ty": null
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 46
-                  }
-                ],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 45
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 47,
-                "ty": 17
-              },
-              {
-                "mutability": "Not",
-                "span": 48,
-                "ty": 1
-              }
-            ],
-            "span": 49,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 48
-                },
-                "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 4,
-                      "kind": "ZeroSized",
-                      "ty": 1
-                    },
-                    "span": 32,
-                    "user_ty": null
-                  }
-                }
-              }
-            ]
-          },
-          "id": 5,
-          "name": "<() as std::process::Termination>::report"
-        }
-      },
-      "symbol_name": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
+      "symbol_name": "std::sys::backtrace::__rust_begin_short_backtrace::"
     }
   ],
   "types": [
