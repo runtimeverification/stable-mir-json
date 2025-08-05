@@ -165,14 +165,17 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
         "export LD_LIBRARY_PATH={}",
         ld_library_path.display(),
     )?;
-    // Also set DYLD_LIBRARY_PATH on macOS
-    if std::env::consts::OS == "macos" {
+    
+    #[cfg(target_os = "macos")]
+    {
+        // Also set DYLD_LIBRARY_PATH on macOS
         writeln!(
             run_script,
             "export DYLD_LIBRARY_PATH={}",
             ld_library_path.display(),
         )?;
     }
+    
     writeln!(run_script)?;
     writeln!(
         run_script,
@@ -186,10 +189,8 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
 }
 
 fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
-    // Detect operating system
-    let target_os = std::env::consts::OS;
-
-    if target_os == "macos" {
+    #[cfg(target_os = "macos")]
+    {
         // macOS: Check DYLD_LIBRARY_PATH or use default path
         if let Some(paths) = env::var_os("DYLD_LIBRARY_PATH") {
             let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
@@ -212,7 +213,10 @@ fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
             writeln!(ld_library_file, "{}", default_path)?;
             Ok(default_path.into())
         }
-    } else {
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
         // Linux and other systems: Check LD_LIBRARY_PATH
         if let Some(paths) = env::var_os("LD_LIBRARY_PATH") {
             let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
