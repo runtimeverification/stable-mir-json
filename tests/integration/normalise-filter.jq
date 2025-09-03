@@ -5,25 +5,27 @@
     | .allocs = ( .allocs | map(del(.alloc_id)) | map(del(.ty)) )
     | .functions = ( [ .functions[] ] | map(del(.[0])) )
     | .types     =  ( [ .types[] ] | map(del(.[0])) )
+# remove "Never" type
+    | .types = ( [ .types[] ] | map(select(.[0] != "VoidType")) )
     |
 # Apply the normalisation filter
-{ allocs:    .allocs,
-  functions: .functions,
-  items:     .items,
+{ allocs:    ( .allocs | sort ),
+  functions: (.functions | sort ),
+  items:     (.items | sort ),
   types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) | sort ),
   # delete unstable adt_ref IDs and struct field Ty IDs
-    ( .types | map(select(.[0].EnumType) | del(.[0].EnumType.adt_def)) | sort ),
-    ( .types | map(select(.[0].StructType) | del(.[0].StructType.adt_def) | .[0].StructType.fields = "elided" ) | sort ),
-    ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) | sort ),
+    ( .types | map(select(.[0].EnumType) | del(.[0].EnumType.adt_def) | .[0].EnumType.fields = "elided") | sort_by(.[0].EnumType.name) ),
+    ( .types | map(select(.[0].StructType) | del(.[0].StructType.adt_def) | .[0].StructType.fields = "elided" ) | sort_by(.[0].StructType.name) ),
+    ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) | sort_by(.[0].UnionType.name) ),
   # delete unstable Ty IDs for arrays and tuples
-    ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType[0]) | del(.[0].ArrayType[0].id)) | sort ),
+    ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType.elem_type) | del(.[0].ArrayType.size.id)) | sort ),
     ( .types | map(select(.[0].TupleType) | .[0].TupleType.types = "elided") ),
   # replace unstable Ty IDs for references by zero
-    ( .types | map(select(.[0].PtrType) | .[0].PtrType = "elided") ),
-    ( .types | map(select(.[0].RefType) | .[0].RefType = "elided") ),
+    ( .types | map(select(.[0].PtrType) | .[0].PtrType.pointee_type = "elided") | sort ),
+    ( .types | map(select(.[0].RefType) | .[0].RefType.pointee_type = "elided") | sort ),
   # keep function type strings
-    ( .types | map(select(.[0].FunType) | .[0].FunType = "elided") )
+    ( .types | map(select(.[0].FunType) | sort) )
   ] | flatten(1) )
 }

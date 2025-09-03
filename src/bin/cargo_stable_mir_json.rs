@@ -165,6 +165,17 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
         "export LD_LIBRARY_PATH={}",
         ld_library_path.display(),
     )?;
+
+    #[cfg(target_os = "macos")]
+    {
+        // Also set DYLD_LIBRARY_PATH on macOS
+        writeln!(
+            run_script,
+            "export DYLD_LIBRARY_PATH={}",
+            ld_library_path.display(),
+        )?;
+    }
+
     writeln!(run_script)?;
     writeln!(
         run_script,
@@ -178,19 +189,50 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
 }
 
 fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
-    const LOADER_PATH: &str = "LD_LIBRARY_PATH";
-    if let Some(paths) = env::var_os(LOADER_PATH) {
-        // Note: kani filters the LD_LIBRARY_PATH, not sure why as it is working locally as is
-        let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-
-        match paths.to_str() {
-            Some(ld_library_path) => {
-                writeln!(ld_library_file, "{}", ld_library_path)?;
-                Ok(ld_library_path.into())
+    #[cfg(target_os = "macos")]
+    {
+        // macOS: Check DYLD_LIBRARY_PATH or use default path
+        if let Some(paths) = env::var_os("DYLD_LIBRARY_PATH") {
+            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
+            match paths.to_str() {
+                Some(ld_library_path) => {
+                    writeln!(ld_library_file, "{}", ld_library_path)?;
+                    Ok(ld_library_path.into())
+                }
+                None => bail!("Couldn't cast DYLD_LIBRARY_PATH to str"),
             }
-            None => bail!("Couldn't cast LD_LIBRARY_PATH to str"),
+        } else {
+            // Use default macOS library path including Rust toolchain
+            let rustup_home = env::var("HOME").unwrap_or_else(|_| "/Users".to_string());
+            let rust_toolchain_path = format!(
+                "{}/.rustup/toolchains/nightly-2024-11-29-aarch64-apple-darwin/lib",
+                rustup_home
+            );
+            let default_path = format!("{}:/usr/local/lib:/usr/lib", rust_toolchain_path);
+            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
+            writeln!(ld_library_file, "{}", default_path)?;
+            Ok(default_path.into())
         }
-    } else {
-        bail!("Couldn't read LD_LIBRARY_PATH from env"); // This should be unreachable
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        // Linux and other systems: Check LD_LIBRARY_PATH
+        if let Some(paths) = env::var_os("LD_LIBRARY_PATH") {
+            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
+            match paths.to_str() {
+                Some(ld_library_path) => {
+                    writeln!(ld_library_file, "{}", ld_library_path)?;
+                    Ok(ld_library_path.into())
+                }
+                None => bail!("Couldn't cast LD_LIBRARY_PATH to str"),
+            }
+        } else {
+            // Use default Linux library path
+            let default_path = "/usr/local/lib:/usr/lib";
+            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
+            writeln!(ld_library_file, "{}", default_path)?;
+            Ok(default_path.into())
+        }
     }
 }

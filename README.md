@@ -38,7 +38,9 @@ There are a few environment variables that can be set to control the tools outpu
 
 ## Development
 
-To ensure code quality, all code is required to pass `cargo clippy` and `cargo fmt` without warning to pass CI.
+To ensure code quality, all code is required to pass `cargo clippy`, `cargo fmt`, and `nixfmt **/*.nix` without warning to pass CI.
+
+You can install `nixfmt` by [installing nix](https://nixos.org/download/) and running `nix profile install nixpkgs#nixfmt-rfc-style`.
 
 ## Tests
 

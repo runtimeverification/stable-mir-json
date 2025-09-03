@@ -15,6 +15,9 @@ home = "0.5"
 name = "cargo_stable_mir_json"
 path = "src/bin/cargo_stable_mir_json.rs"
 
+[features]
+debug_log = []
+
 [package.metadata.rust-analyzer]
 # This package uses rustc crates.
 rustc_private=true
