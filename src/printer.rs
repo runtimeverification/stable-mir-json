@@ -34,7 +34,10 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     abi::LayoutShape,
     mir::mono::{Instance, InstanceKind, MonoItem},
-    mir::{alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
+    mir::{
+        alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator,
+        TerminatorKind,
+    },
     ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
@@ -670,7 +673,9 @@ fn collect_alloc(
             #[cfg(feature = "debug_log")]
             println!(
                 "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
-                val, pointed_ty.map(|ty| ty.kind()), global_alloc
+                val,
+                pointed_ty.map(|ty| ty.kind()),
+                global_alloc
             );
             entry.or_insert((ty, global_alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
