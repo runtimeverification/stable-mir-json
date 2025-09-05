@@ -34,7 +34,10 @@ use serde::{Serialize, Serializer};
 use stable_mir::{
     abi::LayoutShape,
     mir::mono::{Instance, InstanceKind, MonoItem},
-    mir::{alloc::AllocId, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator, TerminatorKind},
+    mir::{
+        alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator,
+        TerminatorKind,
+    },
     ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
@@ -474,18 +477,8 @@ impl Serialize for ItemSource {
     }
 }
 
-#[derive(Serialize)]
-pub enum AllocInfo {
-    Function(stable_mir::mir::mono::Instance),
-    VTable(
-        stable_mir::ty::Ty,
-        Option<stable_mir::ty::Binder<stable_mir::ty::ExistentialTraitRef>>,
-    ),
-    Static(stable_mir::mir::mono::StaticDef),
-    Memory(stable_mir::ty::Allocation), // TODO include stable_mir::ty::TyKind?
-}
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
-type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, AllocInfo>;
+type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc)>;
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
@@ -644,15 +637,18 @@ fn update_link_map<'tcx>(
     }
 }
 
-fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mir::ty::TyKind> {
+fn get_prov_ty(pointer_ty: stable_mir::ty::Ty) -> Option<stable_mir::ty::Ty> {
     use stable_mir::ty::RigidTy;
+    let pointer_kind = pointer_ty.kind();
     // check for pointers
-    let kind = maybe_kind?;
-    if let Some(ty) = kind.builtin_deref(true) {
-        return ty.ty.kind().into();
+    if let Some(ty) = pointer_kind.builtin_deref(true) {
+        return ty.ty.into();
     }
-    match kind.rigid().expect("Non-rigid-ty allocation found!") {
-        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => ty.kind().into(),
+    match pointer_kind
+        .rigid()
+        .expect("Non-rigid-ty allocation found!")
+    {
+        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => (*ty).into(),
         RigidTy::FnPtr(_) | RigidTy::Adt(..) => None, // TODO: Check for Adt if the GenericArgs are related to prov
         unimplemented => {
             todo!("Unimplemented RigidTy allocation: {:?}", unimplemented);
@@ -662,47 +658,49 @@ fn get_prov_type(maybe_kind: Option<stable_mir::ty::TyKind>) -> Option<stable_mi
 
 fn collect_alloc(
     val_collector: &mut InternedValueCollector,
-    kind: Option<stable_mir::ty::TyKind>,
+    ty: stable_mir::ty::Ty,
     val: stable_mir::mir::alloc::AllocId,
 ) {
-    use stable_mir::mir::alloc::GlobalAlloc;
     let entry = val_collector.visited_allocs.entry(val);
     if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) {
         return;
     }
+    let kind = ty.kind();
     let global_alloc = GlobalAlloc::from(val);
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_kind = get_prov_type(kind);
+            let pointed_ty = get_prov_ty(ty);
             #[cfg(feature = "debug_log")]
             println!(
                 "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
-                val, pointed_kind, global_alloc
+                val,
+                pointed_ty.map(|ty| ty.kind()),
+                global_alloc
             );
-            entry.or_insert(AllocInfo::Memory(alloc.clone())); // TODO: include pointed_kind.clone().unwrap() ?
+            entry.or_insert((ty, global_alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
-                collect_alloc(val_collector, pointed_kind.clone(), prov.0);
+                collect_alloc(val_collector, pointed_ty.unwrap(), prov.0);
             });
         }
-        GlobalAlloc::Static(def) => {
+        GlobalAlloc::Static(_) => {
             assert!(
-                kind.clone().unwrap().builtin_deref(true).is_some(),
+                kind.clone().builtin_deref(true).is_some(),
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert(AllocInfo::Static(def));
+            entry.or_insert((ty, global_alloc.clone()));
         }
-        GlobalAlloc::VTable(ty, traitref) => {
+        GlobalAlloc::VTable(_, _) => {
             assert!(
-                kind.clone().unwrap().builtin_deref(true).is_some(),
+                kind.clone().builtin_deref(true).is_some(),
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert(AllocInfo::VTable(ty, traitref));
+            entry.or_insert((ty, global_alloc.clone()));
         }
-        GlobalAlloc::Function(inst) => {
-            assert!(kind.unwrap().is_fn_ptr());
-            entry.or_insert(AllocInfo::Function(inst));
+        GlobalAlloc::Function(_) => {
+            assert!(kind.is_fn_ptr());
+            entry.or_insert((ty, global_alloc.clone()));
         }
     };
 }
@@ -785,9 +783,11 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     alloc,
                     constant.ty().kind()
                 );
-                alloc.provenance.ptrs.iter().for_each(|(_offset, prov)| {
-                    collect_alloc(self, Some(constant.ty().kind()), prov.0)
-                });
+                alloc
+                    .provenance
+                    .ptrs
+                    .iter()
+                    .for_each(|(_offset, prov)| collect_alloc(self, constant.ty(), prov.0));
             }
             ConstantKind::Ty(ty_const) => {
                 if let TyConstKind::Value(..) = ty_const.kind() {
@@ -1183,7 +1183,7 @@ type SourceData = (String, usize, usize, usize, usize);
 pub struct SmirJson<'t> {
     pub name: String,
     pub crate_id: u64,
-    pub allocs: Vec<(AllocId, AllocInfo)>,
+    pub allocs: Vec<AllocInfo>,
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
@@ -1200,6 +1200,13 @@ pub struct SmirJsonDebugInfo<'t> {
     foreign_modules: Vec<(String, Vec<ForeignModule>)>,
 }
 
+#[derive(Serialize)]
+pub struct AllocInfo {
+    alloc_id: AllocId,
+    ty: stable_mir::ty::Ty,
+    global_alloc: GlobalAlloc,
+}
+
 // Serialization Entrypoint
 // ========================
 
@@ -1213,7 +1220,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
 
     // FIXME: We dump extra static items here --- this should be handled better
     for (_, alloc) in visited_allocs.iter() {
-        if let AllocInfo::Static(def) = alloc {
+        if let (_, GlobalAlloc::Static(def)) = alloc {
             let mono_item =
                 stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
             let item_name = &mono_item_name(tcx, &mono_item);
@@ -1246,7 +1253,14 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         .into_iter()
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
-    let mut allocs = visited_allocs.into_iter().collect::<Vec<_>>();
+    let mut allocs = visited_allocs
+        .into_iter()
+        .map(|(alloc_id, (ty, global_alloc))| AllocInfo {
+            alloc_id,
+            ty,
+            global_alloc,
+        })
+        .collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
     let mut types = visited_tys
@@ -1258,7 +1272,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let mut spans = span_map.into_iter().collect::<Vec<_>>();
 
     // sort output vectors to stabilise output (a bit)
-    allocs.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
+    allocs.sort_by(|a, b| a.alloc_id.to_index().cmp(&b.alloc_id.to_index()));
     functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
     items.sort();
     types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));

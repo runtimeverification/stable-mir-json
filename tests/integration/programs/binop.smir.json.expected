@@ -1,7 +1,7 @@
 {
   "allocs": [
-    [
-      {
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -44,9 +44,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -89,9 +89,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -130,9 +130,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -171,9 +171,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -213,9 +213,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -254,9 +254,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -295,9 +295,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -336,9 +336,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -377,9 +377,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -419,9 +419,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -461,9 +461,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -503,9 +503,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -545,9 +545,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -590,9 +590,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -633,9 +633,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -678,9 +678,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -720,9 +720,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -765,49 +765,9 @@
           }
         }
       }
-    ],
-    [
-      {
-        "Memory": {
-          "align": 1,
-          "bytes": [
-            97,
-            115,
-            115,
-            101,
-            114,
-            116,
-            105,
-            111,
-            110,
-            32,
-            102,
-            97,
-            105,
-            108,
-            101,
-            100,
-            58,
-            32,
-            120,
-            32,
-            43,
-            32,
-            121,
-            32,
-            62,
-            32,
-            120
-          ],
-          "mutability": "Not",
-          "provenance": {
-            "ptrs": []
-          }
-        }
-      }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -836,6 +796,46 @@
             121,
             32,
             62,
+            32,
+            120
+          ],
+          "mutability": "Not",
+          "provenance": {
+            "ptrs": []
+          }
+        }
+      }
+    },
+    {
+      "global_alloc": {
+        "Memory": {
+          "align": 1,
+          "bytes": [
+            97,
+            115,
+            115,
+            101,
+            114,
+            116,
+            105,
+            111,
+            110,
+            32,
+            102,
+            97,
+            105,
+            108,
+            101,
+            100,
+            58,
+            32,
+            120,
+            32,
+            43,
+            32,
+            121,
+            32,
+            62,
             61,
             32,
             120
@@ -846,9 +846,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -888,9 +888,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -928,9 +928,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -969,9 +969,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -1014,9 +1014,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -1059,9 +1059,9 @@
           }
         }
       }
-    ],
-    [
-      {
+    },
+    {
+      "global_alloc": {
         "Memory": {
           "align": 1,
           "bytes": [
@@ -1102,7 +1102,7 @@
           }
         }
       }
-    ]
+    }
   ],
   "functions": [
     [
