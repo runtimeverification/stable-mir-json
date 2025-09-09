@@ -658,7 +658,7 @@ fn get_prov_ty(pointer_ty: stable_mir::ty::Ty) -> Option<stable_mir::ty::Ty> {
 
 fn collect_alloc(
     val_collector: &mut InternedValueCollector,
-    ty: stable_mir::ty::Ty,
+    ty: stable_mir::ty::Ty, // NB this is the type of a _reference_ to the constant
     val: stable_mir::mir::alloc::AllocId,
 ) {
     let entry = val_collector.visited_allocs.entry(val);
@@ -677,7 +677,7 @@ fn collect_alloc(
                 pointed_ty.map(|ty| ty.kind()),
                 global_alloc
             );
-            entry.or_insert((ty, global_alloc.clone()));
+            entry.or_insert((pointed_ty.unwrap(), global_alloc.clone()));
             alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
                 collect_alloc(val_collector, pointed_ty.unwrap(), prov.0);
             });
