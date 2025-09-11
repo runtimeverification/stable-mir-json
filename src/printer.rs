@@ -32,7 +32,7 @@ use rustc_span::{
 };
 use serde::{Serialize, Serializer};
 use stable_mir::{
-    abi::LayoutShape,
+    abi::{LayoutShape, FieldsShape, VariantsShape},
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{
         alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator,
@@ -637,28 +637,67 @@ fn update_link_map<'tcx>(
     }
 }
 
-fn get_prov_ty(pointer_ty: stable_mir::ty::Ty) -> Option<stable_mir::ty::Ty> {
-    use stable_mir::ty::RigidTy;
-    let pointer_kind = pointer_ty.kind();
-    // check for pointers
-    if let Some(ty) = pointer_kind.builtin_deref(true) {
-        return ty.ty.into();
-    }
-    match pointer_kind
-        .rigid()
-        .expect("Non-rigid-ty allocation found!")
-    {
-        RigidTy::Array(ty, _) | RigidTy::Slice(ty) | RigidTy::Ref(_, ty, _) => (*ty).into(),
-        RigidTy::FnPtr(_) | RigidTy::Adt(..) => None, // TODO: Check for Adt if the GenericArgs are related to prov
-        unimplemented => {
-            todo!("Unimplemented RigidTy allocation: {:?}", unimplemented);
+fn field_for_offset(l: LayoutShape, offset: usize) -> Option<usize> { // FieldIdx
+    let fields: Vec<usize> = match l.fields {
+        FieldsShape::Arbitrary{offsets} => 
+            offsets.into_iter().map(|o| o.bytes()).collect(),
+        _other => todo!("other cases should not occur"),
+    };
+    let variants: Vec<LayoutShape> = match l.variants {
+        VariantsShape::Single{index: _} => Vec::new(),
+        VariantsShape::Multiple{variants, ..} => variants,
+    };
+    let field_match = fields
+            .into_iter()
+            .enumerate()
+            .find(|(_, o)| *o == offset)
+            .map(|(i, _)| i);
+    match field_match {
+        Some(i) => 
+            return Some(i),
+        None => {
+            todo!("Field offset {offset} not found, implement search in variants of {variants:?}")
         }
+    }
+}
+
+fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty::Ty> {
+    use stable_mir::ty::RigidTy;
+    let ty_kind = ty.kind();
+    // if ty is a pointer, box, or Ref, expect no offset and dereference
+    if let Some(ty) = ty_kind.builtin_deref(true) {
+        assert!(*offset == 0);
+        return Some(ty.ty);
+    }
+
+    match ty_kind
+        .rigid()
+        .expect("Non-rigid-ty allocation found! {ty_kind:?}")
+    {
+        // cases covered above
+        RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => panic!("Should have been caught before"),
+        RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
+        // homogenous, so no choice. Could check alignment of the offset...
+        RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
+        // For other ADTs (struct, tuple, enum) consult layout to determine the pointee type
+        RigidTy::Adt(adt_def, args) if (ty_kind.is_struct() || ty_kind.is_enum() )  => {
+            let layout = ty.layout().map(|l| l.shape()).expect("Unable to get layout for {ty_kind:?}");
+            let fields = adt_def.variants().pop().map(|v| v.fields())?;
+            let target = field_for_offset(layout, *offset)?;
+            let field = fields.get(target)?;
+            Some(field.ty_with_args(args))
+        }
+
+
+        RigidTy::FnPtr(_) => None,
+        unimplemented => todo!("Unimplemented RigidTy allocation: {:?}", unimplemented),
     }
 }
 
 fn collect_alloc(
     val_collector: &mut InternedValueCollector,
-    ty: stable_mir::ty::Ty, // NB this is the type of a _reference_ to the constant
+    ty: stable_mir::ty::Ty,
+    offset: &usize,
     val: stable_mir::mir::alloc::AllocId,
 ) {
     let entry = val_collector.visited_allocs.entry(val);
@@ -669,17 +708,19 @@ fn collect_alloc(
     let global_alloc = GlobalAlloc::from(val);
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_ty = get_prov_ty(ty);
+            let pointed_ty = get_prov_ty(ty, offset);
             #[cfg(feature = "debug_log")]
             println!(
-                "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
+                "DEBUG: called collect_alloc: {:?}:{:?}:{:?}: {:?}",
                 val,
                 pointed_ty.map(|ty| ty.kind()),
+                offset,
                 global_alloc
             );
+            assert!(pointed_ty.is_some());
             entry.or_insert((pointed_ty.unwrap(), global_alloc.clone()));
-            alloc.provenance.ptrs.iter().for_each(|(_, prov)| {
-                collect_alloc(val_collector, pointed_ty.unwrap(), prov.0);
+            alloc.provenance.ptrs.iter().for_each(|(offset, prov)| {
+                collect_alloc(val_collector, pointed_ty.unwrap(), offset, prov.0);
             });
         }
         GlobalAlloc::Static(_) => {
@@ -787,7 +828,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     .provenance
                     .ptrs
                     .iter()
-                    .for_each(|(_offset, prov)| collect_alloc(self, constant.ty(), prov.0));
+                    .for_each(|(offset, prov)| collect_alloc(self, constant.ty(), offset, prov.0));
             }
             ConstantKind::Ty(ty_const) => {
                 if let TyConstKind::Value(..) = ty_const.kind() {
