@@ -670,31 +670,29 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         return Some(ty.ty);
     }
 
-    match ty_kind
-        .rigid()
-        .expect("Non-rigid-ty allocation found! {ty_kind:?}")
-    {
-        // cases covered above
-        RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => panic!("Should have been caught before"),
-        RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
-        // homogenous, so no choice. Could check alignment of the offset...
-        RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
-        // For other ADTs (struct, tuple, enum) consult layout to determine ref.type and pointee type
-        RigidTy::Adt(adt_def, args) if (ty_kind.is_struct() || ty_kind.is_enum() )  => {
-            let layout = ty.layout().map(|l| l.shape()).expect("Unable to get layout for {ty_kind:?}");
-            let field_idx = field_for_offset(layout, *offset)?;
-            let fields = adt_def.variants().pop().map(|v| v.fields())?;
-            let field = fields.get(field_idx)?;
-            let pointee_ty = field
-                    .ty_with_args(args)
-                    .kind()
-                    .builtin_deref(true)?;
-            Some(pointee_ty.ty)
-        }
+    let target_ty =
+        match ty_kind
+            .rigid()
+            .expect("Non-rigid-ty allocation found! {ty_kind:?}")
+            {
+                // homogenous, so no choice. Could check alignment of the offset...
+                RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
+                // cases covered above
+                RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => panic!("Should have been caught before"),
+                RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
+                // For other ADTs (struct, tuple) consult layout to determine field type
+                RigidTy::Adt(adt_def, args) if (ty_kind.is_struct() )  => {
+                    let layout = ty.layout().map(|l| l.shape()).expect("Unable to get layout for {ty_kind:?}");
+                    let field_idx = field_for_offset(layout, *offset).unwrap();
+                    // NB struct or tuple, single variant
+                    let fields = adt_def.variants().pop().map(|v| v.fields()).unwrap();
+                    fields.get(field_idx).map(|f| f.ty_with_args(args))
+                }
 
-        RigidTy::FnPtr(_) => None,
-        unimplemented => todo!("Unimplemented RigidTy allocation: {:?}", unimplemented),
-    }
+                RigidTy::FnPtr(_) => None,
+                unimplemented => todo!("Unimplemented RigidTy allocation: {:?}", unimplemented),
+            };
+    todo!("Dereference target_ty {target_ty:?}. Problem if it is not a pointer/ref")
 }
 
 fn collect_alloc(
