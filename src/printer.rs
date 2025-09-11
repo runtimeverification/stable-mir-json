@@ -679,15 +679,18 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
         // homogenous, so no choice. Could check alignment of the offset...
         RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
-        // For other ADTs (struct, tuple, enum) consult layout to determine the pointee type
+        // For other ADTs (struct, tuple, enum) consult layout to determine ref.type and pointee type
         RigidTy::Adt(adt_def, args) if (ty_kind.is_struct() || ty_kind.is_enum() )  => {
             let layout = ty.layout().map(|l| l.shape()).expect("Unable to get layout for {ty_kind:?}");
+            let field_idx = field_for_offset(layout, *offset)?;
             let fields = adt_def.variants().pop().map(|v| v.fields())?;
-            let target = field_for_offset(layout, *offset)?;
-            let field = fields.get(target)?;
-            Some(field.ty_with_args(args))
+            let field = fields.get(field_idx)?;
+            let pointee_ty = field
+                    .ty_with_args(args)
+                    .kind()
+                    .builtin_deref(true)?;
+            Some(pointee_ty.ty)
         }
-
 
         RigidTy::FnPtr(_) => None,
         unimplemented => todo!("Unimplemented RigidTy allocation: {:?}", unimplemented),
@@ -706,21 +709,29 @@ fn collect_alloc(
     }
     let kind = ty.kind();
     let global_alloc = GlobalAlloc::from(val);
+            #[cfg(feature = "debug_log")]
+            println!(
+                "DEBUG: called collect_alloc: {:?}:{:?}:{:?}: {:?}",
+                val,
+                ty,
+                offset,
+                global_alloc
+            );
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
             let pointed_ty = get_prov_ty(ty, offset);
             #[cfg(feature = "debug_log")]
             println!(
-                "DEBUG: called collect_alloc: {:?}:{:?}:{:?}: {:?}",
+                "DEBUG: adding collect_alloc: {:?}:{:?}:{:?}: {:?}",
                 val,
-                pointed_ty.map(|ty| ty.kind()),
+                pointed_ty,
                 offset,
                 global_alloc
             );
             assert!(pointed_ty.is_some());
             entry.or_insert((pointed_ty.unwrap(), global_alloc.clone()));
-            alloc.provenance.ptrs.iter().for_each(|(offset, prov)| {
-                collect_alloc(val_collector, pointed_ty.unwrap(), offset, prov.0);
+            alloc.provenance.ptrs.iter().for_each(|(prov_offset, prov)| {
+                collect_alloc(val_collector, pointed_ty.unwrap(), prov_offset, prov.0);
             });
         }
         GlobalAlloc::Static(_) => {
