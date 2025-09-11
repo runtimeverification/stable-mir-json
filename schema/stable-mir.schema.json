@@ -19,11 +19,11 @@
       "description": "Memory allocations indexed by AllocId",
       "type": "array",
       "items": {
-        "description": "Tuple of [AllocId, AllocInfo]",
+        "description": "Tuple of [AllocId, GlobalAlloc]",
         "type": "array",
         "items": [
           { "$ref": "#/$defs/AllocId" },
-          { "$ref": "#/$defs/AllocInfo" }
+          { "$ref": "#/$defs/GlobalAlloc" }
         ],
         "minItems": 2,
         "maxItems": 2
@@ -108,7 +108,7 @@
       "type": "integer",
       "minimum": 0
     },
-    "AllocInfo": {
+    "GlobalAlloc": {
       "description": "Information about an allocation",
       "oneOf": [
         {
