@@ -690,12 +690,12 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
             // we have to figure out which variant we are dealing with (requires the data)
             match field_for_offset(layout, *offset) {
                 None =>
-                // we'd have to figure out which variant we are dealing with (requires the data)
+                // FIXME we'd have to figure out which variant we are dealing with (requires the data)
                 {
                     None
                 }
                 Some(_idx) =>
-                // we'd have to figure out where that shared field is in the source ordering
+                // FIXME we'd have to figure out where that shared field is in the source ordering
                 {
                     None
                 }
@@ -735,16 +735,16 @@ fn collect_alloc(
     let global_alloc = GlobalAlloc::from(val);
     #[cfg(feature = "debug_log")]
     println!(
-        "DEBUG: called collect_alloc: {:?}:{:?}:{:?}: {:?}",
-        val, ty, offset, global_alloc
+        "DEBUG: called collect_alloc: {:?}:{:?}:{:?}",
+        val, ty, offset
     );
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
             let pointed_ty = get_prov_ty(ty, offset);
             #[cfg(feature = "debug_log")]
             println!(
-                "DEBUG: adding collect_alloc: {:?}:{:?}:{:?}: {:?}",
-                val, pointed_ty, offset, global_alloc
+                "DEBUG: adding alloc: {:?}:{:?}: {:?}",
+                val, pointed_ty, global_alloc
             );
             if let Some(p_ty) = pointed_ty {
                 entry.or_insert((p_ty, global_alloc.clone()));
