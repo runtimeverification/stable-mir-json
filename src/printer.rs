@@ -678,10 +678,10 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
                 // cases covered above
                 RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => panic!("Should have been caught before"),
                 RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
-                // For other ADTs (struct, tuple) consult layout to determine field type
+                // For other structs, consult layout to determine field type
                 RigidTy::Adt(adt_def, args) if ty_kind.is_struct() => {
                     let field_idx = field_for_offset(layout, *offset).unwrap();
-                    // NB struct or tuple, single variant
+                    // NB struct, single variant
                     let fields = adt_def.variants().pop().map(|v| v.fields()).unwrap();
                     fields.get(field_idx).map(|f| f.ty_with_args(args))
                 }
@@ -694,8 +694,16 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
                             None,
                     }
                 }
+                RigidTy::Tuple(fields) => {
+                    let field_idx = field_for_offset(layout, *offset)?;
+                    fields.get(field_idx).map(|t| *t)
+                }
                 RigidTy::FnPtr(_) => None,
-                unimplemented => todo!("Unimplemented RigidTy allocation: {:?}", unimplemented),
+                _unimplemented => {
+                    #[cfg(feature = "debug_log")]
+                    println!("get_prov_type: Unimplemented RigidTy allocation: {:?}", _unimplemented);
+                    None
+                }
             };
     match ref_ty {
         None => None,
