@@ -67,4 +67,6 @@ if [ $total -gt 0 ]; then
     echo "Failing ratio : $ratio_failed"
 fi
 
-[ $failed -gt 0 ] && exit 1
+if [ $failed -gt 0 ]; then
+    exit 1
+fi
