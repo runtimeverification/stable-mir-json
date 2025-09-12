@@ -32,7 +32,7 @@ use rustc_span::{
 };
 use serde::{Serialize, Serializer};
 use stable_mir::{
-    abi::{LayoutShape, FieldsShape, VariantsShape},
+    abi::{LayoutShape, FieldsShape},
     mir::mono::{Instance, InstanceKind, MonoItem},
     mir::{
         alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator,
@@ -637,26 +637,21 @@ fn update_link_map<'tcx>(
     }
 }
 
+
+/// Returns the field index (source order) for a given offset and layout if
+/// the layout contains fields (shared between all variants), otherwise None.
+/// NB No search for fields within variants (needs recursive call).
 fn field_for_offset(l: LayoutShape, offset: usize) -> Option<usize> { // FieldIdx
-    let fields: Vec<usize> = match l.fields {
-        FieldsShape::Arbitrary{offsets} => 
-            offsets.into_iter().map(|o| o.bytes()).collect(),
-        _other => todo!("other cases should not occur"),
-    };
-    let variants: Vec<LayoutShape> = match l.variants {
-        VariantsShape::Single{index: _} => Vec::new(),
-        VariantsShape::Multiple{variants, ..} => variants,
-    };
-    let field_match = fields
-            .into_iter()
-            .enumerate()
-            .find(|(_, o)| *o == offset)
-            .map(|(i, _)| i);
-    match field_match {
-        Some(i) => 
-            return Some(i),
-        None => {
-            todo!("Field offset {offset} not found, implement search in variants of {variants:?}")
+    match l.fields {
+        FieldsShape::Primitive | FieldsShape::Union(_) | FieldsShape::Array{..} =>
+            return None,
+        FieldsShape::Arbitrary{offsets} => {
+            let fields: Vec<usize> = offsets.into_iter().map(|o| o.bytes()).collect();
+            fields
+                .into_iter()
+                .enumerate()
+                .find(|(_, o)| *o == offset)
+                .map(|(i, _)| i)
         }
     }
 }
@@ -670,7 +665,10 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         return Some(ty.ty);
     }
 
-    let target_ty =
+    // Otherwise the allocation is a reference within another kind of data.
+    // Decompose this outer data type to determine the reference type
+    let layout = ty.layout().map(|l| l.shape()).expect("Unable to get layout for {ty_kind:?}");
+    let ref_ty =
         match ty_kind
             .rigid()
             .expect("Non-rigid-ty allocation found! {ty_kind:?}")
@@ -681,18 +679,28 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
                 RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => panic!("Should have been caught before"),
                 RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
                 // For other ADTs (struct, tuple) consult layout to determine field type
-                RigidTy::Adt(adt_def, args) if (ty_kind.is_struct() )  => {
-                    let layout = ty.layout().map(|l| l.shape()).expect("Unable to get layout for {ty_kind:?}");
+                RigidTy::Adt(adt_def, args) if ty_kind.is_struct() => {
                     let field_idx = field_for_offset(layout, *offset).unwrap();
                     // NB struct or tuple, single variant
                     let fields = adt_def.variants().pop().map(|v| v.fields()).unwrap();
                     fields.get(field_idx).map(|f| f.ty_with_args(args))
                 }
-
+                RigidTy::Adt(_adt_def, _args, ) if ty_kind.is_enum() => {
+                    // we have to figure out which variant we are dealing with (requires the data)
+                    match field_for_offset(layout, *offset) {
+                        None => // we'd have to figure out which variant we are dealing with (requires the data)
+                            None,
+                        Some(_idx) => // we'd have to figure out where that shared field is in the source ordering
+                            None,
+                    }
+                }
                 RigidTy::FnPtr(_) => None,
                 unimplemented => todo!("Unimplemented RigidTy allocation: {:?}", unimplemented),
             };
-    todo!("Dereference target_ty {target_ty:?}. Problem if it is not a pointer/ref")
+    match ref_ty {
+        None => None,
+        Some(ty) => get_prov_ty(ty, &0)
+    }
 }
 
 fn collect_alloc(
@@ -726,11 +734,14 @@ fn collect_alloc(
                 offset,
                 global_alloc
             );
-            assert!(pointed_ty.is_some());
-            entry.or_insert((pointed_ty.unwrap(), global_alloc.clone()));
-            alloc.provenance.ptrs.iter().for_each(|(prov_offset, prov)| {
-                collect_alloc(val_collector, pointed_ty.unwrap(), prov_offset, prov.0);
-            });
+            if pointed_ty.is_some() {
+                entry.or_insert((pointed_ty.unwrap_or(stable_mir::ty::Ty::to_val(0)), global_alloc.clone()));
+                alloc.provenance.ptrs.iter().for_each(|(prov_offset, prov)| {
+                    collect_alloc(val_collector, pointed_ty.unwrap(), prov_offset, prov.0);
+                });
+            } else {
+                entry.or_insert((pointed_ty.unwrap_or(stable_mir::ty::Ty::to_val(0)), global_alloc.clone()));
+            }
         }
         GlobalAlloc::Static(_) => {
             assert!(
