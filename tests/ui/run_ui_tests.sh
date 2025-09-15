@@ -66,3 +66,7 @@ if [ $total -gt 0 ]; then
     echo "Passing ratio : $ratio_passed"
     echo "Failing ratio : $ratio_failed"
 fi
+
+if [ $failed -gt 0 ]; then
+    exit 1
+fi

@@ -27,6 +27,7 @@ tests/ui/abi/foreign/foreign-fn-with-byval.rs
 tests/ui/abi/homogenous-floats-target-feature-mixup.rs
 tests/ui/abi/issue-28676.rs
 tests/ui/abi/issues/issue-62350-sysv-neg-reg-counts.rs
+tests/ui/abi/issues/issue-97463-broken-abi-leaked-uninit-data.rs
 tests/ui/abi/lib-defaults.rs
 tests/ui/abi/mir/mir_codegen_calls_variadic.rs
 tests/ui/abi/nullable-pointer-ffi-compat.rs
@@ -124,6 +125,7 @@ tests/ui/associated-consts/mismatched_impl_ty_2.rs
 tests/ui/associated-consts/mismatched_impl_ty_3.rs
 tests/ui/associated-type-bounds/enum-bounds.rs
 tests/ui/associated-type-bounds/rpit.rs
+tests/ui/associated-type-bounds/struct-bounds.rs
 tests/ui/associated-type-bounds/trait-alias-impl-trait.rs
 tests/ui/associated-type-bounds/union-bounds.rs
 tests/ui/associated-types/associated-item-long-paths.rs
@@ -170,6 +172,7 @@ tests/ui/associated-types/issue-23208.rs
 tests/ui/associated-types/issue-25339.rs
 tests/ui/associated-types/issue-25700-1.rs
 tests/ui/associated-types/issue-25700-2.rs
+tests/ui/associated-types/issue-27901.rs
 tests/ui/associated-types/issue-47139-1.rs
 tests/ui/associated-types/issue-47139-2.rs
 tests/ui/associated-types/issue-54182-1.rs
@@ -335,6 +338,7 @@ tests/ui/borrowck/issue-23338-params-outlive-temps-of-body.rs
 tests/ui/borrowck/issue-29166.rs
 tests/ui/borrowck/issue-46095.rs
 tests/ui/borrowck/issue-51348-multi-ref-mut-in-guard.rs
+tests/ui/borrowck/issue-52967-edition-2018-needs-two-phase-borrows.rs
 tests/ui/borrowck/lazy-init.rs
 tests/ui/borrowck/two-phase-baseline.rs
 tests/ui/borrowck/two-phase-bin-ops.rs
@@ -799,6 +803,8 @@ tests/ui/default-method-simple.rs
 tests/ui/delegation/explicit-paths-in-traits-pass.rs
 tests/ui/delegation/explicit-paths-pass.rs
 tests/ui/delegation/explicit-paths-signature-pass.rs
+tests/ui/delegation/generics/free-fn-to-free-fn-pass.rs
+tests/ui/delegation/generics/free-fn-to-trait-method-pass.rs
 tests/ui/delegation/generics/impl-to-free-fn-pass.rs
 tests/ui/delegation/generics/impl-trait-to-trait-method-pass.rs
 tests/ui/delegation/generics/inherent-impl-to-trait-method-pass.rs
@@ -906,7 +912,9 @@ tests/ui/dynamically-sized-types/dst-raw.rs
 tests/ui/dynamically-sized-types/dst-struct.rs
 tests/ui/dynamically-sized-types/dst-struct-sole.rs
 tests/ui/dynamically-sized-types/dst-trait.rs
+tests/ui/dynamically-sized-types/dst-trait-tuple.rs
 tests/ui/dynamically-sized-types/dst-tuple-no-reorder.rs
+tests/ui/dynamically-sized-types/dst-tuple.rs
 tests/ui/dynamically-sized-types/dst-tuple-sole.rs
 tests/ui/dynamically-sized-types/dst-tuple-zst-offsets.rs
 tests/ui/dyn-star/const.rs
@@ -1125,6 +1133,7 @@ tests/ui/hygiene/hygiene.rs
 tests/ui/hygiene/hygienic-labels-in-let.rs
 tests/ui/hygiene/hygienic-labels.rs
 tests/ui/hygiene/issue-15221.rs
+tests/ui/hygiene/issue-29746.rs
 tests/ui/hygiene/issue-40847.rs
 tests/ui/hygiene/lambda-var-hygiene.rs
 tests/ui/hygiene/macro-metavars-legacy.rs
@@ -1431,6 +1440,7 @@ tests/ui/issues/issue-30615.rs
 tests/ui/issues/issue-30756.rs
 tests/ui/issues/issue-30891.rs
 tests/ui/issues/issue-3091.rs
+tests/ui/issues/issue-3109.rs
 tests/ui/issues/issue-3121.rs
 tests/ui/issues/issue-31267-additional.rs
 tests/ui/issues/issue-31267.rs
@@ -1718,6 +1728,7 @@ tests/ui/macros/macro-nested_definition_issue-31946.rs
 tests/ui/macros/macro-nested_expr.rs
 tests/ui/macros/macro-nested_stmt_macros.rs
 tests/ui/macros/macro-nt-list.rs
+tests/ui/macros/macro-of-higher-order.rs
 tests/ui/macros/macro-pat-follow-2018.rs
 tests/ui/macros/macro-pat-follow.rs
 tests/ui/macros/macro-path.rs
@@ -1745,6 +1756,7 @@ tests/ui/macros/rfc-3086-metavar-expr/macro-expansion.rs
 tests/ui/macros/semi-after-macro-ty.rs
 tests/ui/macros/stmt_expr_attr_macro_parse.rs
 tests/ui/macros/syntax-extension-cfg.rs
+tests/ui/macros/syntax-extension-source-utils.rs
 tests/ui/macros/try-macro.rs
 tests/ui/macros/typeck-macro-interaction-issue-8852.rs
 tests/ui/macros/type-macros-hlist.rs
@@ -1821,6 +1833,7 @@ tests/ui/mir/mir_codegen_switch.rs
 tests/ui/mir/mir_coercion_casts.rs
 tests/ui/mir/mir_coercions.rs
 tests/ui/mir/mir_const_prop_identity.rs
+tests/ui/mir/mir_constval_adts.rs
 tests/ui/mir/mir_drop_order.rs
 tests/ui/mir/mir_early_return_scope.rs
 tests/ui/mir/mir_fat_ptr_drop.rs
@@ -2217,6 +2230,7 @@ tests/ui/rfcs/rfc-2005-default-binding-mode/general.rs
 tests/ui/rfcs/rfc-2005-default-binding-mode/lit-ok.rs
 tests/ui/rfcs/rfc-2005-default-binding-mode/range.rs
 tests/ui/rfcs/rfc-2005-default-binding-mode/ref-region.rs
+tests/ui/rfcs/rfc-2005-default-binding-mode/reset-mode.rs
 tests/ui/rfcs/rfc-2005-default-binding-mode/slice-ok.rs
 tests/ui/rfcs/rfc-2005-default-binding-mode/struct.rs
 tests/ui/rfcs/rfc-2005-default-binding-mode/tuple.rs
@@ -2245,6 +2259,7 @@ tests/ui/rfcs/rfc-2294-if-let-guard/drop-order.rs
 tests/ui/rfcs/rfc-2294-if-let-guard/run-pass.rs
 tests/ui/rfcs/rfc-2294-if-let-guard/scope.rs
 tests/ui/rfcs/rfc-2302-self-struct-ctor/rfc-2302-self-struct-ctor.rs
+tests/ui/rfcs/rfc-2361-dbg-macro/dbg-macro-expected-behavior.rs
 tests/ui/rfcs/rfc-2421-unreserve-pure-offsetof-sizeof-alignof/offsetof-alignof-sizeof-pure-can-be-used-as-idents.rs
 tests/ui/rfcs/rfc-2497-if-let-chains/ast-lowering-does-not-wrap-let-chains.rs
 tests/ui/rfcs/rfc-2497-if-let-chains/protect-precedences.rs
