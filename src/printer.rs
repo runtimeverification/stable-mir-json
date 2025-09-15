@@ -682,8 +682,12 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         // homogenous, so no choice. Could check alignment of the offset...
         RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
         // cases covered above
-        RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => panic!("Should have been caught before"),
-        RigidTy::Adt(def, _) if def.is_box() => panic!("Should have been caught before"),
+        RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => {
+            unreachable!("Covered by builtin_deref above")
+        }
+        RigidTy::Adt(def, _) if def.is_box() => {
+            unreachable!("Covered by builtin_deref above")
+        }
         // For other structs, consult layout to determine field type
         RigidTy::Adt(adt_def, args) if ty_kind.is_struct() => {
             let field_idx = field_for_offset(layout, *offset).unwrap();
