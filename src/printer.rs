@@ -786,8 +786,26 @@ fn collect_alloc(
             entry.or_insert((ty, global_alloc.clone()));
         }
         GlobalAlloc::Function(_) => {
-            assert!(kind.is_fn_ptr());
-            entry.or_insert((ty, global_alloc.clone()));
+            if !kind.is_fn_ptr() {
+                let prov_ty = get_prov_ty(ty, offset);
+                debug_log_println!(
+                    "DEBUG: GlobalAlloc::Function with non-fn-ptr type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
+                    val,
+                    ty,
+                    offset,
+                    kind,
+                    prov_ty
+                );
+                if let Some(p_ty) = prov_ty {
+                    entry.or_insert((p_ty, global_alloc.clone()));
+                } else {
+                    // Could not recover a precise pointee type; use an opaque 0-valued Ty
+                    // as a conservative placeholder.
+                    entry.or_insert((stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                }
+            } else {
+                entry.or_insert((ty, global_alloc.clone()));
+            }
         }
     };
 }
