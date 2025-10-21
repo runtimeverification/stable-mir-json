@@ -75,7 +75,7 @@ while read -r test; do
 done < "$UI_SOURCES"
 
 echo "Sorting TSV files..."
-[ -s "$FAILING_TSV" ] && sort "$FAILING_TSV" -o "$FAILING_TSV"
-[ -s "$PASSING_TSV" ] && sort "$PASSING_TSV" -o "$PASSING_TSV"
+[ -s "$FAILING_TSV" ] && LC_ALL=C sort "$FAILING_TSV" -o "$FAILING_TSV"
+[ -s "$PASSING_TSV" ] && LC_ALL=C sort "$PASSING_TSV" -o "$PASSING_TSV"
 
 echo "UI tests remade."
