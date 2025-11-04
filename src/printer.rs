@@ -530,14 +530,20 @@ impl Visitor for TyCollector<'_> {
                 self.resolved.insert(*ty);
                 let instance =
                     Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
-                self.visit_instance(instance)
+                let control = self.visit_instance(instance);
+                let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                control
             }
             // Break on CoroutineWitnesses, because they aren't expected when getting the layout
             TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => ControlFlow::Break(()),
             TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
                 self.resolved.insert(*ty);
                 let instance = Instance::resolve(def, args).unwrap();
-                self.visit_instance(instance)
+                let control = self.visit_instance(instance);
+                let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                control
             }
             TyKind::RigidTy(RigidTy::FnPtr(binder_stable)) => {
                 self.resolved.insert(*ty);
@@ -553,7 +559,10 @@ impl Visitor for TyCollector<'_> {
                 let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
                     sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
                 inputs_outputs.push(sig_stable.ret.ty);
-                inputs_outputs.super_visit(self)
+                let control = inputs_outputs.super_visit(self);
+                let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                control
             }
             // The visitor won't collect field types for ADTs, therefore doing it explicitly
             TyKind::RigidTy(RigidTy::Adt(adt_def, args)) => {
@@ -900,6 +909,8 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
             }
             ConstantKind::Unevaluated(_) | ConstantKind::Param(_) | ConstantKind::ZeroSized => {}
         }
+        // Ensure the type of the constant itself is recorded, even for ZSTs.
+        let _ = self.ty_visitor.visit_ty(&constant.ty());
         self.super_mir_const(constant, loc);
     }
 
