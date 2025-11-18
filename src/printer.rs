@@ -1112,6 +1112,7 @@ pub enum TypeMetadata {
     UnionType {
         name: String,
         adt_def: AdtDef,
+        fields: Vec<stable_mir::ty::Ty>,
         layout: Option<LayoutShape>,
     },
     ArrayType {
@@ -1195,14 +1196,25 @@ fn mk_type_metadata(
                 },
             ))
         }
-        T(Adt(adt_def, _)) if t.is_union() => Some((
-            k,
-            UnionType {
-                name,
-                adt_def,
-                layout,
-            },
-        )),
+        T(Adt(adt_def, args)) if t.is_union() => {
+            let fields = adt_def
+                .variants()
+                .pop() // TODO: Check union has single variant
+                .unwrap()
+                .fields()
+                .iter()
+                .map(|f| f.ty_with_args(&args))
+                .collect();
+            Some((
+                k,
+                UnionType {
+                    name,
+                    adt_def,
+                    fields,
+                    layout,
+                },
+            ))
+        }
         // encode str together with primitive types
         T(Str) => Some((k, PrimitiveType(Str))),
         // for arrays and slices, record element type and optional size
