@@ -20,8 +20,8 @@ use stable_mir::CrateDef;
 use stable_mir::{
     mir::{
         AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
-        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind,
-        UnwindAction,
+        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, Terminator,
+        TerminatorKind, UnwindAction,
     },
     ty::RigidTy,
 };
@@ -314,6 +314,21 @@ impl GraphContext {
         }
         lines
     }
+
+    /// Resolve a call target to a function name if it's a constant function pointer
+    pub fn resolve_call_target(&self, func: &Operand) -> Option<String> {
+        match func {
+            Operand::Constant(ConstOperand { const_, .. }) => {
+                let ty = const_.ty();
+                if ty.kind().is_fn() {
+                    self.functions.get(&ty).cloned()
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Shorten a function name for display
@@ -336,6 +351,24 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
                     .expect("Failed to create {path}.smir.dot output file"),
             );
             write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
+        }
+    }
+}
+
+// entry point to write the d2 file
+pub fn emit_d2file(tcx: TyCtxt<'_>) {
+    let smir_d2 = collect_smir(tcx).to_d2_file();
+
+    match tcx.output_filenames(()).path(OutputType::Mir) {
+        OutFileName::Stdout => {
+            write!(io::stdout(), "{}", smir_d2).expect("Failed to write smir.d2");
+        }
+        OutFileName::Real(path) => {
+            let mut b = io::BufWriter::new(
+                File::create(path.with_extension("smir.d2"))
+                    .expect("Failed to create {path}.smir.d2 output file"),
+            );
+            write!(b, "{}", smir_d2).expect("Failed to write smir.d2");
         }
     }
 }
@@ -619,6 +652,136 @@ impl SmirJson<'_> {
 
         String::from_utf8(bytes).expect("Error converting dot file")
     }
+
+    /// Convert to D2 diagram format
+    pub fn to_d2_file(self) -> String {
+        let ctx = GraphContext::from_smir(&self);
+        let mut output = String::new();
+
+        // D2 direction setting
+        output.push_str("direction: right\n\n");
+
+        // Add allocs legend as a special container
+        let legend_lines = ctx.allocs_legend_lines();
+        if !legend_lines.is_empty() {
+            output.push_str("ALLOCS: {\n");
+            output.push_str("  style.fill: \"#ffffcc\"\n");
+            output.push_str("  style.stroke: \"#999999\"\n");
+            let legend_text = legend_lines
+                .iter()
+                .map(|s| escape_d2(s))
+                .collect::<Vec<_>>()
+                .join("\\n");
+            output.push_str(&format!("  label: \"{}\"\n", legend_text));
+            output.push_str("}\n\n");
+        }
+
+        // Process each item
+        for item in self.items {
+            match item.mono_item_kind {
+                MonoItemKind::MonoItemFn {
+                    name,
+                    id: _,
+                    body,
+                } => {
+                    let fn_id = short_name(&name);
+                    let display_name = escape_d2(&name_lines(&name));
+
+                    // Create function container
+                    output.push_str(&format!("{}: {{\n", fn_id));
+                    output.push_str(&format!("  label: \"{}\"\n", display_name));
+                    output.push_str("  style.fill: \"#e0e0ff\"\n");
+
+                    if let Some(ref body) = body {
+                        // Add blocks as nodes within the function
+                        for (idx, block) in body.blocks.iter().enumerate() {
+                            let block_id = format!("bb{}", idx);
+                            let stmts: Vec<String> = block
+                                .statements
+                                .iter()
+                                .map(|s| escape_d2(&render_stmt_ctx(s, &ctx)))
+                                .collect();
+
+                            let term_str = escape_d2(&render_terminator_ctx(&block.terminator, &ctx));
+
+                            let mut block_label = format!("bb{}:", idx);
+                            for stmt in &stmts {
+                                block_label.push_str(&format!("\\n{}", stmt));
+                            }
+                            block_label.push_str(&format!("\\n---\\n{}", term_str));
+
+                            output.push_str(&format!("  {}: \"{}\"\n", block_id, block_label));
+                        }
+
+                        // Add edges between blocks
+                        for (idx, block) in body.blocks.iter().enumerate() {
+                            let from_id = format!("bb{}", idx);
+                            let targets = terminator_targets(&block.terminator);
+                            for target in targets {
+                                let to_id = format!("bb{}", target);
+                                output.push_str(&format!("  {} -> {}\n", from_id, to_id));
+                            }
+                        }
+                    }
+
+                    output.push_str("}\n\n");
+
+                    // Add call edges to external functions
+                    if let Some(ref body) = body {
+                        for (idx, block) in body.blocks.iter().enumerate() {
+                            if let TerminatorKind::Call { func, .. } = &block.terminator.kind {
+                                if let Some(fn_name) = ctx.resolve_call_target(func) {
+                                    if is_unqualified(&fn_name) {
+                                        let target_id = short_name(&fn_name);
+                                        // Ensure external function node exists
+                                        output.push_str(&format!(
+                                            "{}: \"{}\"\n",
+                                            target_id,
+                                            escape_d2(&fn_name)
+                                        ));
+                                        output.push_str(&format!(
+                                            "{}.style.fill: \"#ffe0e0\"\n",
+                                            target_id
+                                        ));
+                                        output.push_str(&format!(
+                                            "{}.bb{} -> {}: call\n",
+                                            fn_id, idx, target_id
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                MonoItemKind::MonoItemGlobalAsm { asm } => {
+                    let asm_id = short_name(&asm);
+                    let asm_text = escape_d2(&asm.lines().collect::<String>());
+                    output.push_str(&format!("{}: \"{}\" {{\n", asm_id, asm_text));
+                    output.push_str("  style.fill: \"#ffe0ff\"\n");
+                    output.push_str("}\n\n");
+                }
+                MonoItemKind::MonoItemStatic { name, .. } => {
+                    let static_id = short_name(&name);
+                    output.push_str(&format!(
+                        "{}: \"{}\" {{\n",
+                        static_id,
+                        escape_d2(&name)
+                    ));
+                    output.push_str("  style.fill: \"#e0ffe0\"\n");
+                    output.push_str("}\n\n");
+                }
+            }
+        }
+
+        output
+    }
+}
+
+/// Escape special characters for D2 string labels
+fn escape_d2(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('$', "\\$")
 }
 
 fn is_unqualified(name: &str) -> bool {
@@ -746,6 +909,99 @@ fn render_intrinsic_ctx(intr: &NonDivergingIntrinsic, ctx: &GraphContext) -> Str
             c.src.label(),
             ctx.render_operand(&c.count)
         ),
+    }
+}
+
+/// Render terminator with context for alloc/type information
+fn render_terminator_ctx(term: &Terminator, ctx: &GraphContext) -> String {
+    use TerminatorKind::*;
+    match &term.kind {
+        Goto { .. } => "Goto".to_string(),
+        SwitchInt { discr, .. } => format!("SwitchInt {}", ctx.render_operand(discr)),
+        Resume {} => "Resume".to_string(),
+        Abort {} => "Abort".to_string(),
+        Return {} => "Return".to_string(),
+        Unreachable {} => "Unreachable".to_string(),
+        Drop { place, .. } => format!("Drop {}", place.label()),
+        Call {
+            func,
+            args,
+            destination,
+            ..
+        } => {
+            let fn_name = ctx
+                .resolve_call_target(func)
+                .map(|n| short_fn_name(&n))
+                .unwrap_or_else(|| "?".to_string());
+            let arg_str = args
+                .iter()
+                .map(|op| ctx.render_operand(op))
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("{} = {}({})", destination.label(), fn_name, arg_str)
+        }
+        Assert {
+            cond, expected, ..
+        } => format!("Assert {} == {}", ctx.render_operand(cond), expected),
+        InlineAsm { .. } => "InlineAsm".to_string(),
+    }
+}
+
+/// Get target block indices from a terminator
+fn terminator_targets(term: &Terminator) -> Vec<usize> {
+    use TerminatorKind::*;
+    match &term.kind {
+        Goto { target } => vec![*target],
+        SwitchInt { targets, .. } => {
+            let mut result: Vec<usize> = targets.branches().map(|(_, t)| t).collect();
+            result.push(targets.otherwise());
+            result
+        }
+        Resume {} | Abort {} | Return {} | Unreachable {} => vec![],
+        Drop {
+            target, unwind, ..
+        } => {
+            let mut result = vec![*target];
+            if let UnwindAction::Cleanup(t) = unwind {
+                result.push(*t);
+            }
+            result
+        }
+        Call {
+            target, unwind, ..
+        } => {
+            let mut result = vec![];
+            if let Some(t) = target {
+                result.push(*t);
+            }
+            if let UnwindAction::Cleanup(t) = unwind {
+                result.push(*t);
+            }
+            result
+        }
+        Assert {
+            target, unwind, ..
+        } => {
+            let mut result = vec![*target];
+            if let UnwindAction::Cleanup(t) = unwind {
+                result.push(*t);
+            }
+            result
+        }
+        InlineAsm {
+            destination,
+            unwind,
+            ..
+        } => {
+            let mut result = vec![];
+            if let Some(t) = destination {
+                result.push(*t);
+            }
+            if let UnwindAction::Cleanup(t) = unwind {
+                result.push(*t);
+            }
+            result
+        }
     }
 }
 
