@@ -14,7 +14,9 @@ extern crate stable_mir;
 use rustc_session::config::{OutFileName, OutputType};
 
 extern crate rustc_session;
-use stable_mir::ty::{IndexedVal, Ty};
+use stable_mir::mir::alloc::GlobalAlloc;
+use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
+use stable_mir::CrateDef;
 use stable_mir::{
     mir::{
         AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
@@ -25,9 +27,300 @@ use stable_mir::{
 };
 
 use crate::{
-    printer::{collect_smir, FnSymType, SmirJson},
+    printer::{collect_smir, AllocInfo, FnSymType, SmirJson, TypeMetadata},
     MonoItemKind,
 };
+
+// =============================================================================
+// Graph Index Structures
+// =============================================================================
+
+/// Index for looking up allocation information by AllocId
+pub struct AllocIndex {
+    pub by_id: HashMap<u64, AllocEntry>,
+}
+
+/// Processed allocation entry with human-readable description
+pub struct AllocEntry {
+    pub alloc_id: u64,
+    pub ty: Ty,
+    pub kind: AllocKind,
+    pub description: String,
+}
+
+/// Simplified allocation kind for display
+pub enum AllocKind {
+    Memory { bytes_len: usize, is_str: bool },
+    Static { name: String },
+    VTable { ty_desc: String },
+    Function { name: String },
+}
+
+/// Index for looking up type information
+pub struct TypeIndex {
+    by_id: HashMap<u64, String>,
+}
+
+/// Context for rendering graph labels with access to indices
+pub struct GraphContext {
+    pub allocs: AllocIndex,
+    pub types: TypeIndex,
+    pub functions: HashMap<Ty, String>,
+}
+
+// =============================================================================
+// Index Implementation
+// =============================================================================
+
+impl AllocIndex {
+    pub fn new() -> Self {
+        Self {
+            by_id: HashMap::new(),
+        }
+    }
+
+    pub fn from_alloc_infos(allocs: &[AllocInfo], type_index: &TypeIndex) -> Self {
+        let mut index = Self::new();
+        for info in allocs {
+            let entry = AllocEntry::from_alloc_info(info, type_index);
+            index.by_id.insert(entry.alloc_id, entry);
+        }
+        index
+    }
+
+    pub fn get(&self, id: u64) -> Option<&AllocEntry> {
+        self.by_id.get(&id)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &AllocEntry> {
+        self.by_id.values()
+    }
+
+    /// Describe an alloc by its ID for use in labels
+    pub fn describe(&self, id: u64) -> String {
+        match self.get(id) {
+            Some(entry) => entry.short_description(),
+            None => format!("alloc{}", id),
+        }
+    }
+}
+
+impl AllocEntry {
+    pub fn from_alloc_info(info: &AllocInfo, type_index: &TypeIndex) -> Self {
+        let alloc_id = info.alloc_id().to_index() as u64;
+        let ty = info.ty();
+        let ty_name = type_index.get_name(ty);
+
+        let (kind, description) = match info.global_alloc() {
+            GlobalAlloc::Memory(alloc) => {
+                let bytes = &alloc.bytes;
+                let is_str = ty_name.contains("str") || ty_name.contains("&str");
+
+                // Convert Option<u8> bytes to actual bytes for display
+                let concrete_bytes: Vec<u8> = bytes.iter().filter_map(|&b| b).collect();
+
+                let desc = if is_str && concrete_bytes.iter().all(|b| b.is_ascii()) {
+                    let s: String = concrete_bytes
+                        .iter()
+                        .take(20)
+                        .map(|&b| b as char)
+                        .collect::<String>()
+                        .escape_default()
+                        .to_string();
+                    if concrete_bytes.len() > 20 {
+                        format!("\"{}...\" ({} bytes)", s, concrete_bytes.len())
+                    } else {
+                        format!("\"{}\"", s)
+                    }
+                } else if concrete_bytes.len() <= 8 && !concrete_bytes.is_empty() {
+                    // Try to show as integer value
+                    let mut val: u64 = 0;
+                    for (i, &b) in concrete_bytes.iter().enumerate() {
+                        val |= (b as u64) << (i * 8);
+                    }
+                    format!("{} = {}", ty_name, val)
+                } else {
+                    format!("{} ({} bytes)", ty_name, bytes.len())
+                };
+
+                (
+                    AllocKind::Memory {
+                        bytes_len: bytes.len(),
+                        is_str,
+                    },
+                    desc,
+                )
+            }
+            GlobalAlloc::Static(def) => {
+                let name = def.name();
+                (
+                    AllocKind::Static { name: name.clone() },
+                    format!("static {}", name),
+                )
+            }
+            GlobalAlloc::VTable(vty, _trait_ref) => {
+                let desc = format!("{}", vty);
+                (
+                    AllocKind::VTable {
+                        ty_desc: desc.clone(),
+                    },
+                    format!("vtable<{}>", desc),
+                )
+            }
+            GlobalAlloc::Function(instance) => {
+                let name = instance.name();
+                (
+                    AllocKind::Function { name: name.clone() },
+                    format!("fn {}", name),
+                )
+            }
+        };
+
+        Self {
+            alloc_id,
+            ty,
+            kind,
+            description,
+        }
+    }
+
+    pub fn short_description(&self) -> String {
+        format!("alloc{}: {}", self.alloc_id, self.description)
+    }
+}
+
+impl TypeIndex {
+    pub fn new() -> Self {
+        Self {
+            by_id: HashMap::new(),
+        }
+    }
+
+    pub fn from_types(types: &[(Ty, TypeMetadata)]) -> Self {
+        let mut index = Self::new();
+        for (ty, metadata) in types {
+            let name = Self::type_name_from_metadata(metadata, *ty);
+            index.by_id.insert(ty.to_index() as u64, name);
+        }
+        index
+    }
+
+    fn type_name_from_metadata(metadata: &TypeMetadata, ty: Ty) -> String {
+        match metadata {
+            TypeMetadata::PrimitiveType(rigid) => format!("{:?}", rigid),
+            TypeMetadata::EnumType { name, .. } => name.clone(),
+            TypeMetadata::StructType { name, .. } => name.clone(),
+            TypeMetadata::UnionType { name, .. } => name.clone(),
+            TypeMetadata::ArrayType { .. } => format!("{}", ty),
+            TypeMetadata::PtrType { .. } => format!("{}", ty),
+            TypeMetadata::RefType { .. } => format!("{}", ty),
+            TypeMetadata::TupleType { .. } => format!("{}", ty),
+            TypeMetadata::FunType(name) => name.clone(),
+            TypeMetadata::VoidType => "()".to_string(),
+        }
+    }
+
+    pub fn get_name(&self, ty: Ty) -> String {
+        self.by_id
+            .get(&(ty.to_index() as u64))
+            .cloned()
+            .unwrap_or_else(|| format!("{}", ty))
+    }
+}
+
+impl GraphContext {
+    pub fn from_smir(smir: &SmirJson) -> Self {
+        let types = TypeIndex::from_types(&smir.types);
+        let allocs = AllocIndex::from_alloc_infos(&smir.allocs, &types);
+        let functions: HashMap<Ty, String> = smir
+            .functions
+            .iter()
+            .map(|(k, v)| (k.0, function_string(v.clone())))
+            .collect();
+
+        Self {
+            allocs,
+            types,
+            functions,
+        }
+    }
+
+    /// Render a constant operand with alloc information
+    pub fn render_const(&self, const_: &MirConst) -> String {
+        let ty = const_.ty();
+        let ty_name = self.types.get_name(ty);
+
+        match const_.kind() {
+            ConstantKind::Allocated(alloc) => {
+                // Check if this constant references any allocs via provenance
+                if !alloc.provenance.ptrs.is_empty() {
+                    let alloc_refs: Vec<String> = alloc
+                        .provenance
+                        .ptrs
+                        .iter()
+                        .map(|(_offset, prov)| self.allocs.describe(prov.0.to_index() as u64))
+                        .collect();
+                    format!("const [{}]", alloc_refs.join(", "))
+                } else {
+                    // Inline constant - try to show value
+                    let bytes = &alloc.bytes;
+                    // Convert Option<u8> to concrete bytes
+                    let concrete_bytes: Vec<u8> = bytes.iter().filter_map(|&b| b).collect();
+                    if concrete_bytes.len() <= 8 && !concrete_bytes.is_empty() {
+                        let mut val: u64 = 0;
+                        for (i, &b) in concrete_bytes.iter().enumerate() {
+                            val |= (b as u64) << (i * 8);
+                        }
+                        format!("const {}_{}", val, ty_name)
+                    } else {
+                        format!("const {}", ty_name)
+                    }
+                }
+            }
+            ConstantKind::ZeroSized => {
+                // Function pointers, unit type, etc.
+                if ty.kind().is_fn() {
+                    if let Some(name) = self.functions.get(&ty) {
+                        format!("const fn {}", short_fn_name(name))
+                    } else {
+                        format!("const {}", ty_name)
+                    }
+                } else {
+                    format!("const {}", ty_name)
+                }
+            }
+            ConstantKind::Ty(_) => format!("const {}", ty_name),
+            ConstantKind::Unevaluated(_) => format!("const unevaluated {}", ty_name),
+            ConstantKind::Param(_) => format!("const param {}", ty_name),
+        }
+    }
+
+    /// Render an operand with context
+    pub fn render_operand(&self, op: &Operand) -> String {
+        match op {
+            Operand::Constant(ConstOperand { const_, .. }) => self.render_const(const_),
+            Operand::Copy(place) => format!("cp({})", place.label()),
+            Operand::Move(place) => format!("mv({})", place.label()),
+        }
+    }
+
+    /// Generate the allocs legend as lines for display
+    pub fn allocs_legend_lines(&self) -> Vec<String> {
+        let mut lines = vec!["ALLOCS".to_string()];
+        let mut entries: Vec<_> = self.allocs.iter().collect();
+        entries.sort_by_key(|e| e.alloc_id);
+        for entry in entries {
+            lines.push(entry.short_description());
+        }
+        lines
+    }
+}
+
+/// Shorten a function name for display
+fn short_fn_name(name: &str) -> String {
+    // Take last segment after ::
+    name.rsplit("::").next().unwrap_or(name).to_string()
+}
 
 // entry point to write the dot file
 pub fn emit_dotfile(tcx: TyCtxt<'_>) {
@@ -51,6 +344,9 @@ impl SmirJson<'_> {
     pub fn to_dot_file(self) -> String {
         let mut bytes = Vec::new();
 
+        // Build context BEFORE consuming self
+        let ctx = GraphContext::from_smir(&self);
+
         {
             let mut writer = DotWriter::from(&mut bytes);
 
@@ -60,17 +356,21 @@ impl SmirJson<'_> {
             graph.set_label(&self.name[..]);
             graph.node_attributes().set_shape(Shape::Rectangle);
 
-            let func_map: HashMap<Ty, String> = self
-                .functions
-                .into_iter()
-                .map(|(k, v)| (k.0, function_string(v)))
-                .collect();
-
             let item_names: HashSet<String> =
                 self.items.iter().map(|i| i.symbol_name.clone()).collect();
 
+            // Add allocs legend node if there are any allocs
+            if !ctx.allocs.by_id.is_empty() {
+                let mut alloc_node = graph.node_auto();
+                let mut lines = ctx.allocs_legend_lines();
+                lines.push("".to_string());
+                alloc_node.set_label(&lines.join("\\l"));
+                alloc_node.set_style(Style::Filled);
+                alloc_node.set("color", "lightyellow", false);
+            }
+
             // first create all nodes for functions not in the items list
-            for f in func_map.values() {
+            for f in ctx.functions.values() {
                 if !item_names.contains(f) {
                     graph
                         .node_named(block_name(f, 0))
@@ -111,7 +411,7 @@ impl SmirJson<'_> {
                                 let this_block = block_name(name, node_id);
 
                                 let mut label_strs: Vec<String> =
-                                    b.statements.iter().map(render_stmt).collect();
+                                    b.statements.iter().map(|s| render_stmt_ctx(s, &ctx)).collect();
                                 // TODO: render statements and terminator as text label (with line breaks)
                                 // switch on terminator kind, add inner and out-edges according to terminator
                                 use TerminatorKind::*;
@@ -121,7 +421,7 @@ impl SmirJson<'_> {
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     SwitchInt { discr, targets } => {
-                                        label_strs.push(format!("SwitchInt {}", discr.label()));
+                                        label_strs.push(format!("SwitchInt {}", ctx.render_operand(discr)));
                                         for (d, t) in targets.clone().branches() {
                                             cluster
                                                 .edge(&this_block, block_name(name, t))
@@ -196,7 +496,7 @@ impl SmirJson<'_> {
                                     } => {
                                         label_strs.push(format!(
                                             "Assert {} == {}",
-                                            cond.label(),
+                                            ctx.render_operand(cond),
                                             expected
                                         ));
                                         if let UnwindAction::Cleanup(t) = unwind {
@@ -260,7 +560,7 @@ impl SmirJson<'_> {
                                                 Operand::Constant(ConstOperand {
                                                     const_, ..
                                                 }) => {
-                                                    if let Some(callee) = func_map.get(&const_.ty())
+                                                    if let Some(callee) = ctx.functions.get(&const_.ty())
                                                     {
                                                         // callee node/body will be added when its body is added, missing ones added before
                                                         graph.edge(
@@ -285,7 +585,7 @@ impl SmirJson<'_> {
                                             };
                                             let arg_str = args
                                                 .iter()
-                                                .map(|op| op.label())
+                                                .map(|op| ctx.render_operand(op))
                                                 .collect::<Vec<String>>()
                                                 .join(",");
                                             e.attributes().set_label(&arg_str);
@@ -355,10 +655,11 @@ fn block_name(function_name: &String, id: usize) -> String {
     format!("X{:x}_{}", h.finish(), id)
 }
 
-fn render_stmt(s: &Statement) -> String {
+/// Render statement with context for alloc/type information
+fn render_stmt_ctx(s: &Statement, ctx: &GraphContext) -> String {
     use StatementKind::*;
     match &s.kind {
-        Assign(p, v) => format!("{} <- {}", p.label(), v.label()),
+        Assign(p, v) => format!("{} <- {}", p.label(), render_rvalue_ctx(v, ctx)),
         FakeRead(_cause, p) => format!("Fake-Read {}", p.label()),
         SetDiscriminant {
             place,
@@ -379,9 +680,72 @@ fn render_stmt(s: &Statement) -> String {
             variance: _,
         } => format!("Ascribe {}.{}", place.label(), projections.base),
         Coverage(_) => "Coverage".to_string(),
-        Intrinsic(intr) => format!("Intr: {}", intr.label()),
+        Intrinsic(intr) => format!("Intr: {}", render_intrinsic_ctx(intr, ctx)),
         ConstEvalCounter {} => "ConstEvalCounter".to_string(),
         Nop {} => "Nop".to_string(),
+    }
+}
+
+/// Render rvalue with context
+fn render_rvalue_ctx(v: &Rvalue, ctx: &GraphContext) -> String {
+    use Rvalue::*;
+    match v {
+        AddressOf(mutability, p) => match mutability {
+            Mutability::Not => format!("&raw {}", p.label()),
+            Mutability::Mut => format!("&raw mut {}", p.label()),
+        },
+        Aggregate(kind, operands) => {
+            let os: Vec<String> = operands.iter().map(|op| ctx.render_operand(op)).collect();
+            format!("{} ({})", kind.label(), os.join(", "))
+        }
+        BinaryOp(binop, op1, op2) => format!(
+            "{:?}({}, {})",
+            binop,
+            ctx.render_operand(op1),
+            ctx.render_operand(op2)
+        ),
+        Cast(kind, op, _ty) => format!("Cast-{:?} {}", kind, ctx.render_operand(op)),
+        CheckedBinaryOp(binop, op1, op2) => {
+            format!(
+                "chkd-{:?}({}, {})",
+                binop,
+                ctx.render_operand(op1),
+                ctx.render_operand(op2)
+            )
+        }
+        CopyForDeref(p) => format!("CopyForDeref({})", p.label()),
+        Discriminant(p) => format!("Discriminant({})", p.label()),
+        Len(p) => format!("Len({})", p.label()),
+        Ref(_region, borrowkind, p) => {
+            format!(
+                "&{} {}",
+                match borrowkind {
+                    BorrowKind::Mut { kind: _ } => "mut",
+                    _other => "",
+                },
+                p.label()
+            )
+        }
+        Repeat(op, _ty_const) => format!("Repeat {}", ctx.render_operand(op)),
+        ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", ctx.render_operand(op)),
+        ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
+        NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
+        UnaryOp(unop, op) => format!("{:?}({})", unop, ctx.render_operand(op)),
+        Use(op) => format!("Use({})", ctx.render_operand(op)),
+    }
+}
+
+/// Render intrinsic with context
+fn render_intrinsic_ctx(intr: &NonDivergingIntrinsic, ctx: &GraphContext) -> String {
+    use NonDivergingIntrinsic::*;
+    match intr {
+        Assume(op) => format!("Assume {}", ctx.render_operand(op)),
+        CopyNonOverlapping(c) => format!(
+            "CopyNonOverlapping: {} <- {}({})",
+            c.dst.label(),
+            c.src.label(),
+            ctx.render_operand(&c.count)
+        ),
     }
 }
 
