@@ -133,12 +133,7 @@ impl AllocEntry {
                         format!("\"{}\"", s)
                     }
                 } else if concrete_bytes.len() <= 8 && !concrete_bytes.is_empty() {
-                    // Try to show as integer value
-                    let mut val: u64 = 0;
-                    for (i, &b) in concrete_bytes.iter().enumerate() {
-                        val |= (b as u64) << (i * 8);
-                    }
-                    format!("{} = {}", ty_name, val)
+                    format!("{} = {}", ty_name, bytes_to_u64_le(&concrete_bytes))
                 } else {
                     format!("{} ({} bytes)", ty_name, bytes.len())
                 };
@@ -267,11 +262,7 @@ impl GraphContext {
                     // Convert Option<u8> to concrete bytes
                     let concrete_bytes: Vec<u8> = bytes.iter().filter_map(|&b| b).collect();
                     if concrete_bytes.len() <= 8 && !concrete_bytes.is_empty() {
-                        let mut val: u64 = 0;
-                        for (i, &b) in concrete_bytes.iter().enumerate() {
-                            val |= (b as u64) << (i * 8);
-                        }
-                        format!("const {}_{}", val, ty_name)
+                        format!("const {}_{}", bytes_to_u64_le(&concrete_bytes), ty_name)
                     } else {
                         format!("const {}", ty_name)
                     }
@@ -346,10 +337,10 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
             write!(io::stdout(), "{}", smir_dot).expect("Failed to write smir.dot");
         }
         OutFileName::Real(path) => {
-            let mut b = io::BufWriter::new(
-                File::create(path.with_extension("smir.dot"))
-                    .expect("Failed to create {path}.smir.dot output file"),
-            );
+            let out_path = path.with_extension("smir.dot");
+            let mut b = io::BufWriter::new(File::create(&out_path).unwrap_or_else(|e| {
+                panic!("Failed to create {}: {}", out_path.display(), e)
+            }));
             write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
         }
     }
@@ -364,10 +355,10 @@ pub fn emit_d2file(tcx: TyCtxt<'_>) {
             write!(io::stdout(), "{}", smir_d2).expect("Failed to write smir.d2");
         }
         OutFileName::Real(path) => {
-            let mut b = io::BufWriter::new(
-                File::create(path.with_extension("smir.d2"))
-                    .expect("Failed to create {path}.smir.d2 output file"),
-            );
+            let out_path = path.with_extension("smir.d2");
+            let mut b = io::BufWriter::new(File::create(&out_path).unwrap_or_else(|e| {
+                panic!("Failed to create {}: {}", out_path.display(), e)
+            }));
             write!(b, "{}", smir_d2).expect("Failed to write smir.d2");
         }
     }
@@ -784,6 +775,14 @@ fn escape_d2(s: &str) -> String {
         .replace('$', "\\$")
 }
 
+/// Convert byte slice to u64, little-endian (least significant byte first)
+fn bytes_to_u64_le(bytes: &[u8]) -> u64 {
+    bytes
+        .iter()
+        .enumerate()
+        .fold(0u64, |acc, (i, &b)| acc | ((b as u64) << (i * 8)))
+}
+
 fn is_unqualified(name: &str) -> bool {
     !name.contains("::")
 }
@@ -805,14 +804,14 @@ fn name_lines(name: &str) -> String {
 }
 
 /// consistently naming function clusters
-fn short_name(function_name: &String) -> String {
+fn short_name(function_name: &str) -> String {
     let mut h = DefaultHasher::new();
     function_name.hash(&mut h);
     format!("X{:x}", h.finish())
 }
 
 /// consistently naming block nodes in function clusters
-fn block_name(function_name: &String, id: usize) -> String {
+fn block_name(function_name: &str, id: usize) -> String {
     let mut h = DefaultHasher::new();
     function_name.hash(&mut h);
     format!("X{:x}_{}", h.finish(), id)
