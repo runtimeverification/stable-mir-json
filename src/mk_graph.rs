@@ -72,6 +72,12 @@ pub struct GraphContext {
 // Index Implementation
 // =============================================================================
 
+impl Default for AllocIndex {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AllocIndex {
     pub fn new() -> Self {
         Self {
@@ -181,6 +187,12 @@ impl AllocEntry {
 
     pub fn short_description(&self) -> String {
         format!("alloc{}: {}", self.alloc_id, self.description)
+    }
+}
+
+impl Default for TypeIndex {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -338,9 +350,10 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
         }
         OutFileName::Real(path) => {
             let out_path = path.with_extension("smir.dot");
-            let mut b = io::BufWriter::new(File::create(&out_path).unwrap_or_else(|e| {
-                panic!("Failed to create {}: {}", out_path.display(), e)
-            }));
+            let mut b = io::BufWriter::new(
+                File::create(&out_path)
+                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", out_path.display(), e)),
+            );
             write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
         }
     }
@@ -356,9 +369,10 @@ pub fn emit_d2file(tcx: TyCtxt<'_>) {
         }
         OutFileName::Real(path) => {
             let out_path = path.with_extension("smir.d2");
-            let mut b = io::BufWriter::new(File::create(&out_path).unwrap_or_else(|e| {
-                panic!("Failed to create {}: {}", out_path.display(), e)
-            }));
+            let mut b = io::BufWriter::new(
+                File::create(&out_path)
+                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", out_path.display(), e)),
+            );
             write!(b, "{}", smir_d2).expect("Failed to write smir.d2");
         }
     }
@@ -434,8 +448,11 @@ impl SmirJson<'_> {
                                 let name = &item.symbol_name;
                                 let this_block = block_name(name, node_id);
 
-                                let mut label_strs: Vec<String> =
-                                    b.statements.iter().map(|s| render_stmt_ctx(s, &ctx)).collect();
+                                let mut label_strs: Vec<String> = b
+                                    .statements
+                                    .iter()
+                                    .map(|s| render_stmt_ctx(s, &ctx))
+                                    .collect();
                                 // TODO: render statements and terminator as text label (with line breaks)
                                 // switch on terminator kind, add inner and out-edges according to terminator
                                 use TerminatorKind::*;
@@ -445,7 +462,10 @@ impl SmirJson<'_> {
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     SwitchInt { discr, targets } => {
-                                        label_strs.push(format!("SwitchInt {}", ctx.render_operand(discr)));
+                                        label_strs.push(format!(
+                                            "SwitchInt {}",
+                                            ctx.render_operand(discr)
+                                        ));
                                         for (d, t) in targets.clone().branches() {
                                             cluster
                                                 .edge(&this_block, block_name(name, t))
@@ -584,7 +604,8 @@ impl SmirJson<'_> {
                                                 Operand::Constant(ConstOperand {
                                                     const_, ..
                                                 }) => {
-                                                    if let Some(callee) = ctx.functions.get(&const_.ty())
+                                                    if let Some(callee) =
+                                                        ctx.functions.get(&const_.ty())
                                                     {
                                                         // callee node/body will be added when its body is added, missing ones added before
                                                         graph.edge(
@@ -956,9 +977,9 @@ fn render_terminator_ctx(term: &Terminator, ctx: &GraphContext) -> String {
                 .join(", ");
             format!("{} = {}({})", destination.label(), fn_name, arg_str)
         }
-        Assert {
-            cond, expected, ..
-        } => format!("Assert {} == {}", ctx.render_operand(cond), expected),
+        Assert { cond, expected, .. } => {
+            format!("Assert {} == {}", ctx.render_operand(cond), expected)
+        }
         InlineAsm { .. } => "InlineAsm".to_string(),
     }
 }
@@ -974,18 +995,14 @@ fn terminator_targets(term: &Terminator) -> Vec<usize> {
             result
         }
         Resume {} | Abort {} | Return {} | Unreachable {} => vec![],
-        Drop {
-            target, unwind, ..
-        } => {
+        Drop { target, unwind, .. } => {
             let mut result = vec![*target];
             if let UnwindAction::Cleanup(t) = unwind {
                 result.push(*t);
             }
             result
         }
-        Call {
-            target, unwind, ..
-        } => {
+        Call { target, unwind, .. } => {
             let mut result = vec![];
             if let Some(t) = target {
                 result.push(*t);
@@ -995,9 +1012,7 @@ fn terminator_targets(term: &Terminator) -> Vec<usize> {
             }
             result
         }
-        Assert {
-            target, unwind, ..
-        } => {
+        Assert { target, unwind, .. } => {
             let mut result = vec![*target];
             if let UnwindAction::Cleanup(t) = unwind {
                 result.push(*t);
