@@ -1,3 +1,11 @@
+//! Discovery of items reachable through unevaluated constants.
+//!
+//! Some function bodies reference other functions only via unevaluated
+//! `MirConst` values (e.g., generic const expressions). This module
+//! iterates to a fixed point, resolving each unevaluated constant to
+//! its underlying `Instance` and adding the corresponding item to the
+//! collection if it wasn't already present.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate stable_mir;

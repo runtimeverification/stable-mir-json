@@ -1,3 +1,11 @@
+//! MIR body traversal for collecting interned values.
+//!
+//! Walks all function and static bodies to populate:
+//! - The **link map** (function calls and fn-pointer casts),
+//! - The **allocation map** (global allocations reachable from constants),
+//! - The **type map** (all types encountered in MIR), and
+//! - The **span map** (source locations for all MIR spans).
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;

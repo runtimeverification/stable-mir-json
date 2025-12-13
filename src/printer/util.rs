@@ -1,3 +1,5 @@
+//! Small utility functions shared across the printer submodules.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;
@@ -37,6 +39,7 @@ pub(super) fn mono_item_name_int<'a>(
     item.symbol_name(tcx).name.into()
 }
 
+/// Check whether a crate item carries a given attribute (e.g., `sym::test`).
 pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Symbol) -> bool {
     tcx.has_attr(rustc_internal::internal(tcx, item), attr)
 }

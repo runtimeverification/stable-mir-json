@@ -1,3 +1,9 @@
+//! Type metadata construction for the SMIR JSON output.
+//!
+//! Translates Stable MIR `TyKind` values (along with their layouts) into
+//! [`TypeMetadata`] entries that describe the structure of each type in a
+//! form suitable for downstream consumers (e.g., interpreters or verifiers).
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate serde;
@@ -9,6 +15,12 @@ use serde::Serialize;
 use stable_mir::abi::LayoutShape;
 use stable_mir::ty::{AdtDef, RigidTy, TyKind};
 
+/// Structured metadata about a Rust type, suitable for execution or verification.
+///
+/// Each variant captures the information a consumer needs to interpret values
+/// of that type: field types and layouts for aggregates, element types for
+/// arrays/slices, pointee types for pointers/references, and discriminant
+/// mappings for enums.
 #[derive(Serialize)]
 pub enum TypeMetadata {
     PrimitiveType(RigidTy),

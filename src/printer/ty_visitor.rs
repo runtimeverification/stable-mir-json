@@ -1,3 +1,9 @@
+//! Recursive type visitor that collects all reachable types and their layouts.
+//!
+//! Implements the Stable MIR [`Visitor`] trait to walk type trees, resolving
+//! function ABIs for `FnDef`/`FnPtr`/`Closure` types and explicitly visiting
+//! ADT field types (which the default visitor does not descend into).
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate stable_mir;

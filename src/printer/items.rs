@@ -1,3 +1,10 @@
+//! Construction of [`Item`] values from monomorphized compiler items.
+//!
+//! Handles the mapping from `MonoItem` (function, static, or global asm) to the
+//! serializable [`Item`] structure, including optional debug-level details
+//! (instance kind, body pretty-print, generic parameters, internal type info)
+//! and foreign module enumeration.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;

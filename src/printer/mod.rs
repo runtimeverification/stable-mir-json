@@ -1,3 +1,29 @@
+//! Serialization of Rust's Stable MIR to JSON.
+//!
+//! This module is the core of `stable-mir-json`: it collects monomorphized items,
+//! type metadata, allocations, and span information from the compiler, then
+//! serializes them into a [`SmirJson`] structure (emitted as `*.smir.json`).
+//!
+//! # Module structure
+//!
+//! | Module | Responsibility |
+//! |--------|----------------|
+//! | `schema` | Data model types ([`SmirJson`], [`Item`], [`AllocInfo`], etc.) and type aliases |
+//! | `collect` | Top-level collection: gathers mono items, interned values, and assembles [`SmirJson`] |
+//! | `items` | Constructing [`Item`] values and extracting debug-level details |
+//! | `mir_visitor` | MIR body traversal to collect calls, allocations, types, and spans |
+//! | `ty_visitor` | Type visitor that recursively collects all reachable types |
+//! | `link_map` | Link-time function resolution map (symbol names for calls and fn ptrs) |
+//! | `types` | [`TypeMetadata`] construction from `TyKind` + layout |
+//! | `uneval` | Discovery of additional items reachable through unevaluated constants |
+//! | `util` | Small helpers: hashing, name resolution, attribute queries |
+//!
+//! # Environment variables
+//!
+//! - `DEBUG` — include extra debug info (`SmirJsonDebugInfo`) in output
+//! - `LINK_ITEMS` — populate the functions map with mono item entries (not just calls/fn-ptrs)
+//! - `LINK_INST` — use richer `(Ty, InstanceKind)` keys in the functions map instead of `Ty` alone
+
 use std::io::Write;
 use std::{fs::File, io};
 
@@ -46,6 +72,10 @@ pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, MonoItemKind, SmirJson}
 pub use types::TypeMetadata;
 pub use util::has_attr;
 
+/// Collect and serialize Stable MIR as JSON, writing to the compiler's MIR output path.
+///
+/// Writes to `<output>.smir.json` (or stdout if the output is stdout).
+/// This is the main entry point used by the compiler driver.
 pub fn emit_smir(tcx: TyCtxt<'_>) {
     let smir_json =
         serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");

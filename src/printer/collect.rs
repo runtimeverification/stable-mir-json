@@ -1,3 +1,10 @@
+//! Top-level collection logic that assembles the final [`SmirJson`] output.
+//!
+//! Gathers monomorphized items from the compiler, discovers additional items
+//! via unevaluated constants, traverses MIR bodies to collect interned values
+//! (calls, allocations, types, spans), and produces the sorted, deterministic
+//! output structure.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;
@@ -44,6 +51,17 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
         .collect::<HashMap<_, _>>()
 }
 
+/// Collect all Stable MIR data for the current crate into a [`SmirJson`] value.
+///
+/// This is the primary collection entry point. It:
+/// 1. Gathers all monomorphized items via `rustc_monomorphize`.
+/// 2. Discovers additional items reachable through unevaluated constants.
+/// 3. Traverses MIR bodies to build the function link map, allocation map,
+///    type map, and span map.
+/// 4. Constructs type metadata for each collected type.
+/// 5. Sorts all output vectors for deterministic serialization.
+///
+/// The returned value is ready to be serialized with `serde_json`.
 pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let local_crate = stable_mir::local_crate();
     let items = collect_items(tcx);
