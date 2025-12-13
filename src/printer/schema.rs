@@ -23,8 +23,23 @@ pub(super) type AllocMap =
     HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc)>;
 pub(super) type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
-pub(super) type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
-pub(super) type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap, SpanMap);
+/// Map from span index to its source location data.
+pub(super) type SpanMap = HashMap<usize, SourceData>;
+
+/// Collected interned values from MIR body traversal.
+///
+/// Aggregates the four maps populated by [`super::mir_visitor::collect_interned_values`]:
+/// function call targets, global allocations, reachable types, and source spans.
+pub(super) struct InternedValues<'tcx> {
+    /// Function call and fn-pointer resolution map.
+    pub link_map: LinkMap<'tcx>,
+    /// Global allocations reachable from constants.
+    pub alloc_map: AllocMap,
+    /// All types encountered during traversal, with optional layouts.
+    pub ty_map: TyMap,
+    /// Source location information for each MIR span.
+    pub span_map: SpanMap,
+}
 
 // Item source constants and type
 pub(super) const ITEM: u8 = 1 << 0;

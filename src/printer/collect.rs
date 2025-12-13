@@ -67,10 +67,10 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let items = collect_items(tcx);
     let items_clone = items.clone();
     let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-    let (calls_map, visited_allocs, visited_tys, span_map) = collect_interned_values(tcx, &items);
+    let interned = collect_interned_values(tcx, &items);
 
     // FIXME: We dump extra static items here --- this should be handled better
-    for (_, alloc) in visited_allocs.iter() {
+    for (_, alloc) in interned.alloc_map.iter() {
         if let (_, GlobalAlloc::Static(def)) = alloc {
             let mono_item =
                 stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
@@ -86,36 +86,40 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     }
 
     let debug: Option<SmirJsonDebugInfo> = if super::debug_enabled() {
-        let fn_sources = calls_map
+        let fn_sources = interned
+            .link_map
             .clone()
             .into_iter()
             .map(|(k, (source, _))| (k, source))
             .collect::<Vec<_>>();
         Some(SmirJsonDebugInfo {
             fn_sources,
-            types: visited_tys.clone(),
+            types: interned.ty_map.clone(),
             foreign_modules: get_foreign_module_details(),
         })
     } else {
         None
     };
 
-    let mut functions = calls_map
+    let mut functions = interned
+        .link_map
         .into_iter()
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
-    let mut allocs = visited_allocs
+    let mut allocs = interned
+        .alloc_map
         .into_iter()
         .map(|(alloc_id, (ty, global_alloc))| AllocInfo::new(alloc_id, ty, global_alloc))
         .collect::<Vec<_>>();
     let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
 
-    let mut types = visited_tys
+    let mut types = interned
+        .ty_map
         .into_iter()
         .filter_map(|(k, (t, l))| mk_type_metadata(tcx, k, t, l))
         .collect::<Vec<_>>();
 
-    let mut spans = span_map.into_iter().collect::<Vec<_>>();
+    let mut spans = interned.span_map.into_iter().collect::<Vec<_>>();
 
     // sort output vectors to stabilise output (a bit)
     allocs.sort_by(|a, b| a.alloc_id().to_index().cmp(&b.alloc_id().to_index()));

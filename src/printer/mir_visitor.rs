@@ -393,5 +393,10 @@ pub(super) fn collect_interned_values<'tcx>(
             MonoItem::GlobalAsm(_) => {}
         }
     }
-    (calls_map, visited_allocs, ty_visitor.types, span_map)
+    InternedValues {
+        link_map: calls_map,
+        alloc_map: visited_allocs,
+        ty_map: ty_visitor.types,
+        span_map,
+    }
 }
