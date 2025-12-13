@@ -1,0 +1,259 @@
+extern crate rustc_middle;
+extern crate serde;
+extern crate stable_mir;
+
+use std::collections::HashMap;
+
+use rustc_middle as middle;
+use serde::{Serialize, Serializer};
+use stable_mir::mir::alloc::{AllocId, GlobalAlloc};
+use stable_mir::mir::mono::MonoItem;
+use stable_mir::mir::Body;
+use stable_mir::ty::{Allocation, ConstDef, ForeignItemKind};
+
+// Type aliases
+pub(super) type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
+pub(super) type AllocMap =
+    HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc)>;
+pub(super) type TyMap =
+    HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
+pub(super) type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
+pub(super) type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap, SpanMap);
+
+// Item source constants and type
+pub(super) const ITEM: u8 = 1 << 0;
+pub(super) const TERM: u8 = 1 << 1;
+pub(super) const FPTR: u8 = 1 << 2;
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub(super) struct ItemSource(pub u8);
+
+impl Serialize for ItemSource {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::SerializeSeq;
+        let mut seq = serializer.serialize_seq(None)?;
+        if self.0 & ITEM != 0u8 {
+            seq.serialize_element(&"Item")?
+        };
+        if self.0 & TERM != 0u8 {
+            seq.serialize_element(&"Term")?
+        };
+        if self.0 & FPTR != 0u8 {
+            seq.serialize_element(&"Fptr")?
+        };
+        seq.end()
+    }
+}
+
+// FnSymType
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub enum FnSymType {
+    NoOpSym(String),
+    IntrinsicSym(String),
+    NormalSym(String),
+}
+
+// LinkMapKey
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct LinkMapKey<'tcx>(
+    pub stable_mir::ty::Ty,
+    pub(super) Option<middle::ty::InstanceKind<'tcx>>,
+);
+
+impl Serialize for LinkMapKey<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::SerializeTuple;
+        if super::link_instance_enabled() {
+            let mut tup = serializer.serialize_tuple(2)?;
+            tup.serialize_element(&self.0)?;
+            tup.serialize_element(&format!("{:?}", self.1).as_str())?;
+            tup.end()
+        } else {
+            <stable_mir::ty::Ty as Serialize>::serialize(&self.0, serializer)
+        }
+    }
+}
+
+// MonoItemKind
+#[derive(Serialize, Clone)]
+pub enum MonoItemKind {
+    MonoItemFn {
+        name: String,
+        id: stable_mir::DefId,
+        body: Option<Body>,
+    },
+    MonoItemStatic {
+        name: String,
+        id: stable_mir::DefId,
+        allocation: Option<Allocation>,
+    },
+    MonoItemGlobalAsm {
+        asm: String,
+    },
+}
+
+// Item details (debug info)
+#[derive(Serialize, Clone)]
+pub(super) struct BodyDetails {
+    pub pp: String,
+}
+
+#[derive(Serialize, Clone)]
+pub(super) struct GenericData(pub Vec<(String, String)>);
+
+#[derive(Serialize, Clone)]
+pub(super) struct ItemDetails {
+    pub fn_instance_kind: Option<stable_mir::mir::mono::InstanceKind>,
+    pub fn_item_kind: Option<stable_mir::ItemKind>,
+    pub fn_body_details: Option<BodyDetails>,
+    pub internal_kind: String,
+    pub path: String,
+    pub internal_ty: String,
+    pub generic_data: GenericData,
+}
+
+// Item
+#[derive(Serialize, Clone)]
+pub struct Item {
+    #[serde(skip)]
+    pub(super) mono_item: MonoItem,
+    pub symbol_name: String,
+    pub mono_item_kind: MonoItemKind,
+    details: Option<ItemDetails>,
+}
+
+impl Item {
+    pub(super) fn new(
+        mono_item: MonoItem,
+        symbol_name: String,
+        mono_item_kind: MonoItemKind,
+        details: Option<ItemDetails>,
+    ) -> Self {
+        Item {
+            mono_item,
+            symbol_name,
+            mono_item_kind,
+            details,
+        }
+    }
+
+    pub(super) fn mono_item(&self) -> &MonoItem {
+        &self.mono_item
+    }
+}
+
+impl PartialEq for Item {
+    fn eq(&self, other: &Item) -> bool {
+        self.mono_item.eq(&other.mono_item)
+    }
+}
+impl Eq for Item {}
+
+impl PartialOrd for Item {
+    fn partial_cmp(&self, other: &Item) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Item {
+    fn cmp(&self, other: &Item) -> std::cmp::Ordering {
+        use MonoItemKind::*;
+        let sort_key = |i: &Item| {
+            format!(
+                "{}!{}",
+                i.symbol_name,
+                match &i.mono_item_kind {
+                    MonoItemFn {
+                        name,
+                        id: _,
+                        body: _,
+                    } => name,
+                    MonoItemStatic {
+                        name,
+                        id: _,
+                        allocation: _,
+                    } => name,
+                    MonoItemGlobalAsm { asm } => asm,
+                }
+            )
+        };
+        sort_key(self).cmp(&sort_key(other))
+    }
+}
+
+// Foreign items
+#[derive(Serialize)]
+pub(super) struct ForeignItem {
+    pub name: String,
+    pub kind: ForeignItemKind,
+}
+
+#[derive(Serialize)]
+pub(super) struct ForeignModule {
+    pub name: String,
+    pub items: Vec<ForeignItem>,
+}
+
+// AllocInfo
+#[derive(Serialize)]
+pub struct AllocInfo {
+    alloc_id: AllocId,
+    ty: stable_mir::ty::Ty,
+    global_alloc: GlobalAlloc,
+}
+
+impl AllocInfo {
+    pub(super) fn new(
+        alloc_id: AllocId,
+        ty: stable_mir::ty::Ty,
+        global_alloc: GlobalAlloc,
+    ) -> Self {
+        AllocInfo {
+            alloc_id,
+            ty,
+            global_alloc,
+        }
+    }
+
+    pub fn alloc_id(&self) -> AllocId {
+        self.alloc_id
+    }
+
+    pub fn ty(&self) -> stable_mir::ty::Ty {
+        self.ty
+    }
+
+    pub fn global_alloc(&self) -> &GlobalAlloc {
+        &self.global_alloc
+    }
+}
+
+// SmirJson
+pub type SourceData = (String, usize, usize, usize, usize);
+
+#[derive(Serialize)]
+pub struct SmirJson<'t> {
+    pub name: String,
+    pub crate_id: u64,
+    pub allocs: Vec<AllocInfo>,
+    pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
+    pub uneval_consts: Vec<(ConstDef, String)>,
+    pub items: Vec<Item>,
+    pub types: Vec<(stable_mir::ty::Ty, super::types::TypeMetadata)>,
+    pub spans: Vec<(usize, SourceData)>,
+    pub debug: Option<SmirJsonDebugInfo<'t>>,
+    pub machine: stable_mir::target::MachineInfo,
+}
+
+#[derive(Serialize)]
+pub struct SmirJsonDebugInfo<'t> {
+    pub(super) fn_sources: Vec<(LinkMapKey<'t>, ItemSource)>,
+    pub(super) types: TyMap,
+    pub(super) foreign_modules: Vec<(String, Vec<ForeignModule>)>,
+}
