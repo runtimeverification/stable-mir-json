@@ -10,9 +10,6 @@ extern crate rustc_smir;
 extern crate rustc_span;
 extern crate stable_mir;
 
-use std::str;
-use std::vec::Vec;
-
 use rustc_middle as middle;
 use rustc_middle::ty::{EarlyBinder, FnSig, GenericArgs, Ty, TyCtxt, TypeFoldable};
 use rustc_smir::rustc_internal;
@@ -80,7 +77,7 @@ fn get_body_details(body: &stable_mir::mir::Body) -> BodyDetails {
     let mut v = Vec::new();
     let _ = body.dump(&mut v, "<omitted>");
     BodyDetails {
-        pp: str::from_utf8(&v).unwrap().into(),
+        pp: std::str::from_utf8(&v).unwrap().into(),
     }
 }
 

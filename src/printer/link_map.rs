@@ -31,7 +31,7 @@ pub(super) fn fn_inst_sym<'tcx>(
 ) -> Option<FnSymInfo<'tcx>> {
     use FnSymType::*;
     inst.and_then(|inst| {
-        let ty = if let Some(ty) = ty { ty } else { inst.ty() };
+        let ty = ty.unwrap_or_else(|| inst.ty());
         let kind = ty.kind();
         if kind.fn_def().is_some() {
             let internal_inst = rustc_internal::internal(tcx, inst);
@@ -58,17 +58,16 @@ pub(super) fn update_link_map<'tcx>(
     fn_sym: Option<FnSymInfo<'tcx>>,
     source: ItemSource,
 ) {
-    if fn_sym.is_none() {
+    let Some((ty, kind, name)) = fn_sym else {
         return;
-    }
-    let (ty, kind, name) = fn_sym.unwrap();
+    };
     let new_val = (source, name.clone());
     let key = if super::link_instance_enabled() {
         LinkMapKey(ty, Some(kind))
     } else {
         LinkMapKey(ty, None)
     };
-    if let Some(curr_val) = link_map.get_mut(&key.clone()) {
+    if let Some(curr_val) = link_map.get_mut(&key) {
         if curr_val.1 != new_val.1 {
             if !super::link_instance_enabled() {
                 // When LINK_INST is disabled, prefer Item over ReifyShim.
@@ -103,6 +102,6 @@ pub(super) fn update_link_map<'tcx>(
             key.0.kind().fn_def(),
             new_val
         );
-        link_map.insert(key.clone(), new_val);
+        link_map.insert(key, new_val);
     }
 }

@@ -31,6 +31,12 @@ use super::schema::{
 use super::ty_visitor::TyCollector;
 use super::util::{def_id_to_inst, fn_inst_for_ty};
 
+/// Placeholder type used when the precise pointee type of an allocation cannot
+/// be recovered from the surrounding context.
+fn opaque_placeholder_ty() -> stable_mir::ty::Ty {
+    stable_mir::ty::Ty::to_val(0)
+}
+
 struct InternedValueCollector<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
     locals: &'local [LocalDecl],
@@ -57,12 +63,12 @@ fn field_for_offset(l: LayoutShape, offset: usize) -> Option<usize> {
     }
 }
 
-fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty::Ty> {
+fn get_prov_ty(ty: stable_mir::ty::Ty, offset: usize) -> Option<stable_mir::ty::Ty> {
     use stable_mir::ty::RigidTy;
     let ty_kind = ty.kind();
     // if ty is a pointer, box, or Ref, expect no offset and dereference
     if let Some(ty) = ty_kind.builtin_deref(true) {
-        assert!(*offset == 0);
+        assert!(offset == 0);
         return Some(ty.ty);
     }
 
@@ -87,14 +93,14 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         }
         // For other structs, consult layout to determine field type
         RigidTy::Adt(adt_def, args) if ty_kind.is_struct() => {
-            let field_idx = field_for_offset(layout, *offset).unwrap();
+            let field_idx = field_for_offset(layout, offset).unwrap();
             // NB struct, single variant
             let fields = adt_def.variants().pop().map(|v| v.fields()).unwrap();
             fields.get(field_idx).map(|f| f.ty_with_args(args))
         }
         RigidTy::Adt(_adt_def, _args) if ty_kind.is_enum() => {
             // we have to figure out which variant we are dealing with (requires the data)
-            match field_for_offset(layout, *offset) {
+            match field_for_offset(layout, offset) {
                 None =>
                 // FIXME we'd have to figure out which variant we are dealing with (requires the data)
                 {
@@ -108,7 +114,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
             }
         }
         RigidTy::Tuple(fields) => {
-            let field_idx = field_for_offset(layout, *offset)?;
+            let field_idx = field_for_offset(layout, offset)?;
             fields.get(field_idx).copied()
         }
         RigidTy::FnPtr(_) => None,
@@ -122,14 +128,14 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
     };
     match ref_ty {
         None => None,
-        Some(ty) => get_prov_ty(ty, &0),
+        Some(ty) => get_prov_ty(ty, 0),
     }
 }
 
 fn collect_alloc(
     val_collector: &mut InternedValueCollector,
     ty: stable_mir::ty::Ty,
-    offset: &usize,
+    offset: usize,
     val: stable_mir::mir::alloc::AllocId,
 ) {
     let entry = val_collector.visited_allocs.entry(val);
@@ -160,10 +166,10 @@ fn collect_alloc(
                     .ptrs
                     .iter()
                     .for_each(|(prov_offset, prov)| {
-                        collect_alloc(val_collector, p_ty, prov_offset, prov.0);
+                        collect_alloc(val_collector, p_ty, *prov_offset, prov.0);
                     });
             } else {
-                entry.or_insert((stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                entry.or_insert((opaque_placeholder_ty(), global_alloc.clone()));
             }
         }
         GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
@@ -190,7 +196,7 @@ fn collect_alloc(
                 } else {
                     // Could not recover a precise pointee type; use an opaque 0-valued Ty
                     // as a conservative placeholder.
-                    entry.or_insert((stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                    entry.or_insert((opaque_placeholder_ty(), global_alloc.clone()));
                 }
             } else {
                 entry.or_insert((ty, global_alloc.clone()));
@@ -280,7 +286,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     .provenance
                     .ptrs
                     .iter()
-                    .for_each(|(offset, prov)| collect_alloc(self, constant.ty(), offset, prov.0));
+                    .for_each(|(offset, prov)| collect_alloc(self, constant.ty(), *offset, prov.0));
             }
             ConstantKind::Ty(ty_const) => {
                 if let TyConstKind::Value(..) = ty_const.kind() {

@@ -10,7 +10,7 @@ use rustc_smir::rustc_internal;
 use rustc_span::symbol;
 use stable_mir::mir::mono::{Instance, MonoItem};
 
-pub fn hash<T: std::hash::Hash>(obj: T) -> u64 {
+pub(super) fn hash<T: std::hash::Hash>(obj: T) -> u64 {
     use std::hash::Hasher;
     let mut hasher = std::hash::DefaultHasher::new();
     obj.hash(&mut hasher);
