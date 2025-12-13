@@ -100,7 +100,7 @@ fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
     GenericData(v)
 }
 
-pub(super) fn get_item_details(
+fn get_item_details(
     tcx: TyCtxt<'_>,
     id: DefId,
     fn_inst: Option<Instance>,
@@ -126,7 +126,7 @@ pub(super) fn get_item_details(
     }
 }
 
-pub(super) fn default_unwrap_early_binder<'tcx, T>(
+fn default_unwrap_early_binder<'tcx, T>(
     tcx: TyCtxt<'tcx>,
     id: DefId,
     v: EarlyBinder<'tcx, T>,
@@ -149,7 +149,7 @@ where
     }
 }
 
-pub(super) fn print_type<'tcx>(
+fn print_type<'tcx>(
     tcx: TyCtxt<'tcx>,
     id: DefId,
     ty: EarlyBinder<'tcx, Ty<'tcx>>,
