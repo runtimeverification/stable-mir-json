@@ -10,7 +10,7 @@ extern crate rustc_smir;
 extern crate rustc_span;
 extern crate stable_mir;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use rustc_middle::ty::TyCtxt;
 use rustc_smir::rustc_internal;
@@ -65,7 +65,7 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
 pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let local_crate = stable_mir::local_crate();
     let items = collect_items(tcx);
-    let items_clone = items.clone();
+    let original_names: HashSet<String> = items.keys().cloned().collect();
     let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
     let interned = collect_interned_values(tcx, &items);
 
@@ -75,7 +75,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
             let mono_item =
                 stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
             let item_name = &mono_item_name(tcx, &mono_item);
-            if !items_clone.contains_key(item_name) {
+            if !original_names.contains(item_name) {
                 println!(
                     "Items missing static with id {:?} and name {:?}",
                     def, item_name
