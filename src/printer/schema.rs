@@ -11,10 +11,11 @@ use std::collections::HashMap;
 
 use rustc_middle as middle;
 use serde::{Serialize, Serializer};
+use stable_mir::abi::LayoutShape;
 use stable_mir::mir::alloc::{AllocId, GlobalAlloc};
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::Body;
-use stable_mir::ty::{Allocation, ConstDef, ForeignItemKind};
+use stable_mir::ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, RigidTy};
 
 // Type aliases
 pub(super) type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
@@ -267,6 +268,65 @@ impl AllocInfo {
     }
 }
 
+/// Structured metadata about a Rust type, suitable for execution or verification.
+///
+/// Each variant captures the information a consumer needs to interpret values
+/// of that type: field types and layouts for aggregates, element types for
+/// arrays/slices, pointee types for pointers/references, and discriminant
+/// mappings for enums.
+#[derive(Serialize)]
+pub enum TypeMetadata {
+    /// A scalar primitive (integer, float, bool, char).
+    PrimitiveType(RigidTy),
+    /// An enum with discriminant-to-variant mapping and per-variant field types.
+    EnumType {
+        name: String,
+        adt_def: AdtDef,
+        discriminants: Vec<u128>,
+        fields: Vec<Vec<stable_mir::ty::Ty>>,
+        layout: Option<LayoutShape>,
+    },
+    /// A struct with its field types in declaration order.
+    StructType {
+        name: String,
+        adt_def: AdtDef,
+        fields: Vec<stable_mir::ty::Ty>,
+        layout: Option<LayoutShape>,
+    },
+    /// A union with its field types.
+    UnionType {
+        name: String,
+        adt_def: AdtDef,
+        fields: Vec<stable_mir::ty::Ty>,
+        layout: Option<LayoutShape>,
+    },
+    /// An array or slice, with element type and optional compile-time size.
+    ArrayType {
+        elem_type: stable_mir::ty::Ty,
+        size: Option<stable_mir::ty::TyConst>,
+        layout: Option<LayoutShape>,
+    },
+    /// A raw pointer (`*const T` / `*mut T`).
+    PtrType {
+        pointee_type: stable_mir::ty::Ty,
+        layout: Option<LayoutShape>,
+    },
+    /// A reference (`&T` / `&mut T`).
+    RefType {
+        pointee_type: stable_mir::ty::Ty,
+        layout: Option<LayoutShape>,
+    },
+    /// A tuple with its element types.
+    TupleType {
+        types: Vec<stable_mir::ty::Ty>,
+        layout: Option<LayoutShape>,
+    },
+    /// An opaque function type (FnDef, FnPtr, or Closure); carries the display name.
+    FunType(String),
+    /// The never type (`!`).
+    VoidType,
+}
+
 /// Span location data: `(filename, start_line, start_col, end_line, end_col)`.
 pub type SourceData = (String, usize, usize, usize, usize);
 
@@ -285,7 +345,7 @@ pub struct SmirJson<'t> {
     pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
-    pub types: Vec<(stable_mir::ty::Ty, super::types::TypeMetadata)>,
+    pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
     pub spans: Vec<(usize, SourceData)>,
     pub debug: Option<SmirJsonDebugInfo<'t>>,
     pub machine: stable_mir::target::MachineInfo,

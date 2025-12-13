@@ -6,63 +6,14 @@
 
 extern crate rustc_middle;
 extern crate rustc_smir;
-extern crate serde;
 extern crate stable_mir;
 
 use rustc_middle::ty::TyCtxt;
 use rustc_smir::rustc_internal;
-use serde::Serialize;
 use stable_mir::abi::LayoutShape;
-use stable_mir::ty::{AdtDef, RigidTy, TyKind};
+use stable_mir::ty::TyKind;
 
-/// Structured metadata about a Rust type, suitable for execution or verification.
-///
-/// Each variant captures the information a consumer needs to interpret values
-/// of that type: field types and layouts for aggregates, element types for
-/// arrays/slices, pointee types for pointers/references, and discriminant
-/// mappings for enums.
-#[derive(Serialize)]
-pub enum TypeMetadata {
-    PrimitiveType(RigidTy),
-    EnumType {
-        name: String,
-        adt_def: AdtDef,
-        discriminants: Vec<u128>,
-        fields: Vec<Vec<stable_mir::ty::Ty>>,
-        layout: Option<LayoutShape>,
-    },
-    StructType {
-        name: String,
-        adt_def: AdtDef,
-        fields: Vec<stable_mir::ty::Ty>,
-        layout: Option<LayoutShape>,
-    },
-    UnionType {
-        name: String,
-        adt_def: AdtDef,
-        fields: Vec<stable_mir::ty::Ty>,
-        layout: Option<LayoutShape>,
-    },
-    ArrayType {
-        elem_type: stable_mir::ty::Ty,
-        size: Option<stable_mir::ty::TyConst>,
-        layout: Option<LayoutShape>,
-    },
-    PtrType {
-        pointee_type: stable_mir::ty::Ty,
-        layout: Option<LayoutShape>,
-    },
-    RefType {
-        pointee_type: stable_mir::ty::Ty,
-        layout: Option<LayoutShape>,
-    },
-    TupleType {
-        types: Vec<stable_mir::ty::Ty>,
-        layout: Option<LayoutShape>,
-    },
-    FunType(String),
-    VoidType,
-}
+use super::schema::TypeMetadata;
 
 pub(super) fn mk_type_metadata(
     tcx: TyCtxt<'_>,

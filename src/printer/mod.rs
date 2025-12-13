@@ -68,8 +68,7 @@ mod util;
 
 // Re-exports preserving the public API
 pub use collect::collect_smir;
-pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, MonoItemKind, SmirJson};
-pub use types::TypeMetadata;
+pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, MonoItemKind, SmirJson, TypeMetadata};
 pub use util::has_attr;
 
 /// Collect and serialize Stable MIR as JSON, writing to the compiler's MIR output path.
