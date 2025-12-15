@@ -20,7 +20,7 @@
     ( .types | map(select(.[0].StructType) | del(.[0].StructType.adt_def) | .[0].StructType.fields = "elided" ) | sort_by(.[0].StructType.name) ),
     ( .types | map(select(.[0].UnionType) | del(.[0].UnionType.adt_def)) | sort_by(.[0].UnionType.name) ),
   # delete unstable Ty IDs for arrays and tuples
-    ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType.elem_type) | del(.[0].ArrayType.size.id) | del(.[0].ArrayType.size.kind.Value[0])) | sort ),
+    ( .types | map(select(.[0].ArrayType) | del(.[0].ArrayType.elem_type) | del(.[0].ArrayType.size.id)) | sort ),
     ( .types | map(select(.[0].TupleType) | .[0].TupleType.types = "elided") ),
   # replace unstable Ty IDs for references by zero
     ( .types | map(select(.[0].PtrType) | .[0].PtrType.pointee_type = "elided") | sort ),
