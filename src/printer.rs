@@ -925,7 +925,11 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     {
                         let fn_sym = fn_inst_sym(self.tcx, Some(constant.ty()), Some(&inst));
                         if let Some((ty, kind, name)) = fn_sym {
-                            update_link_map(self.link_map, Some((ty, kind, name)), ItemSource(FPTR));
+                            update_link_map(
+                                self.link_map,
+                                Some((ty, kind, name)),
+                                ItemSource(FPTR),
+                            );
                         }
                     }
                 }
