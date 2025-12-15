@@ -898,7 +898,23 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     panic!("TyConstKind::Value");
                 }
             }
-            ConstantKind::Unevaluated(_) | ConstantKind::Param(_) | ConstantKind::ZeroSized => {}
+            ConstantKind::ZeroSized => {
+                // Zero-sized constants can represent function items (FnDef) used as values,
+                // e.g. when passing a function pointer to a higher-order function.
+                // Ensure such functions are included in the link map so they appear in the
+                // `functions` array of the SMIR JSON.
+                if constant.ty().kind().fn_def().is_some() {
+                    if let Some(inst) = fn_inst_for_ty(constant.ty(), false)
+                        .or_else(|| fn_inst_for_ty(constant.ty(), true))
+                    {
+                        let fn_sym = fn_inst_sym(self.tcx, Some(constant.ty()), Some(&inst));
+                        if let Some((ty, kind, name)) = fn_sym {
+                            update_link_map(self.link_map, Some((ty, kind, name)), ItemSource(FPTR));
+                        }
+                    }
+                }
+            }
+            ConstantKind::Unevaluated(_) | ConstantKind::Param(_) => {}
         }
         self.super_mir_const(constant, loc);
     }
