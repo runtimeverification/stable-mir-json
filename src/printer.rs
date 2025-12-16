@@ -600,6 +600,10 @@ struct InternedValueCollector<'tcx, 'local> {
 
 type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap, SpanMap);
 
+fn is_reify_shim(kind: &middle::ty::InstanceKind<'_>) -> bool {
+    matches!(kind, middle::ty::InstanceKind::ReifyShim(..))
+}
+
 fn update_link_map<'tcx>(
     link_map: &mut LinkMap<'tcx>,
     fn_sym: Option<FnSymInfo<'tcx>>,
@@ -609,7 +613,7 @@ fn update_link_map<'tcx>(
         return;
     }
     let (ty, kind, name) = fn_sym.unwrap();
-    let new_val = (source, name);
+    let new_val = (source, name.clone());
     let key = if link_instance_enabled() {
         LinkMapKey(ty, Some(kind))
     } else {
@@ -617,6 +621,18 @@ fn update_link_map<'tcx>(
     };
     if let Some(curr_val) = link_map.get_mut(&key.clone()) {
         if curr_val.1 != new_val.1 {
+            if !link_instance_enabled() {
+                // When LINK_INST is disabled, prefer Item over ReifyShim.
+                // ReifyShim has no body in items, so Item is more useful.
+                if is_reify_shim(&kind) {
+                    // New entry is ReifyShim, existing is Item → skip
+                    return;
+                }
+                // New entry is Item, existing is ReifyShim → replace
+                curr_val.1 = name;
+                curr_val.0 .0 |= new_val.0 .0;
+                return;
+            }
             panic!(
                 "Added inconsistent entries into link map! {:?} -> {:?}, {:?}",
                 (ty, ty.kind().fn_def(), &kind),
@@ -898,7 +914,27 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     panic!("TyConstKind::Value");
                 }
             }
-            ConstantKind::Unevaluated(_) | ConstantKind::Param(_) | ConstantKind::ZeroSized => {}
+            ConstantKind::ZeroSized => {
+                // Zero-sized constants can represent function items (FnDef) used as values,
+                // e.g. when passing a function pointer to a higher-order function.
+                // Ensure such functions are included in the link map so they appear in the
+                // `functions` array of the SMIR JSON.
+                if constant.ty().kind().fn_def().is_some() {
+                    if let Some(inst) = fn_inst_for_ty(constant.ty(), false)
+                        .or_else(|| fn_inst_for_ty(constant.ty(), true))
+                    {
+                        let fn_sym = fn_inst_sym(self.tcx, Some(constant.ty()), Some(&inst));
+                        if let Some((ty, kind, name)) = fn_sym {
+                            update_link_map(
+                                self.link_map,
+                                Some((ty, kind, name)),
+                                ItemSource(FPTR),
+                            );
+                        }
+                    }
+                }
+            }
+            ConstantKind::Unevaluated(_) | ConstantKind::Param(_) => {}
         }
         self.super_mir_const(constant, loc);
     }

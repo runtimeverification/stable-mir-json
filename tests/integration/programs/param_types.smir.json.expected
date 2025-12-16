@@ -258,8 +258,7 @@
                                           "ptrs": []
                                         }
                                       }
-                                    },
-                                    "ty": 21
+                                    }
                                   },
                                   "span": 110,
                                   "user_ty": null
@@ -287,8 +286,7 @@
                                           "ptrs": []
                                         }
                                       }
-                                    },
-                                    "ty": 34
+                                    }
                                   },
                                   "span": 111,
                                   "user_ty": null
@@ -346,8 +344,7 @@
                                           "ptrs": []
                                         }
                                       }
-                                    },
-                                    "ty": 41
+                                    }
                                   },
                                   "span": 113,
                                   "user_ty": null
@@ -375,8 +372,7 @@
                                           "ptrs": []
                                         }
                                       }
-                                    },
-                                    "ty": 34
+                                    }
                                   },
                                   "span": 114,
                                   "user_ty": null
@@ -539,8 +535,7 @@
                         "Constant": {
                           "const_": {
                             "id": 17,
-                            "kind": "ZeroSized",
-                            "ty": 43
+                            "kind": "ZeroSized"
                           },
                           "span": 108,
                           "user_ty": null
@@ -574,8 +569,7 @@
                         "Constant": {
                           "const_": {
                             "id": 21,
-                            "kind": "ZeroSized",
-                            "ty": 44
+                            "kind": "ZeroSized"
                           },
                           "span": 120,
                           "user_ty": null
@@ -633,8 +627,7 @@
                         "Constant": {
                           "const_": {
                             "id": 22,
-                            "kind": "ZeroSized",
-                            "ty": 45
+                            "kind": "ZeroSized"
                           },
                           "span": 122,
                           "user_ty": null
@@ -749,8 +742,7 @@
                                     ]
                                   }
                                 }
-                              },
-                              "ty": 39
+                              }
                             },
                             "span": 32,
                             "user_ty": null
@@ -765,8 +757,7 @@
                         "Constant": {
                           "const_": {
                             "id": 23,
-                            "kind": "ZeroSized",
-                            "ty": 46
+                            "kind": "ZeroSized"
                           },
                           "span": 127,
                           "user_ty": null
@@ -783,68 +774,55 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 128,
-                "ty": 1
+                "span": 128
               },
               {
                 "mutability": "Not",
-                "span": 129,
-                "ty": 47
+                "span": 129
               },
               {
                 "mutability": "Not",
-                "span": 130,
-                "ty": 48
+                "span": 130
               },
               {
                 "mutability": "Not",
-                "span": 131,
-                "ty": 37
+                "span": 131
               },
               {
                 "mutability": "Mut",
-                "span": 116,
-                "ty": 34
+                "span": 116
               },
               {
                 "mutability": "Not",
-                "span": 132,
-                "ty": 42
+                "span": 132
               },
               {
                 "mutability": "Mut",
-                "span": 118,
-                "ty": 41
+                "span": 118
               },
               {
                 "mutability": "Not",
-                "span": 133,
-                "ty": 34
+                "span": 133
               },
               {
                 "mutability": "Mut",
-                "span": 109,
-                "ty": 35
+                "span": 109
               },
               {
                 "mutability": "Mut",
-                "span": 125,
-                "ty": 49
+                "span": 125
               },
               {
                 "mutability": "Mut",
-                "span": 124,
-                "ty": 41
+                "span": 124
               },
               {
                 "mutability": "Mut",
-                "span": 123,
-                "ty": 41
+                "span": 123
               },
               {
                 "mutability": "Mut",
-                "span": 127,
-                "ty": 36
+                "span": 127
               }
             ],
             "span": 134,
@@ -951,13 +929,11 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 66,
-                "ty": 1
+                "span": 66
               },
               {
                 "mutability": "Not",
-                "span": 66,
-                "ty": 29
+                "span": 66
               }
             ],
             "span": 66,
@@ -965,10 +941,10 @@
             "var_debug_info": []
           },
           "id": 5,
-          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
+          "name": "std::ptr::drop_in_place::<u8>"
         }
       },
-      "symbol_name": "_ZN4core3ptr85drop_in_place$LT$std..rt..lang_start$LT$$LP$$RP$$GT$..$u7b$$u7b$closure$u7d$$u7d$$GT$17h"
+      "symbol_name": "_ZN4core3ptr23drop_in_place$LT$u8$GT$17h"
     },
     {
       "details": null,
@@ -988,13 +964,11 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 66,
-                "ty": 1
+                "span": 66
               },
               {
                 "mutability": "Not",
-                "span": 66,
-                "ty": 32
+                "span": 66
               }
             ],
             "span": 66,
@@ -1002,10 +976,10 @@
             "var_debug_info": []
           },
           "id": 5,
-          "name": "std::ptr::drop_in_place::<u8>"
+          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
         }
       },
-      "symbol_name": "_ZN4core3ptr23drop_in_place$LT$u8$GT$17h"
+      "symbol_name": "_ZN4core3ptr85drop_in_place$LT$std..rt..lang_start$LT$$LP$$RP$$GT$..$u7b$$u7b$closure$u7d$$u7d$$GT$17h"
     },
     {
       "details": null,
@@ -1030,8 +1004,7 @@
                           "Constant": {
                             "const_": {
                               "id": 4,
-                              "kind": "ZeroSized",
-                              "ty": 1
+                              "kind": "ZeroSized"
                             },
                             "span": 32,
                             "user_ty": null
@@ -1046,8 +1019,7 @@
                         "Constant": {
                           "const_": {
                             "id": 3,
-                            "kind": "ZeroSized",
-                            "ty": 19
+                            "kind": "ZeroSized"
                           },
                           "span": 31,
                           "user_ty": null
@@ -1070,8 +1042,7 @@
                           "Constant": {
                             "const_": {
                               "id": 4,
-                              "kind": "ZeroSized",
-                              "ty": 1
+                              "kind": "ZeroSized"
                             },
                             "span": 32,
                             "user_ty": null
@@ -1086,8 +1057,7 @@
                         "Constant": {
                           "const_": {
                             "id": 5,
-                            "kind": "ZeroSized",
-                            "ty": 20
+                            "kind": "ZeroSized"
                           },
                           "span": 34,
                           "user_ty": null
@@ -1111,18 +1081,15 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 37,
-                "ty": 1
+                "span": 37
               },
               {
                 "mutability": "Not",
-                "span": 38,
-                "ty": 7
+                "span": 38
               },
               {
                 "mutability": "Not",
-                "span": 39,
-                "ty": 1
+                "span": 39
               }
             ],
             "span": 42,
@@ -1170,8 +1137,7 @@
                   "Const": {
                     "const_": {
                       "id": 4,
-                      "kind": "ZeroSized",
-                      "ty": 1
+                      "kind": "ZeroSized"
                     },
                     "span": 32,
                     "user_ty": null
@@ -1218,8 +1184,7 @@
                                       "ptrs": []
                                     }
                                   }
-                                },
-                                "ty": 17
+                                }
                               },
                               "span": 104,
                               "user_ty": null
@@ -1240,13 +1205,11 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 105,
-                "ty": 17
+                "span": 105
               },
               {
                 "mutability": "Not",
-                "span": 106,
-                "ty": 1
+                "span": 106
               }
             ],
             "span": 107,
@@ -1264,8 +1227,7 @@
                   "Const": {
                     "const_": {
                       "id": 4,
-                      "kind": "ZeroSized",
-                      "ty": 1
+                      "kind": "ZeroSized"
                     },
                     "span": 32,
                     "user_ty": null
@@ -1355,8 +1317,7 @@
                         "Constant": {
                           "const_": {
                             "id": 13,
-                            "kind": "ZeroSized",
-                            "ty": 33
+                            "kind": "ZeroSized"
                           },
                           "span": 69,
                           "user_ty": null
@@ -1410,23 +1371,19 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 73,
-                "ty": 34
+                "span": 73
               },
               {
                 "mutability": "Not",
-                "span": 74,
-                "ty": 35
+                "span": 74
               },
               {
                 "mutability": "Mut",
-                "span": 75,
-                "ty": 6
+                "span": 75
               },
               {
                 "mutability": "Mut",
-                "span": 70,
-                "ty": 36
+                "span": 70
               }
             ],
             "span": 76,
@@ -1723,28 +1680,23 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 85,
-                "ty": 35
+                "span": 85
               },
               {
                 "mutability": "Not",
-                "span": 86,
-                "ty": 37
+                "span": 86
               },
               {
                 "mutability": "Mut",
-                "span": 87,
-                "ty": 6
+                "span": 87
               },
               {
                 "mutability": "Not",
-                "span": 80,
-                "ty": 34
+                "span": 80
               },
               {
                 "mutability": "Mut",
-                "span": 84,
-                "ty": 6
+                "span": 84
               }
             ],
             "span": 88,
@@ -1980,8 +1932,7 @@
                                     ]
                                   }
                                 }
-                              },
-                              "ty": 39
+                              }
                             },
                             "span": 92,
                             "user_ty": null
@@ -2002,8 +1953,7 @@
                         "Constant": {
                           "const_": {
                             "id": 14,
-                            "kind": "ZeroSized",
-                            "ty": 38
+                            "kind": "ZeroSized"
                           },
                           "span": 91,
                           "user_ty": null
@@ -2082,38 +2032,31 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 100,
-                "ty": 41
+                "span": 100
               },
               {
                 "mutability": "Not",
-                "span": 101,
-                "ty": 42
+                "span": 101
               },
               {
                 "mutability": "Mut",
-                "span": 102,
-                "ty": 6
+                "span": 102
               },
               {
                 "mutability": "Not",
-                "span": 94,
-                "ty": 9
+                "span": 94
               },
               {
                 "mutability": "Mut",
-                "span": 93,
-                "ty": 36
+                "span": 93
               },
               {
                 "mutability": "Mut",
-                "span": 95,
-                "ty": 40
+                "span": 95
               },
               {
                 "mutability": "Not",
-                "span": 95,
-                "ty": 26
+                "span": 95
               }
             ],
             "span": 99,
@@ -2246,8 +2189,7 @@
                         "Constant": {
                           "const_": {
                             "id": 1,
-                            "kind": "ZeroSized",
-                            "ty": 13
+                            "kind": "ZeroSized"
                           },
                           "span": 14,
                           "user_ty": null
@@ -2288,8 +2230,7 @@
                         "Constant": {
                           "const_": {
                             "id": 2,
-                            "kind": "ZeroSized",
-                            "ty": 14
+                            "kind": "ZeroSized"
                           },
                           "span": 18,
                           "user_ty": null
@@ -2435,38 +2376,31 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 28,
-                "ty": 16
+                "span": 28
               },
               {
                 "mutability": "Mut",
-                "span": 3,
-                "ty": 11
+                "span": 3
               },
               {
                 "mutability": "Mut",
-                "span": 16,
-                "ty": 17
+                "span": 16
               },
               {
                 "mutability": "Mut",
-                "span": 15,
-                "ty": 1
+                "span": 15
               },
               {
                 "mutability": "Mut",
-                "span": 17,
-                "ty": 7
+                "span": 17
               },
               {
                 "mutability": "Mut",
-                "span": 22,
-                "ty": 18
+                "span": 22
               },
               {
                 "mutability": "Mut",
-                "span": 23,
-                "ty": 9
+                "span": 23
               }
             ],
             "span": 3,
@@ -2574,18 +2508,15 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 65,
-                "ty": 1
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 7
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 1
+                "span": 65
               }
             ],
             "span": 65,
@@ -2634,8 +2565,7 @@
                         "Constant": {
                           "const_": {
                             "id": 11,
-                            "kind": "ZeroSized",
-                            "ty": 28
+                            "kind": "ZeroSized"
                           },
                           "span": 65,
                           "user_ty": null
@@ -2659,18 +2589,15 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 65,
-                "ty": 16
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 29
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 1
+                "span": 65
               }
             ],
             "span": 65,
@@ -2745,8 +2672,7 @@
                         "Constant": {
                           "const_": {
                             "id": 12,
-                            "kind": "ZeroSized",
-                            "ty": 30
+                            "kind": "ZeroSized"
                           },
                           "span": 65,
                           "user_ty": null
@@ -2811,23 +2737,19 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 65,
-                "ty": 16
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 12
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 1
+                "span": 65
               },
               {
                 "mutability": "Not",
-                "span": 65,
-                "ty": 31
+                "span": 65
               }
             ],
             "span": 65,
@@ -2922,8 +2844,7 @@
                                         "ptrs": []
                                       }
                                     }
-                                  },
-                                  "ty": 21
+                                  }
                                 },
                                 "span": 32,
                                 "user_ty": null
@@ -2999,8 +2920,7 @@
                         "Constant": {
                           "const_": {
                             "id": 7,
-                            "kind": "ZeroSized",
-                            "ty": 22
+                            "kind": "ZeroSized"
                           },
                           "span": 47,
                           "user_ty": null
@@ -3094,8 +3014,7 @@
                                         "ptrs": []
                                       }
                                     }
-                                  },
-                                  "ty": 21
+                                  }
                                 },
                                 "span": 32,
                                 "user_ty": null
@@ -3171,8 +3090,7 @@
                         "Constant": {
                           "const_": {
                             "id": 9,
-                            "kind": "ZeroSized",
-                            "ty": 23
+                            "kind": "ZeroSized"
                           },
                           "span": 53,
                           "user_ty": null
@@ -3219,8 +3137,7 @@
                         "Constant": {
                           "const_": {
                             "id": 10,
-                            "kind": "ZeroSized",
-                            "ty": 24
+                            "kind": "ZeroSized"
                           },
                           "span": 55,
                           "user_ty": null
@@ -3255,38 +3172,31 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 59,
-                "ty": 25
+                "span": 59
               },
               {
                 "mutability": "Not",
-                "span": 60,
-                "ty": 26
+                "span": 60
               },
               {
                 "mutability": "Not",
-                "span": 61,
-                "ty": 27
+                "span": 61
               },
               {
                 "mutability": "Mut",
-                "span": 44,
-                "ty": 21
+                "span": 44
               },
               {
                 "mutability": "Mut",
-                "span": 45,
-                "ty": 21
+                "span": 45
               },
               {
                 "mutability": "Mut",
-                "span": 50,
-                "ty": 21
+                "span": 50
               },
               {
                 "mutability": "Mut",
-                "span": 51,
-                "ty": 21
+                "span": 51
               }
             ],
             "span": 64,
@@ -3515,8 +3425,7 @@
                         "Constant": {
                           "const_": {
                             "id": 0,
-                            "kind": "ZeroSized",
-                            "ty": 0
+                            "kind": "ZeroSized"
                           },
                           "span": 0,
                           "user_ty": null
@@ -3588,48 +3497,39 @@
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 8,
-                "ty": 6
+                "span": 8
               },
               {
                 "mutability": "Not",
-                "span": 9,
-                "ty": 7
+                "span": 9
               },
               {
                 "mutability": "Not",
-                "span": 10,
-                "ty": 6
+                "span": 10
               },
               {
                 "mutability": "Not",
-                "span": 11,
-                "ty": 8
+                "span": 11
               },
               {
                 "mutability": "Not",
-                "span": 12,
-                "ty": 9
+                "span": 12
               },
               {
                 "mutability": "Mut",
-                "span": 1,
-                "ty": 10
+                "span": 1
               },
               {
                 "mutability": "Mut",
-                "span": 2,
-                "ty": 5
+                "span": 2
               },
               {
                 "mutability": "Not",
-                "span": 2,
-                "ty": 11
+                "span": 2
               },
               {
                 "mutability": "Not",
-                "span": 3,
-                "ty": 12
+                "span": 3
               }
             ],
             "span": 13,
