@@ -1,9 +1,9 @@
 # Remove the hashes at the end of mangled names
 .functions = ( [ .functions[] | if .[1].NormalSym then .[1].NormalSym = .[1].NormalSym[:-17] else .  end ] )
-    | .items = ( [ .items[] | if .symbol_name then .symbol_name = .symbol_name[:-17] else .  end ] | map(walk(if type == "object" then del(.ty) else . end)) )
+    | .items = ( [ .items[] | if .symbol_name then .symbol_name = .symbol_name[:-17] else .  end ] )
 # delete unstable alloc, function, and type IDs
     | .allocs = ( .allocs | map(del(.alloc_id)) | map(del(.ty)) )
-    | .functions = ( [ .functions[] ] | map(del(.[0])) | map(walk(if type == "object" then del(.ty) else . end)) )
+    | .functions = ( [ .functions[] ] | map(del(.[0])) )
     | .types     =  ( [ .types[] ] | map(del(.[0])) )
 # remove "Never" type
     | .types = ( [ .types[] ] | map(select(.[0] != "VoidType")) )
@@ -11,7 +11,7 @@
 # Apply the normalisation filter
 { allocs:    ( .allocs | sort ),
   functions: (.functions | sort ),
-  items:     (.items | sort ),
+  items:     (.items | map(walk(if type == "object" then del(.ty) else . end)) | sort ),
   types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) | sort ),
