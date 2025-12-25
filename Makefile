@@ -6,7 +6,7 @@ default: build
 build:
 	cargo build ${RELEASE_FLAG}
 
-clean: rustup-clear-toolchain
+clean: rustup-clear-toolchain clean-graphs
 	cargo clean
 
 .PHONY: rustup-clear-toolchain
@@ -69,3 +69,47 @@ test-ui:
 	  exit 1; \
 	fi
 	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT" "${VERBOSE}"
+
+.PHONY: dot svg png d2 clean-graphs
+
+OUTDIR_DOT=output-dot
+OUTDIR_SVG=output-svg
+OUTDIR_PNG=output-png
+OUTDIR_D2=output-d2
+
+clean-graphs:
+	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
+
+dot:
+	@mkdir -p $(OUTDIR_DOT)
+	@for rs in $(TESTDIR)/*.rs; do \
+		name=$$(basename $$rs .rs); \
+		echo "Generating $$name.smir.dot"; \
+		cargo run --release -- --dot -Zno-codegen $$rs 2>/dev/null; \
+		mv $$name.smir.dot $(OUTDIR_DOT)/ 2>/dev/null || true; \
+	done
+
+svg: dot
+	@mkdir -p $(OUTDIR_SVG)
+	@for dotfile in $(OUTDIR_DOT)/*.dot; do \
+		name=$$(basename $$dotfile .dot); \
+		echo "Converting $$name.dot -> $$name.svg"; \
+		dot -Tsvg $$dotfile -o $(OUTDIR_SVG)/$$name.svg; \
+	done
+
+png: dot
+	@mkdir -p $(OUTDIR_PNG)
+	@for dotfile in $(OUTDIR_DOT)/*.dot; do \
+		name=$$(basename $$dotfile .dot); \
+		echo "Converting $$name.dot -> $$name.png"; \
+		dot -Tpng $$dotfile -o $(OUTDIR_PNG)/$$name.png; \
+	done
+
+d2:
+	@mkdir -p $(OUTDIR_D2)
+	@for rs in $(TESTDIR)/*.rs; do \
+		name=$$(basename $$rs .rs); \
+		echo "Generating $$name.smir.d2"; \
+		cargo run --release -- --d2 -Zno-codegen $$rs 2>/dev/null; \
+		mv $$name.smir.d2 $(OUTDIR_D2)/ 2>/dev/null || true; \
+	done

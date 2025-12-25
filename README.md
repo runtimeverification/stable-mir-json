@@ -30,6 +30,15 @@ _first_ argument `--dot`. When using `--json` as the first argument, the `*.smir
 will be written. Any other strings given as first argument will be passed to the compiler 
 (like all subsequent arguments).
 
+To generate visualizations for all test programs:
+
+```shell
+make dot   # Generate .dot files in output-dot/
+make svg   # Generate .svg files in output-svg/ (requires graphviz)
+make png   # Generate .png files in output-png/ (requires graphviz)
+make d2    # Generate .d2 files in output-d2/
+```
+
 There are a few environment variables that can be set to control the tools output:
 
 1.  `LINK_ITEMS` - add entries to the link-time `functions` map for each monomorphic item in the crate;
