@@ -11,7 +11,7 @@ use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
 
 use crate::printer::SmirJson;
 
-use super::index::{AllocIndex, TypeIndex};
+use super::index::{AllocIndex, LayoutInfo, TypeEntry, TypeIndex, TypeKind};
 use super::util::{function_string, short_fn_name, GraphLabelString};
 
 // =============================================================================
@@ -254,5 +254,152 @@ impl GraphContext {
             }
             InlineAsm { .. } => "InlineAsm".to_string(),
         }
+    }
+
+    // =========================================================================
+    // Type and Layout Rendering
+    // =========================================================================
+
+    /// Get detailed type information for a type
+    pub fn get_type_entry(&self, ty: Ty) -> Option<&TypeEntry> {
+        self.types.get(ty)
+    }
+
+    /// Get layout information for a type
+    pub fn get_layout(&self, ty: Ty) -> Option<&LayoutInfo> {
+        self.types.get_layout(ty)
+    }
+
+    /// Render a type with its size and alignment
+    pub fn render_type_with_layout(&self, ty: Ty) -> String {
+        let name = self.types.get_name(ty);
+        match self.types.get_layout(ty) {
+            Some(layout) => format!("{} ({} bytes, align {})", name, layout.size, layout.align),
+            None => name,
+        }
+    }
+
+    /// Render a type with detailed field layout (for structs/unions)
+    pub fn render_type_detailed(&self, ty: Ty) -> String {
+        match self.types.get(ty) {
+            Some(entry) => entry.detailed_description(&self.types),
+            None => format!("{}", ty),
+        }
+    }
+
+    /// Generate lines describing a type's memory layout
+    pub fn render_type_layout_lines(&self, ty: Ty) -> Vec<String> {
+        let mut lines = Vec::new();
+        let entry = match self.types.get(ty) {
+            Some(e) => e,
+            None => {
+                lines.push(format!("{}", ty));
+                return lines;
+            }
+        };
+
+        // Header with size/align
+        let header = match &entry.layout {
+            Some(layout) => format!(
+                "{} ({} bytes, align {})",
+                entry.name, layout.size, layout.align
+            ),
+            None => entry.name.clone(),
+        };
+        lines.push(header);
+
+        // Field details for composite types
+        match &entry.kind {
+            TypeKind::Struct { fields } => {
+                for (i, field) in fields.iter().enumerate() {
+                    let field_ty_name = self.types.get_name(field.ty);
+                    let field_layout = self.types.get_layout(field.ty);
+                    let size_str = field_layout
+                        .map(|l| format!(" ({} bytes)", l.size))
+                        .unwrap_or_default();
+                    match field.offset {
+                        Some(off) => lines.push(format!(
+                            "  @{:3}: field{}: {}{}",
+                            off, i, field_ty_name, size_str
+                        )),
+                        None => lines.push(format!("  field{}: {}{}", i, field_ty_name, size_str)),
+                    }
+                }
+            }
+            TypeKind::Union { fields } => {
+                lines.push("  (all fields at offset 0)".to_string());
+                for (i, field) in fields.iter().enumerate() {
+                    let field_ty_name = self.types.get_name(field.ty);
+                    let field_layout = self.types.get_layout(field.ty);
+                    let size_str = field_layout
+                        .map(|l| format!(" ({} bytes)", l.size))
+                        .unwrap_or_default();
+                    lines.push(format!("  field{}: {}{}", i, field_ty_name, size_str));
+                }
+            }
+            TypeKind::Enum { variants } => {
+                for (i, variant) in variants.iter().enumerate() {
+                    lines.push(format!(
+                        "  variant {} (discriminant {}):",
+                        i, variant.discriminant
+                    ));
+                    for (j, field) in variant.fields.iter().enumerate() {
+                        let field_ty_name = self.types.get_name(field.ty);
+                        lines.push(format!("    field{}: {}", j, field_ty_name));
+                    }
+                }
+            }
+            TypeKind::Tuple { fields } => {
+                for (i, &field_ty) in fields.iter().enumerate() {
+                    let field_ty_name = self.types.get_name(field_ty);
+                    let offset = entry.layout.as_ref().and_then(|l| l.field_offset(i));
+                    match offset {
+                        Some(off) => lines.push(format!("  @{:3}: .{}: {}", off, i, field_ty_name)),
+                        None => lines.push(format!("  .{}: {}", i, field_ty_name)),
+                    }
+                }
+            }
+            TypeKind::Array { elem_ty, len } => {
+                let elem_name = self.types.get_name(*elem_ty);
+                let len_str = len.map(|l| l.to_string()).unwrap_or("?".to_string());
+                lines.push(format!("  [{}; {}]", elem_name, len_str));
+            }
+            _ => {}
+        }
+
+        lines
+    }
+
+    /// Generate the types legend as lines for display (types with layout info)
+    pub fn types_legend_lines(&self) -> Vec<String> {
+        let mut lines = vec!["TYPES".to_string()];
+
+        // Collect and sort types that have interesting layout info
+        let mut entries: Vec<_> = self
+            .types
+            .iter()
+            .filter(|(_, entry)| {
+                // Only include composite types with layout
+                matches!(
+                    entry.kind,
+                    TypeKind::Struct { .. }
+                        | TypeKind::Union { .. }
+                        | TypeKind::Enum { .. }
+                        | TypeKind::Tuple { .. }
+                )
+            })
+            .collect();
+        entries.sort_by(|a, b| a.1.name.cmp(&b.1.name));
+
+        for (_ty_id, entry) in entries {
+            let layout_str = entry
+                .layout
+                .as_ref()
+                .map(|l| format!(" ({} bytes)", l.size))
+                .unwrap_or_default();
+            lines.push(format!("{}{}", entry.name, layout_str));
+        }
+
+        lines
     }
 }

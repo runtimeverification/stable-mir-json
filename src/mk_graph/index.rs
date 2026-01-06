@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 extern crate stable_mir;
+use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::ty::{IndexedVal, Ty};
 use stable_mir::CrateDef;
@@ -36,7 +37,51 @@ pub enum AllocKind {
 
 /// Index for looking up type information
 pub struct TypeIndex {
-    by_id: HashMap<u64, String>,
+    by_id: HashMap<u64, TypeEntry>,
+}
+
+/// Detailed type information for rendering
+pub struct TypeEntry {
+    pub name: String,
+    pub kind: TypeKind,
+    pub layout: Option<LayoutInfo>,
+}
+
+/// Simplified type kind for display
+#[derive(Clone)]
+pub enum TypeKind {
+    Primitive,
+    Struct { fields: Vec<FieldInfo> },
+    Enum { variants: Vec<VariantInfo> },
+    Union { fields: Vec<FieldInfo> },
+    Array { elem_ty: Ty, len: Option<u64> },
+    Tuple { fields: Vec<Ty> },
+    Ptr { pointee: Ty },
+    Ref { pointee: Ty },
+    Function,
+    Void,
+}
+
+/// Field information for structs/unions
+#[derive(Clone)]
+pub struct FieldInfo {
+    pub ty: Ty,
+    pub offset: Option<usize>,
+}
+
+/// Variant information for enums
+#[derive(Clone)]
+pub struct VariantInfo {
+    pub discriminant: u128,
+    pub fields: Vec<FieldInfo>,
+}
+
+/// Layout information extracted from LayoutShape
+#[derive(Clone)]
+pub struct LayoutInfo {
+    pub size: usize,
+    pub align: usize,
+    pub field_offsets: Vec<usize>,
 }
 
 // =============================================================================
@@ -189,31 +234,233 @@ impl TypeIndex {
     pub fn from_types(types: &[(Ty, TypeMetadata)]) -> Self {
         let mut index = Self::new();
         for (ty, metadata) in types {
-            let name = Self::type_name_from_metadata(metadata, *ty);
-            index.by_id.insert(ty.to_index() as u64, name);
+            let entry = TypeEntry::from_metadata(metadata, *ty);
+            index.by_id.insert(ty.to_index() as u64, entry);
         }
         index
     }
 
-    fn type_name_from_metadata(metadata: &TypeMetadata, ty: Ty) -> String {
-        match metadata {
-            TypeMetadata::PrimitiveType(rigid) => format!("{:?}", rigid),
-            TypeMetadata::EnumType { name, .. } => name.clone(),
-            TypeMetadata::StructType { name, .. } => name.clone(),
-            TypeMetadata::UnionType { name, .. } => name.clone(),
-            TypeMetadata::ArrayType { .. } => format!("{}", ty),
-            TypeMetadata::PtrType { .. } => format!("{}", ty),
-            TypeMetadata::RefType { .. } => format!("{}", ty),
-            TypeMetadata::TupleType { .. } => format!("{}", ty),
-            TypeMetadata::FunType(name) => name.clone(),
-            TypeMetadata::VoidType => "()".to_string(),
-        }
+    pub fn get(&self, ty: Ty) -> Option<&TypeEntry> {
+        self.by_id.get(&(ty.to_index() as u64))
     }
 
     pub fn get_name(&self, ty: Ty) -> String {
         self.by_id
             .get(&(ty.to_index() as u64))
-            .cloned()
+            .map(|e| e.name.clone())
             .unwrap_or_else(|| format!("{}", ty))
+    }
+
+    pub fn get_layout(&self, ty: Ty) -> Option<&LayoutInfo> {
+        self.by_id
+            .get(&(ty.to_index() as u64))
+            .and_then(|e| e.layout.as_ref())
+    }
+
+    /// Iterate over all type entries
+    pub fn iter(&self) -> impl Iterator<Item = (u64, &TypeEntry)> {
+        self.by_id.iter().map(|(&id, entry)| (id, entry))
+    }
+}
+
+// =============================================================================
+// TypeEntry Implementation
+// =============================================================================
+
+impl TypeEntry {
+    pub fn from_metadata(metadata: &TypeMetadata, ty: Ty) -> Self {
+        let (name, kind, layout) = match metadata {
+            TypeMetadata::PrimitiveType(rigid) => {
+                (format!("{:?}", rigid), TypeKind::Primitive, None)
+            }
+            TypeMetadata::StructType {
+                name,
+                fields,
+                layout,
+                ..
+            } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                let field_infos = Self::make_field_infos(fields, layout_info.as_ref());
+                (
+                    name.clone(),
+                    TypeKind::Struct {
+                        fields: field_infos,
+                    },
+                    layout_info,
+                )
+            }
+            TypeMetadata::EnumType {
+                name,
+                fields,
+                discriminants,
+                layout,
+                ..
+            } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                let variants = discriminants
+                    .iter()
+                    .zip(fields.iter())
+                    .map(|(&discr, variant_fields)| VariantInfo {
+                        discriminant: discr,
+                        fields: variant_fields
+                            .iter()
+                            .map(|&t| FieldInfo {
+                                ty: t,
+                                offset: None, // Enum variant offsets require variant-specific layout
+                            })
+                            .collect(),
+                    })
+                    .collect();
+                (name.clone(), TypeKind::Enum { variants }, layout_info)
+            }
+            TypeMetadata::UnionType {
+                name,
+                fields,
+                layout,
+                ..
+            } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                // Union fields all start at offset 0
+                let field_infos: Vec<FieldInfo> = fields
+                    .iter()
+                    .map(|&t| FieldInfo {
+                        ty: t,
+                        offset: Some(0),
+                    })
+                    .collect();
+                (
+                    name.clone(),
+                    TypeKind::Union {
+                        fields: field_infos,
+                    },
+                    layout_info,
+                )
+            }
+            TypeMetadata::ArrayType {
+                elem_type,
+                size,
+                layout,
+            } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                let len = size.as_ref().and_then(|s| s.eval_target_usize().ok());
+                (
+                    format!("{}", ty),
+                    TypeKind::Array {
+                        elem_ty: *elem_type,
+                        len,
+                    },
+                    layout_info,
+                )
+            }
+            TypeMetadata::TupleType { types, layout } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                (
+                    format!("{}", ty),
+                    TypeKind::Tuple {
+                        fields: types.clone(),
+                    },
+                    layout_info,
+                )
+            }
+            TypeMetadata::PtrType {
+                pointee_type,
+                layout,
+            } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                (
+                    format!("{}", ty),
+                    TypeKind::Ptr {
+                        pointee: *pointee_type,
+                    },
+                    layout_info,
+                )
+            }
+            TypeMetadata::RefType {
+                pointee_type,
+                layout,
+            } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                (
+                    format!("{}", ty),
+                    TypeKind::Ref {
+                        pointee: *pointee_type,
+                    },
+                    layout_info,
+                )
+            }
+            TypeMetadata::FunType(name) => (name.clone(), TypeKind::Function, None),
+            TypeMetadata::VoidType => ("()".to_string(), TypeKind::Void, None),
+        };
+
+        Self { name, kind, layout }
+    }
+
+    fn make_field_infos(fields: &[Ty], layout: Option<&LayoutInfo>) -> Vec<FieldInfo> {
+        fields
+            .iter()
+            .enumerate()
+            .map(|(i, &ty)| FieldInfo {
+                ty,
+                offset: layout.and_then(|l| l.field_offsets.get(i).copied()),
+            })
+            .collect()
+    }
+
+    /// Get a detailed description of this type including layout
+    pub fn detailed_description(&self, type_index: &TypeIndex) -> String {
+        let mut desc = self.name.clone();
+        if let Some(layout) = &self.layout {
+            desc.push_str(&format!(" ({} bytes, align {})", layout.size, layout.align));
+        }
+        match &self.kind {
+            TypeKind::Struct { fields } | TypeKind::Union { fields } => {
+                if !fields.is_empty() {
+                    desc.push_str(" { ");
+                    let field_strs: Vec<String> = fields
+                        .iter()
+                        .map(|f| {
+                            let ty_name = type_index.get_name(f.ty);
+                            match f.offset {
+                                Some(off) => format!("@{}: {}", off, ty_name),
+                                None => ty_name,
+                            }
+                        })
+                        .collect();
+                    desc.push_str(&field_strs.join(", "));
+                    desc.push_str(" }");
+                }
+            }
+            _ => {}
+        }
+        desc
+    }
+}
+
+// =============================================================================
+// LayoutInfo Implementation
+// =============================================================================
+
+impl LayoutInfo {
+    pub fn from_shape(shape: &LayoutShape) -> Self {
+        let field_offsets = match &shape.fields {
+            FieldsShape::Primitive => vec![],
+            FieldsShape::Union(_) => vec![0], // All fields at offset 0
+            FieldsShape::Array { stride, count } => {
+                // Generate offsets for each element
+                (0..*count).map(|i| (i as usize) * stride.bytes()).collect()
+            }
+            FieldsShape::Arbitrary { offsets } => offsets.iter().map(|o| o.bytes()).collect(),
+        };
+
+        Self {
+            size: shape.size.bytes(),
+            align: shape.abi_align as usize,
+            field_offsets,
+        }
+    }
+
+    /// Get the offset for a specific field index
+    pub fn field_offset(&self, index: usize) -> Option<usize> {
+        self.field_offsets.get(index).copied()
     }
 }

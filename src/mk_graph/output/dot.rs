@@ -43,6 +43,18 @@ impl SmirJson<'_> {
                 alloc_node.set("color", "lightyellow", false);
             }
 
+            // Add types legend node showing composite types with layouts
+            let type_lines = ctx.types_legend_lines();
+            if type_lines.len() > 1 {
+                // Only show if there are actual types (more than just "TYPES" header)
+                let mut type_node = graph.node_auto();
+                let mut lines = type_lines;
+                lines.push("".to_string());
+                type_node.set_label(&lines.join("\\l"));
+                type_node.set_style(Style::Filled);
+                type_node.set("color", "lavender", false);
+            }
+
             // first create all nodes for functions not in the items list
             for f in ctx.functions.values() {
                 if !item_names.contains(f) {
@@ -65,12 +77,13 @@ impl SmirJson<'_> {
                             c.set_color(Color::LightGrey);
                         }
 
-                        // Set out the type information of the locals
+                        // Set out the type information of the locals with layout info
                         let mut local_node = c.node_auto();
                         let mut vector: Vec<String> = vec![];
                         vector.push(String::from("LOCALS"));
                         for (index, decl) in body.clone().unwrap().local_decls() {
-                            vector.push(format!("{index} = {}", decl.ty));
+                            let ty_with_layout = ctx.render_type_with_layout(decl.ty);
+                            vector.push(format!("{index} = {}", ty_with_layout));
                         }
                         vector.push("".to_string());
                         local_node.set_label(vector.join("\\l").to_string().as_str());
