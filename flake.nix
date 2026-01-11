@@ -58,7 +58,6 @@
             zlib
             jq
             gnumake
-            rust-analyzer
           ];
 
           env = {
