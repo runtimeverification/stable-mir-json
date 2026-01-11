@@ -140,7 +140,7 @@ impl AllocEntry {
         let (kind, description) = match info.global_alloc() {
             GlobalAlloc::Memory(alloc) => {
                 let bytes = &alloc.bytes;
-                let is_str = ty_name.contains("str") || ty_name.contains("&str");
+                let is_str = ty_name.contains("str");
 
                 // Convert Option<u8> bytes to actual bytes for display
                 let concrete_bytes: Vec<u8> = bytes.iter().filter_map(|&b| b).collect();
