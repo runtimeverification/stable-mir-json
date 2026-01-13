@@ -1,55 +1,25 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fs::File,
-    hash::{DefaultHasher, Hash, Hasher},
-    io::{self, Write},
-};
+//! DOT (Graphviz) format output for MIR graphs.
+
+use std::collections::HashSet;
 
 use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
 
-extern crate rustc_middle;
-use rustc_middle::ty::TyCtxt;
-
 extern crate stable_mir;
-use rustc_session::config::{OutFileName, OutputType};
+use stable_mir::mir::{BasicBlock, ConstOperand, Operand, TerminatorKind, UnwindAction};
 
-extern crate rustc_session;
-use stable_mir::ty::{IndexedVal, Ty};
-use stable_mir::{
-    mir::{
-        AggregateKind, BasicBlock, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic,
-        NullOp, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind, TerminatorKind,
-        UnwindAction,
-    },
-    ty::RigidTy,
-};
+use crate::printer::SmirJson;
+use crate::MonoItemKind;
 
-use crate::{
-    printer::{collect_smir, FnSymType, SmirJson},
-    MonoItemKind,
-};
-
-// entry point to write the dot file
-pub fn emit_dotfile(tcx: TyCtxt<'_>) {
-    let smir_dot = collect_smir(tcx).to_dot_file();
-
-    match tcx.output_filenames(()).path(OutputType::Mir) {
-        OutFileName::Stdout => {
-            write!(io::stdout(), "{}", smir_dot).expect("Failed to write smir.dot");
-        }
-        OutFileName::Real(path) => {
-            let mut b = io::BufWriter::new(
-                File::create(path.with_extension("smir.dot"))
-                    .expect("Failed to create {path}.smir.dot output file"),
-            );
-            write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
-        }
-    }
-}
+use crate::mk_graph::context::GraphContext;
+use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
 
 impl SmirJson<'_> {
+    /// Convert the MIR to DOT (Graphviz) format
     pub fn to_dot_file(self) -> String {
         let mut bytes = Vec::new();
+
+        // Build context BEFORE consuming self
+        let ctx = GraphContext::from_smir(&self);
 
         {
             let mut writer = DotWriter::from(&mut bytes);
@@ -60,17 +30,33 @@ impl SmirJson<'_> {
             graph.set_label(&self.name[..]);
             graph.node_attributes().set_shape(Shape::Rectangle);
 
-            let func_map: HashMap<Ty, String> = self
-                .functions
-                .into_iter()
-                .map(|(k, v)| (k.0, function_string(v)))
-                .collect();
-
             let item_names: HashSet<String> =
                 self.items.iter().map(|i| i.symbol_name.clone()).collect();
 
+            // Add allocs legend node if there are any allocs
+            if !ctx.allocs.by_id.is_empty() {
+                let mut alloc_node = graph.node_auto();
+                let mut lines = ctx.allocs_legend_lines();
+                lines.push("".to_string());
+                alloc_node.set_label(&lines.join("\\l"));
+                alloc_node.set_style(Style::Filled);
+                alloc_node.set("color", "lightyellow", false);
+            }
+
+            // Add types legend node showing composite types with layouts
+            let type_lines = ctx.types_legend_lines();
+            if type_lines.len() > 1 {
+                // Only show if there are actual types (more than just "TYPES" header)
+                let mut type_node = graph.node_auto();
+                let mut lines = type_lines;
+                lines.push("".to_string());
+                type_node.set_label(&lines.join("\\l"));
+                type_node.set_style(Style::Filled);
+                type_node.set("color", "lavender", false);
+            }
+
             // first create all nodes for functions not in the items list
-            for f in func_map.values() {
+            for f in ctx.functions.values() {
                 if !item_names.contains(f) {
                     graph
                         .node_named(block_name(f, 0))
@@ -91,12 +77,13 @@ impl SmirJson<'_> {
                             c.set_color(Color::LightGrey);
                         }
 
-                        // Set out the type information of the locals
+                        // Set out the type information of the locals with layout info
                         let mut local_node = c.node_auto();
                         let mut vector: Vec<String> = vec![];
                         vector.push(String::from("LOCALS"));
                         for (index, decl) in body.clone().unwrap().local_decls() {
-                            vector.push(format!("{index} = {}", decl.ty));
+                            let ty_with_layout = ctx.render_type_with_layout(decl.ty);
+                            vector.push(format!("{index} = {}", ty_with_layout));
                         }
                         vector.push("".to_string());
                         local_node.set_label(vector.join("\\l").to_string().as_str());
@@ -111,9 +98,8 @@ impl SmirJson<'_> {
                                 let this_block = block_name(name, node_id);
 
                                 let mut label_strs: Vec<String> =
-                                    b.statements.iter().map(render_stmt).collect();
-                                // TODO: render statements and terminator as text label (with line breaks)
-                                // switch on terminator kind, add inner and out-edges according to terminator
+                                    b.statements.iter().map(|s| ctx.render_stmt(s)).collect();
+
                                 use TerminatorKind::*;
                                 match &b.terminator.kind {
                                     Goto { target } => {
@@ -121,7 +107,10 @@ impl SmirJson<'_> {
                                         cluster.edge(&this_block, block_name(name, *target));
                                     }
                                     SwitchInt { discr, targets } => {
-                                        label_strs.push(format!("SwitchInt {}", discr.label()));
+                                        label_strs.push(format!(
+                                            "SwitchInt {}",
+                                            ctx.render_operand(discr)
+                                        ));
                                         for (d, t) in targets.clone().branches() {
                                             cluster
                                                 .edge(&this_block, block_name(name, t))
@@ -196,7 +185,7 @@ impl SmirJson<'_> {
                                     } => {
                                         label_strs.push(format!(
                                             "Assert {} == {}",
-                                            cond.label(),
+                                            ctx.render_operand(cond),
                                             expected
                                         ));
                                         if let UnwindAction::Cleanup(t) = unwind {
@@ -260,7 +249,8 @@ impl SmirJson<'_> {
                                                 Operand::Constant(ConstOperand {
                                                     const_, ..
                                                 }) => {
-                                                    if let Some(callee) = func_map.get(&const_.ty())
+                                                    if let Some(callee) =
+                                                        ctx.functions.get(&const_.ty())
                                                     {
                                                         // callee node/body will be added when its body is added, missing ones added before
                                                         graph.edge(
@@ -285,7 +275,7 @@ impl SmirJson<'_> {
                                             };
                                             let arg_str = args
                                                 .iter()
-                                                .map(|op| op.label())
+                                                .map(|op| ctx.render_operand(op))
                                                 .collect::<Vec<String>>()
                                                 .join(",");
                                             e.attributes().set_label(&arg_str);
@@ -318,207 +308,5 @@ impl SmirJson<'_> {
         }
 
         String::from_utf8(bytes).expect("Error converting dot file")
-    }
-}
-
-fn is_unqualified(name: &str) -> bool {
-    !name.contains("::")
-}
-
-fn function_string(f: FnSymType) -> String {
-    match f {
-        FnSymType::NormalSym(name) => name,
-        FnSymType::NoOpSym(name) => format!("NoOp: {name}"),
-        FnSymType::IntrinsicSym(name) => format!("Intr: {name}"),
-    }
-}
-
-fn name_lines(name: &str) -> String {
-    name.split_inclusive(" ")
-        .flat_map(|s| s.as_bytes().chunks(25))
-        .map(|bs| core::str::from_utf8(bs).unwrap().to_string())
-        .collect::<Vec<String>>()
-        .join("\\n")
-}
-
-/// consistently naming function clusters
-fn short_name(function_name: &String) -> String {
-    let mut h = DefaultHasher::new();
-    function_name.hash(&mut h);
-    format!("X{:x}", h.finish())
-}
-
-/// consistently naming block nodes in function clusters
-fn block_name(function_name: &String, id: usize) -> String {
-    let mut h = DefaultHasher::new();
-    function_name.hash(&mut h);
-    format!("X{:x}_{}", h.finish(), id)
-}
-
-fn render_stmt(s: &Statement) -> String {
-    use StatementKind::*;
-    match &s.kind {
-        Assign(p, v) => format!("{} <- {}", p.label(), v.label()),
-        FakeRead(_cause, p) => format!("Fake-Read {}", p.label()),
-        SetDiscriminant {
-            place,
-            variant_index,
-        } => format!(
-            "set discriminant {}({})",
-            place.label(),
-            variant_index.to_index()
-        ),
-        Deinit(p) => format!("Deinit {}", p.label()),
-        StorageLive(l) => format!("Storage Live _{}", &l),
-        StorageDead(l) => format!("Storage Dead _{}", &l),
-        Retag(_retag_kind, p) => format!("Retag {}", p.label()),
-        PlaceMention(p) => format!("Mention {}", p.label()),
-        AscribeUserType {
-            place,
-            projections,
-            variance: _,
-        } => format!("Ascribe {}.{}", place.label(), projections.base),
-        Coverage(_) => "Coverage".to_string(),
-        Intrinsic(intr) => format!("Intr: {}", intr.label()),
-        ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-        Nop {} => "Nop".to_string(),
-    }
-}
-
-/// Rendering things as part of graph node labels
-trait GraphLabelString {
-    fn label(&self) -> String;
-}
-
-impl GraphLabelString for Operand {
-    fn label(&self) -> String {
-        match &self {
-            Operand::Constant(ConstOperand { const_, .. }) => {
-                let ty = const_.ty();
-                match &ty.kind() {
-                    stable_mir::ty::TyKind::RigidTy(RigidTy::Int(_))
-                    | stable_mir::ty::TyKind::RigidTy(RigidTy::Uint(_)) => {
-                        format!("const ?_{}", const_.ty())
-                    }
-                    _ => format!("const {}", const_.ty()),
-                }
-            }
-            Operand::Copy(place) => format!("cp({})", place.label()),
-            Operand::Move(place) => format!("mv({})", place.label()),
-        }
-    }
-}
-
-impl GraphLabelString for Place {
-    fn label(&self) -> String {
-        project(self.local.to_string(), &self.projection)
-    }
-}
-
-fn project(local: String, ps: &[ProjectionElem]) -> String {
-    ps.iter().fold(local, decorate)
-}
-
-fn decorate(thing: String, p: &ProjectionElem) -> String {
-    match p {
-        ProjectionElem::Deref => format!("(*{})", thing),
-        ProjectionElem::Field(i, _) => format!("{thing}.{i}"),
-        ProjectionElem::Index(local) => format!("{thing}[_{local}]"),
-        ProjectionElem::ConstantIndex {
-            offset,
-            min_length: _,
-            from_end,
-        } => format!("{thing}[{}{}]", if *from_end { "-" } else { "" }, offset),
-        ProjectionElem::Subslice { from, to, from_end } => {
-            format!(
-                "{thing}[{}..{}{}]",
-                from,
-                if *from_end { "-" } else { "" },
-                to
-            )
-        }
-        ProjectionElem::Downcast(i) => format!("({thing} as variant {})", i.to_index()),
-        ProjectionElem::OpaqueCast(ty) => format!("{thing} as type {ty}"),
-        ProjectionElem::Subtype(i) => format!("{thing} :> {i}"),
-    }
-}
-
-impl GraphLabelString for AggregateKind {
-    fn label(&self) -> String {
-        use AggregateKind::*;
-        match &self {
-            Array(_ty) => "Array".to_string(),
-            Tuple {} => "Tuple".to_string(),
-            Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()), // (AdtDef, VariantIdx, GenericArgs, Option<usize>, Option<FieldIdx>),
-            Closure(_, _) => "Closure".to_string(), // (ClosureDef, GenericArgs),
-            Coroutine(_, _, _) => "Coroutine".to_string(), // (CoroutineDef, GenericArgs, Movability),
-            // CoroutineClosure{} => "CoroutineClosure".to_string(), // (CoroutineClosureDef, GenericArgs),
-            RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
-            RawPtr(ty, Mutability::Not) => format!("*({})", ty),
-        }
-    }
-}
-
-impl GraphLabelString for Rvalue {
-    fn label(&self) -> String {
-        use Rvalue::*;
-        match &self {
-            AddressOf(mutability, p) => match mutability {
-                Mutability::Not => format!("&raw {}", p.label()),
-                Mutability::Mut => format!("&raw mut {}", p.label()),
-            },
-            Aggregate(kind, operands) => {
-                let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
-                format!("{} ({})", kind.label(), os.join(", "))
-            }
-            BinaryOp(binop, op1, op2) => format!("{:?}({}, {})", binop, op1.label(), op2.label()),
-            Cast(kind, op, _ty) => format!("Cast-{:?} {}", kind, op.label()),
-            CheckedBinaryOp(binop, op1, op2) => {
-                format!("chkd-{:?}({}, {})", binop, op1.label(), op2.label())
-            }
-            CopyForDeref(p) => format!("CopyForDeref({})", p.label()),
-            Discriminant(p) => format!("Discriminant({})", p.label()),
-            Len(p) => format!("Len({})", p.label()),
-            Ref(_region, borrowkind, p) => {
-                format!(
-                    "&{} {}",
-                    match borrowkind {
-                        BorrowKind::Mut { kind: _ } => "mut",
-                        _other => "",
-                    },
-                    p.label()
-                )
-            }
-            Repeat(op, _ty_const) => format!("Repeat {}", op.label()),
-            ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", op.label()),
-            ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
-            NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
-            UnaryOp(unop, op) => format!("{:?}({})", unop, op.label()),
-            Use(op) => format!("Use({})", op.label()),
-        }
-    }
-}
-
-impl GraphLabelString for NullOp {
-    fn label(&self) -> String {
-        match &self {
-            NullOp::OffsetOf(_vec) => "OffsetOf(..)".to_string(),
-            other => format!("{:?}", other),
-        }
-    }
-}
-
-impl GraphLabelString for NonDivergingIntrinsic {
-    fn label(&self) -> String {
-        use NonDivergingIntrinsic::*;
-        match &self {
-            Assume(op) => format!("Assume {}", op.label()),
-            CopyNonOverlapping(c) => format!(
-                "CopyNonOverlapping: {} <- {}({}))",
-                c.dst.label(),
-                c.src.label(),
-                c.count.label()
-            ),
-        }
     }
 }

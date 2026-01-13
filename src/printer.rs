@@ -1355,6 +1355,20 @@ pub struct AllocInfo {
     global_alloc: GlobalAlloc,
 }
 
+impl AllocInfo {
+    pub fn alloc_id(&self) -> AllocId {
+        self.alloc_id
+    }
+
+    pub fn ty(&self) -> stable_mir::ty::Ty {
+        self.ty
+    }
+
+    pub fn global_alloc(&self) -> &GlobalAlloc {
+        &self.global_alloc
+    }
+}
+
 // Serialization Entrypoint
 // ========================
 
