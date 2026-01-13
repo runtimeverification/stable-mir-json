@@ -1,6 +1,6 @@
-# Rust Stable MIR Pretty Printing
+# Rust Stable MIR JSON Generator
 
-This package provides a program that will emit a JSON serialisation of the Stable MIR of a Rust program
+This package provides a program that will emit a JSON serialisation of the Stable MIR of a Rust program, along with a comprehensive JSON schema for validation and tooling integration.
 
 ## Building
 
@@ -89,3 +89,52 @@ cargo run --bin cargo_stable_mir_json -- $PWD [OPTIONAL-PATH-FOR-DIR]
 RUSTC=<PATH-TO-.stable_mir_json>/<PROFILE>.sh cargo build
 ```
 NOTE: by default `<PATH-TO-.stable_mir_json>` is `~/.stable_mir_json`
+
+## JSON Schema
+
+This repository includes a comprehensive JSON schema for the Stable MIR JSON format, enabling validation, tooling integration, and documentation.
+
+### Schema Location
+
+- **Schema file**: [`schema/stable-mir.schema.json`](schema/stable-mir.schema.json)
+- **Documentation**: [`docs/schema.md`](docs/schema.md)
+
+### Validation
+
+Validate your generated JSON files against the schema:
+
+```shell
+# Validate all test files
+./scripts/validate-schema.sh
+
+# Validate specific files
+./scripts/validate-schema.sh path/to/your/file.smir.json
+
+# Verbose validation with detailed output
+./scripts/validate-schema.sh --verbose
+```
+
+### Schema Features
+
+- **Complete coverage** of all Stable MIR data structures
+- **Type safety** with detailed type definitions and constraints
+- **Documentation** with descriptions for all fields and structures
+- **Validation support** for development and CI/CD pipelines
+- **Tool integration** compatible with standard JSON Schema validators
+
+### Using with External Tools
+
+```shell
+# Using ajv-cli (npm install -g ajv-cli)
+ajv validate -s schema/stable-mir.schema.json -d "file.smir.json"
+
+# Using Python jsonschema (pip install jsonschema)
+python -c "
+import json, jsonschema
+schema = json.load(open('schema/stable-mir.schema.json'))
+data = json.load(open('file.smir.json'))
+jsonschema.validate(data, schema)
+"
+```
+
+For detailed schema documentation, see [`docs/schema.md`](docs/schema.md).
