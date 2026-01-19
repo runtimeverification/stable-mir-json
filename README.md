@@ -10,8 +10,6 @@ cargo build
 
 NOTE: requries [rustup](https://www.rust-lang.org/tools/install)
 
-The `build.rs` script will ensure that the correct version of rust and the required components are installed and defaulted. What `rustup` commands are run can be seen by adding verbosity flag `-vv` to `cargo`.
-
 ## Usage
 
 Use the wrapper script `run.sh` (or `cargo run`, but this may also initiate a build).
