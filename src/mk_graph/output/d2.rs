@@ -44,9 +44,6 @@ impl SmirJson<'_> {
 
 fn render_d2_allocs_legend(ctx: &GraphContext, out: &mut String) {
     let legend_lines = ctx.allocs_legend_lines();
-    if legend_lines.is_empty() {
-        return;
-    }
 
     out.push_str("ALLOCS: {\n");
     out.push_str("  style.fill: \"#ffffcc\"\n");
