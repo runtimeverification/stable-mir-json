@@ -70,7 +70,7 @@ test-ui:
 	fi
 	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT" "${VERBOSE}"
 
-.PHONY: dot svg png d2 clean-graphs
+.PHONY: dot svg png d2 clean-graphs check-graphviz
 
 OUTDIR_DOT=output-dot
 OUTDIR_SVG=output-svg
@@ -79,6 +79,14 @@ OUTDIR_D2=output-d2
 
 clean-graphs:
 	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
+
+check-graphviz:
+	@command -v dot >/dev/null 2>&1 || { \
+		echo "Error: Graphviz is not installed or 'dot' is not in PATH."; \
+		echo "Please install Graphviz for your system and ensure 'dot' is available."; \
+		echo "See: https://graphviz.org/download/"; \
+		exit 1; \
+	}
 
 dot:
 	@mkdir -p $(OUTDIR_DOT)
@@ -89,7 +97,7 @@ dot:
 		mv $$name.smir.dot $(OUTDIR_DOT)/ 2>/dev/null || true; \
 	done
 
-svg: dot
+svg: check-graphviz dot
 	@mkdir -p $(OUTDIR_SVG)
 	@for dotfile in $(OUTDIR_DOT)/*.dot; do \
 		name=$$(basename $$dotfile .dot); \
@@ -97,7 +105,7 @@ svg: dot
 		dot -Tsvg $$dotfile -o $(OUTDIR_SVG)/$$name.svg; \
 	done
 
-png: dot
+png: check-graphviz dot
 	@mkdir -p $(OUTDIR_PNG)
 	@for dotfile in $(OUTDIR_DOT)/*.dot; do \
 		name=$$(basename $$dotfile .dot); \
