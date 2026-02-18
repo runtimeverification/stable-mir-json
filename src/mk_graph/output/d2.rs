@@ -1,5 +1,7 @@
 //! D2 diagram format output for MIR graphs.
 
+use std::collections::HashSet;
+
 extern crate stable_mir;
 use stable_mir::mir::TerminatorKind;
 
@@ -10,11 +12,22 @@ use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{
     escape_d2, is_unqualified, name_lines, short_name, terminator_targets,
 };
+use crate::mk_graph::{compute_lang_start_exclusions, skip_lang_start};
 
 impl SmirJson<'_> {
     /// Convert the MIR to D2 diagram format
-    pub fn to_d2_file(self) -> String {
+    pub fn to_d2_file(mut self) -> String {
         let ctx = GraphContext::from_smir(&self);
+
+        // Optionally filter out lang_start items and their unique descendants
+        let excluded: HashSet<String> = if skip_lang_start() {
+            let excluded = compute_lang_start_exclusions(&self.items, &ctx);
+            self.items.retain(|i| !excluded.contains(&i.symbol_name));
+            excluded
+        } else {
+            HashSet::new()
+        };
+
         let mut output = String::new();
 
         output.push_str("direction: right\n\n");
@@ -23,7 +36,7 @@ impl SmirJson<'_> {
         for item in self.items {
             match item.mono_item_kind {
                 MonoItemKind::MonoItemFn { name, body, .. } => {
-                    render_d2_function(&name, body.as_ref(), &ctx, &mut output);
+                    render_d2_function(&name, body.as_ref(), &ctx, &excluded, &mut output);
                 }
                 MonoItemKind::MonoItemGlobalAsm { asm } => {
                     render_d2_asm(&asm, &mut output);
@@ -61,6 +74,7 @@ fn render_d2_function(
     name: &str,
     body: Option<&stable_mir::mir::Body>,
     ctx: &GraphContext,
+    excluded: &HashSet<String>,
     out: &mut String,
 ) {
     let fn_id = short_name(name);
@@ -80,7 +94,7 @@ fn render_d2_function(
 
     // Call edges (must be outside the container)
     if let Some(body) = body {
-        render_d2_call_edges(&fn_id, body, ctx, out);
+        render_d2_call_edges(&fn_id, body, ctx, excluded, out);
     }
 }
 
@@ -115,6 +129,7 @@ fn render_d2_call_edges(
     fn_id: &str,
     body: &stable_mir::mir::Body,
     ctx: &GraphContext,
+    excluded: &HashSet<String>,
     out: &mut String,
 ) {
     for (idx, block) in body.blocks.iter().enumerate() {
@@ -124,7 +139,7 @@ fn render_d2_call_edges(
         let Some(callee_name) = ctx.resolve_call_target(func) else {
             continue;
         };
-        if !is_unqualified(&callee_name) {
+        if !is_unqualified(&callee_name) || excluded.contains(&callee_name) {
             continue;
         }
 
