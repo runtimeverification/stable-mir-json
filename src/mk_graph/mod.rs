@@ -26,11 +26,25 @@ pub use index::{AllocEntry, AllocIndex, AllocKind, TypeIndex};
 pub use util::GraphLabelString;
 
 // =============================================================================
+// Lang Start Filtering
+// =============================================================================
+
+pub(crate) fn skip_lang_start() -> bool {
+    use std::sync::OnceLock;
+    static VAR: OnceLock<bool> = OnceLock::new();
+    *VAR.get_or_init(|| std::env::var("SKIP_LANG_START").is_ok())
+}
+
+// =============================================================================
 // Entry Points
 // =============================================================================
 
 /// Entry point to write the DOT file
 pub fn emit_dotfile(tcx: TyCtxt<'_>) {
+    if skip_lang_start() {
+        println!("SKIP_LANG_START is set");
+    }
+
     let smir_dot = collect_smir(tcx).to_dot_file();
 
     match tcx.output_filenames(()).path(OutputType::Mir) {
