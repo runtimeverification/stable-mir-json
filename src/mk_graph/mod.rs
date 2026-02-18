@@ -145,20 +145,7 @@ fn is_std_rt_lang_start(kind: &MonoItemKind) -> bool {
 
 /// Entry point to write the DOT file
 pub fn emit_dotfile(tcx: TyCtxt<'_>) {
-    let smir = collect_smir(tcx);
-
-    if skip_lang_start() {
-        let ctx = GraphContext::from_smir(&smir);
-        let excluded = compute_lang_start_exclusions(&smir.items, &ctx);
-        println!("SKIP_LANG_START: excluding {} items:", excluded.len());
-        let mut sorted: Vec<_> = excluded.iter().collect();
-        sorted.sort();
-        for name in sorted {
-            println!("  - {}", name);
-        }
-    }
-
-    let smir_dot = smir.to_dot_file();
+    let smir_dot = collect_smir(tcx).to_dot_file();
 
     match tcx.output_filenames(()).path(OutputType::Mir) {
         OutFileName::Stdout => {
