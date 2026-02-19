@@ -138,18 +138,19 @@ fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>
     }
 }
 
-fn get_item_details(tcx: TyCtxt<'_>, id: DefId, fn_inst: Option<Instance>) -> Option<ItemDetails> {
+fn get_item_details(
+    tcx: TyCtxt<'_>,
+    id: DefId,
+    fn_inst: Option<Instance>,
+    fn_body: Option<&Body>,
+) -> Option<ItemDetails> {
     if debug_enabled() {
         Some(ItemDetails {
             fn_instance_kind: fn_inst.map(|i| i.kind),
             fn_item_kind: fn_inst
                 .and_then(|i| CrateItem::try_from(i).ok())
                 .map(|i| i.kind()),
-            fn_body_details: if let Some(fn_inst) = fn_inst {
-                fn_inst.body().map(|body| get_body_details(&body))
-            } else {
-                None
-            },
+            fn_body_details: fn_body.map(get_body_details),
             internal_kind: format!("{:#?}", tcx.def_kind(id)),
             path: tcx.def_path_str(id), // NOTE: underlying data from tcx.def_path(id);
             internal_ty: print_type(tcx, id, tcx.type_of(id)),
@@ -289,6 +290,8 @@ pub enum MonoItemKind {
         name: String,
         id: stable_mir::DefId,
         allocation: Option<Allocation>,
+        #[serde(skip)]
+        body: Option<Body>,
     },
     MonoItemGlobalAsm {
         asm: String,
@@ -301,6 +304,41 @@ pub struct Item {
     pub symbol_name: String,
     pub mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
+}
+
+impl Item {
+    /// Returns the pre-collected body and appropriate locals slice, if available.
+    /// For functions, locals come from the body; for statics, locals are empty.
+    fn body_and_locals(&self) -> Option<(&Body, &[LocalDecl])> {
+        match &self.mono_item_kind {
+            MonoItemKind::MonoItemFn {
+                body: Some(body), ..
+            } => Some((body, body.locals())),
+            MonoItemKind::MonoItemStatic {
+                body: Some(body), ..
+            } => Some((body, &[])),
+            _ => None,
+        }
+    }
+
+    /// Log a warning when a body was expected but missing.
+    fn warn_missing_body(&self) {
+        match &self.mono_item {
+            MonoItem::Fn(inst) => {
+                eprintln!(
+                    "Failed to retrieve body for Instance of MonoItem::Fn {}",
+                    inst.name()
+                );
+            }
+            MonoItem::Static(def) => {
+                eprintln!(
+                    "Failed to retrieve body for Instance of MonoItem::Static {}",
+                    def.name()
+                );
+            }
+            MonoItem::GlobalAsm(_) => {}
+        }
+    }
 }
 
 impl PartialEq for Item {
@@ -324,16 +362,8 @@ impl Ord for Item {
                 "{}!{}",
                 i.symbol_name,
                 match &i.mono_item_kind {
-                    MonoItemFn {
-                        name,
-                        id: _,
-                        body: _,
-                    } => name,
-                    MonoItemStatic {
-                        name,
-                        id: _,
-                        allocation: _,
-                    } => name,
+                    MonoItemFn { name, .. } => name,
+                    MonoItemStatic { name, .. } => name,
                     MonoItemGlobalAsm { asm } => asm,
                 }
             )
@@ -348,15 +378,17 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             let id = inst.def.def_id();
             let name = inst.name();
             let internal_id = rustc_internal::internal(tcx, id);
+            let body = inst.body();
+            let details = get_item_details(tcx, internal_id, Some(inst), body.as_ref());
             Item {
                 mono_item: item,
                 symbol_name: sym_name.clone(),
                 mono_item_kind: MonoItemKind::MonoItemFn {
                     name: name.clone(),
                     id,
-                    body: inst.body(),
+                    body,
                 },
-                details: get_item_details(tcx, internal_id, Some(inst)),
+                details,
             }
         }
         MonoItem::Static(static_def) => {
@@ -371,6 +403,8 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
                     None
                 }
             };
+            let inst = def_id_to_inst(tcx, static_def.def_id());
+            let body = inst.body();
             Item {
                 mono_item: item,
                 symbol_name: sym_name,
@@ -378,8 +412,9 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
                     name: static_def.name(),
                     id: static_def.def_id(),
                     allocation: alloc,
+                    body,
                 },
-                details: get_item_details(tcx, internal_id, None),
+                details: get_item_details(tcx, internal_id, None, None),
             }
         }
         MonoItem::GlobalAsm(ref asm) => {
@@ -571,7 +606,9 @@ impl AllocMap {
                 MonoItemKind::MonoItemFn {
                     body: Some(body), ..
                 } => Some(body),
-                MonoItemKind::MonoItemStatic { .. } => None,
+                MonoItemKind::MonoItemStatic {
+                    body: Some(body), ..
+                } => Some(body),
                 _ => None,
             };
             if let Some(body) = body {
@@ -729,17 +766,32 @@ impl Visitor for TyCollector<'_> {
     }
 }
 
-struct InternedValueCollector<'tcx, 'local> {
+/// Single-pass body visitor that collects all derived information from a MIR body:
+/// link map entries (calls, drops, fn pointers), allocations, types, spans,
+/// and unevaluated constant references (for transitive item discovery).
+///
+/// By combining what was previously two separate visitors (BodyAnalyzer
+/// and UnevaluatedConstCollector), each body is walked exactly once.
+struct BodyAnalyzer<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
-    _sym: String,
     locals: &'local [LocalDecl],
     link_map: &'local mut LinkMap<'tcx>,
     visited_allocs: &'local mut AllocMap,
     ty_visitor: &'local mut TyCollector<'tcx>,
     spans: &'local mut SpanMap,
+    /// Unevaluated constants discovered during this body walk.
+    /// The outer fixpoint loop uses these to discover and create new Items.
+    new_unevaluated: &'local mut Vec<UnevalConstInfo>,
 }
 
-type InternedValues<'tcx> = (LinkMap<'tcx>, AllocMap, TyMap, SpanMap);
+/// Information about an unevaluated constant discovered during body analysis.
+/// The outer fixpoint loop in collect_and_analyze_items uses this to create
+/// new Items for transitively discovered mono items.
+struct UnevalConstInfo {
+    const_def: ConstDef,
+    item_name: String,
+    mono_item: MonoItem,
+}
 
 fn is_reify_shim(kind: &middle::ty::InstanceKind<'_>) -> bool {
     matches!(kind, middle::ty::InstanceKind::ReifyShim(..))
@@ -887,7 +939,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
 }
 
 fn collect_alloc(
-    val_collector: &mut InternedValueCollector,
+    val_collector: &mut BodyAnalyzer,
     ty: stable_mir::ty::Ty,
     offset: &usize,
     val: stable_mir::mir::alloc::AllocId,
@@ -982,7 +1034,7 @@ fn collect_alloc(
     };
 }
 
-impl MirVisitor for InternedValueCollector<'_, '_> {
+impl MirVisitor for BodyAnalyzer<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
         let span_internal = internal(self.tcx, span);
         let (source_file, lo_line, lo_col, hi_line, hi_col) = self
@@ -1090,7 +1142,28 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
                     }
                 }
             }
-            ConstantKind::Unevaluated(_) | ConstantKind::Param(_) => {}
+            ConstantKind::Unevaluated(uconst) => {
+                let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
+                let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
+                let maybe_inst = rustc_middle::ty::Instance::try_resolve(
+                    self.tcx,
+                    TypingEnv::post_analysis(self.tcx, internal_def),
+                    internal_def,
+                    internal_args,
+                );
+                let inst = maybe_inst
+                    .ok()
+                    .flatten()
+                    .unwrap_or_else(|| panic!("Failed to resolve mono item for {:?}", uconst));
+                let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
+                let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
+                self.new_unevaluated.push(UnevalConstInfo {
+                    const_def: uconst.def,
+                    item_name,
+                    mono_item: rustc_internal::stable(internal_mono_item),
+                });
+            }
+            ConstantKind::Param(_) => {}
         }
         self.super_mir_const(constant, loc);
     }
@@ -1101,160 +1174,127 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     }
 }
 
-fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: &[Item]) -> InternedValues<'tcx> {
-    let mut calls_map = HashMap::new();
+/// Result of collecting all mono items and analyzing their bodies in a single pass.
+/// After this phase completes, no more inst.body() calls should be needed.
+struct CollectedCrate {
+    items: Vec<Item>,
+    original_item_names: HashSet<String>,
+    unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,
+}
+
+struct DerivedInfo<'tcx> {
+    calls: LinkMap<'tcx>,
+    allocs: AllocMap,
+    types: TyMap,
+    spans: SpanMap,
+}
+
+/// Enqueue newly discovered unevaluated-const items into the fixpoint work queue.
+/// Each new item calls mk_item (which calls inst.body() exactly once).
+fn enqueue_unevaluated_consts(
+    tcx: TyCtxt<'_>,
+    discovered: Vec<UnevalConstInfo>,
+    known_names: &mut HashSet<String>,
+    pending: &mut HashMap<String, Item>,
+    unevaluated_consts: &mut HashMap<stable_mir::ty::ConstDef, String>,
+) {
+    for info in discovered {
+        if known_names.contains(&info.item_name) || pending.contains_key(&info.item_name) {
+            continue;
+        }
+        debug_log_println!("Adding unevaluated const body for: {}", info.item_name);
+        unevaluated_consts.insert(info.const_def, info.item_name.clone());
+        let new_item = mk_item(tcx, info.mono_item, info.item_name.clone());
+        pending.insert(info.item_name.clone(), new_item);
+        known_names.insert(info.item_name);
+    }
+}
+
+/// Register a function item in the link map (when LINK_ITEMS is enabled).
+fn maybe_add_to_link_map<'tcx>(tcx: TyCtxt<'tcx>, item: &Item, link_map: &mut LinkMap<'tcx>) {
+    if !link_items_enabled() {
+        return;
+    }
+    if let MonoItem::Fn(inst) = &item.mono_item {
+        update_link_map(
+            link_map,
+            fn_inst_sym(tcx, None, Some(inst)),
+            ItemSource(ITEM),
+        );
+    }
+}
+
+/// Collect all mono items and analyze their bodies in a single pass per body.
+///
+/// This function combines what was previously three separate phases:
+/// 1. collect_items (get initial mono items, calling inst.body() once per item)
+/// 2. collect_unevaluated_constant_items (walk bodies to find unevaluated consts)
+/// 3. collect_interned_values (walk bodies again to find allocs, types, spans, calls)
+///
+/// Now each body is walked exactly once. The fixpoint loop handles transitive
+/// discovery of items through unevaluated constants: when a body references an
+/// unknown unevaluated const, a new Item is created (calling inst.body() once)
+/// and added to the work queue.
+fn collect_and_analyze_items<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    initial_items: HashMap<String, Item>,
+) -> (CollectedCrate, DerivedInfo<'tcx>) {
+    let original_item_names: HashSet<String> = initial_items.keys().cloned().collect();
+
+    let mut calls_map: LinkMap<'tcx> = HashMap::new();
     let mut visited_allocs = AllocMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
-    let mut span_map = HashMap::new();
-    if link_items_enabled() {
-        for item in items.iter() {
-            if let MonoItem::Fn(inst) = &item.mono_item {
-                update_link_map(
-                    &mut calls_map,
-                    fn_inst_sym(tcx, None, Some(inst)),
-                    ItemSource(ITEM),
-                )
-            }
-        }
-    }
-    for item in items.iter() {
-        match &item.mono_item {
-            MonoItem::Fn(inst) => {
-                if let MonoItemKind::MonoItemFn {
-                    body: Some(body), ..
-                } = &item.mono_item_kind
-                {
-                    InternedValueCollector {
-                        tcx,
-                        _sym: inst.mangled_name(),
-                        locals: body.locals(),
-                        link_map: &mut calls_map,
-                        visited_allocs: &mut visited_allocs,
-                        ty_visitor: &mut ty_visitor,
-                        spans: &mut span_map,
-                    }
-                    .visit_body(body)
-                } else {
-                    eprintln!(
-                        "Failed to retrive body for Instance of MonoItem::Fn {}",
-                        inst.name()
-                    )
-                }
-            }
-            MonoItem::Static(def) => {
-                let inst = def_id_to_inst(tcx, def.def_id());
-                if let Some(body) = inst.body() {
-                    InternedValueCollector {
-                        tcx,
-                        _sym: inst.mangled_name(),
-                        locals: &[],
-                        link_map: &mut calls_map,
-                        visited_allocs: &mut visited_allocs,
-                        ty_visitor: &mut ty_visitor,
-                        spans: &mut span_map,
-                    }
-                    .visit_body(&body)
-                } else {
-                    eprintln!(
-                        "Failed to retrive body for Instance of MonoItem::Static {}",
-                        inst.name()
-                    )
-                }
-            }
-            MonoItem::GlobalAsm(_) => {}
-        }
-    }
-    (calls_map, visited_allocs, ty_visitor.types, span_map)
-}
+    let mut span_map: SpanMap = HashMap::new();
+    let mut unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String> = HashMap::new();
 
-// Collection Transitive Closure
-// =============================
+    let mut pending: HashMap<String, Item> = initial_items;
+    let mut known_names: HashSet<String> = original_item_names.clone();
+    let mut all_items: Vec<Item> = Vec::new();
 
-struct UnevaluatedConstCollector<'tcx, 'local> {
-    tcx: TyCtxt<'tcx>,
-    unevaluated_consts: &'local mut HashMap<stable_mir::ty::ConstDef, String>,
-    processed_items: &'local mut HashMap<String, Item>,
-    pending_items: &'local mut HashMap<String, Item>,
-    current_item: u64,
-}
+    while let Some((_name, item)) = take_any(&mut pending) {
+        maybe_add_to_link_map(tcx, &item, &mut calls_map);
 
-impl MirVisitor for UnevaluatedConstCollector<'_, '_> {
-    fn visit_mir_const(
-        &mut self,
-        constant: &stable_mir::ty::MirConst,
-        _location: stable_mir::mir::visit::Location,
-    ) {
-        if let stable_mir::ty::ConstantKind::Unevaluated(uconst) = constant.kind() {
-            let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
-            let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
-            let maybe_inst = rustc_middle::ty::Instance::try_resolve(
-                self.tcx,
-                TypingEnv::post_analysis(self.tcx, internal_def),
-                internal_def,
-                internal_args,
-            );
-            let inst = maybe_inst
-                .ok()
-                .flatten()
-                .unwrap_or_else(|| panic!("Failed to resolve mono item for {:?}", uconst));
-            let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
-            let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
-            if !(self.processed_items.contains_key(&item_name)
-                || self.pending_items.contains_key(&item_name)
-                || self.current_item == hash(&item_name))
-            {
-                debug_log_println!("Adding unevaluated const body for: {}", item_name);
-                self.unevaluated_consts
-                    .insert(uconst.def, item_name.clone());
-                self.pending_items.insert(
-                    item_name.clone(),
-                    mk_item(
-                        self.tcx,
-                        rustc_internal::stable(internal_mono_item),
-                        item_name,
-                    ),
-                );
-            }
-        }
-    }
-}
-
-fn collect_unevaluated_constant_items(
-    tcx: TyCtxt<'_>,
-    items: HashMap<String, Item>,
-) -> (HashMap<stable_mir::ty::ConstDef, String>, Vec<Item>) {
-    // setup collector prerequisites
-    let mut unevaluated_consts = HashMap::new();
-    let mut processed_items = HashMap::new();
-    let mut pending_items = items;
-
-    while let Some((curr_name, value)) = take_any(&mut pending_items) {
-        // skip item if it isn't a function
-        let body = match value.mono_item_kind {
-            MonoItemKind::MonoItemFn { ref body, .. } => body,
-            _ => continue,
+        let Some((body, locals)) = item.body_and_locals() else {
+            item.warn_missing_body();
+            all_items.push(item);
+            continue;
         };
 
-        // create new collector for function body
-        let mut collector = UnevaluatedConstCollector {
+        let mut new_unevaluated = Vec::new();
+        BodyAnalyzer {
             tcx,
-            unevaluated_consts: &mut unevaluated_consts,
-            processed_items: &mut processed_items,
-            pending_items: &mut pending_items,
-            current_item: hash(&curr_name),
-        };
-
-        if let Some(body) = body {
-            collector.visit_body(body);
+            locals,
+            link_map: &mut calls_map,
+            visited_allocs: &mut visited_allocs,
+            ty_visitor: &mut ty_visitor,
+            spans: &mut span_map,
+            new_unevaluated: &mut new_unevaluated,
         }
+        .visit_body(body);
 
-        // move processed item into seen items
-        processed_items.insert(curr_name.to_string(), value);
+        enqueue_unevaluated_consts(
+            tcx,
+            new_unevaluated,
+            &mut known_names,
+            &mut pending,
+            &mut unevaluated_consts,
+        );
+
+        all_items.push(item);
     }
 
     (
-        unevaluated_consts,
-        processed_items.drain().map(|(_name, item)| item).collect(),
+        CollectedCrate {
+            items: all_items,
+            original_item_names,
+            unevaluated_consts,
+        },
+        DerivedInfo {
+            calls: calls_map,
+            allocs: visited_allocs,
+            types: ty_visitor.types,
+            spans: span_map,
+        },
     )
 }
 
@@ -1531,25 +1571,40 @@ impl AllocInfo {
 // Serialization Entrypoint
 // ========================
 
-pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+/// Phase 3: Assemble the final SmirJson from collected and derived data.
+/// This is a pure data transformation with no inst.body() calls.
+fn assemble_smir<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    collected: CollectedCrate,
+    derived: DerivedInfo<'tcx>,
+) -> SmirJson<'tcx> {
     let local_crate = stable_mir::local_crate();
-    let items = collect_items(tcx);
-    let items_clone = items.clone();
-    let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-    let (calls_map, visited_allocs, visited_tys, span_map) = collect_interned_values(tcx, &items);
+    let CollectedCrate {
+        mut items,
+        original_item_names,
+        unevaluated_consts,
+    } = collected;
+    let DerivedInfo {
+        calls,
+        allocs: visited_allocs,
+        types: visited_tys,
+        spans: span_map,
+    } = derived;
 
     // Verify alloc coherence: no duplicate AllocIds, and every AllocId
     // referenced in a stored body was actually collected.
     #[cfg(debug_assertions)]
     visited_allocs.verify_coherence(&items);
 
-    // FIXME: We dump extra static items here --- this should be handled better
+    // FIXME: We dump extra static items here --- this should be handled better.
+    // Statics discovered through allocation provenance that weren't in the
+    // original mono item collection.
     for (_, alloc) in visited_allocs.iter() {
         if let (_, GlobalAlloc::Static(def)) = alloc {
             let mono_item =
                 stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
             let item_name = &mono_item_name(tcx, &mono_item);
-            if !items_clone.contains_key(item_name) {
+            if !original_item_names.contains(item_name) {
                 println!(
                     "Items missing static with id {:?} and name {:?}",
                     def, item_name
@@ -1560,10 +1615,9 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     }
 
     let debug: Option<SmirJsonDebugInfo> = if debug_enabled() {
-        let fn_sources = calls_map
-            .clone()
-            .into_iter()
-            .map(|(k, (source, _))| (k, source))
+        let fn_sources = calls
+            .iter()
+            .map(|(k, (source, _))| (k.clone(), source.clone()))
             .collect::<Vec<_>>();
         Some(SmirJsonDebugInfo {
             fn_sources,
@@ -1574,7 +1628,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         None
     };
 
-    let mut functions = calls_map
+    let mut functions = calls
         .into_iter()
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
@@ -1591,7 +1645,6 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let mut types = visited_tys
         .into_iter()
         .filter_map(|(k, (t, l))| mk_type_metadata(tcx, k, t, l))
-        //        .filter(|(_, v)| v.is_primitive())
         .collect::<Vec<_>>();
 
     let mut spans = span_map.into_iter().collect::<Vec<_>>();
@@ -1615,6 +1668,22 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         debug,
         machine: stable_mir::target::MachineInfo::target(),
     }
+}
+
+pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+    // Phase 1+2: Collect all mono items from rustc and analyze their bodies
+    // in a single pass. Each body is walked exactly once. Transitive item
+    // discovery (unevaluated constants) is handled by a fixpoint loop.
+    let initial_items = collect_items(tcx);
+    let (collected, derived) = collect_and_analyze_items(tcx, initial_items);
+
+    // Verify alloc coherence: no duplicate AllocIds, and every AllocId
+    // referenced in a stored body was actually collected.
+    #[cfg(debug_assertions)]
+    derived.allocs.verify_coherence(&collected.items);
+
+    // Phase 3: Assemble the final output (pure data transformation)
+    assemble_smir(tcx, collected, derived)
 }
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
