@@ -485,7 +485,148 @@ impl Serialize for ItemSource {
 }
 
 type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
-type AllocMap = HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc)>;
+/// Wrapper around the alloc-id-to-allocation map that tracks insertion
+/// behavior in debug builds. This serves two purposes:
+///
+/// 1. Duplicate detection: if the same AllocId is inserted twice, that
+///    indicates a body was walked more than once (a regression the
+///    declarative pipeline is designed to prevent).
+///
+/// 2. Coherence verification (via `verify_coherence`): after collection,
+///    checks that every AllocId in the stored Item bodies actually
+///    exists in this map. A mismatch means the analysis walked a
+///    different body than what's stored (the original alloc-id bug).
+///
+/// In release builds the tracking fields are compiled out, making this
+/// a zero-cost wrapper.
+struct AllocMap {
+    inner: HashMap<stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc)>,
+    #[cfg(debug_assertions)]
+    insert_count: usize,
+    #[cfg(debug_assertions)]
+    duplicate_ids: Vec<stable_mir::mir::alloc::AllocId>,
+}
+
+impl AllocMap {
+    fn new() -> Self {
+        Self {
+            inner: HashMap::new(),
+            #[cfg(debug_assertions)]
+            insert_count: 0,
+            #[cfg(debug_assertions)]
+            duplicate_ids: Vec::new(),
+        }
+    }
+
+    fn contains_key(&self, key: &stable_mir::mir::alloc::AllocId) -> bool {
+        self.inner.contains_key(key)
+    }
+
+    fn insert(
+        &mut self,
+        key: stable_mir::mir::alloc::AllocId,
+        value: (stable_mir::ty::Ty, GlobalAlloc),
+    ) {
+        #[cfg(debug_assertions)]
+        {
+            self.insert_count += 1;
+            if self.inner.contains_key(&key) {
+                self.duplicate_ids.push(key);
+            }
+        }
+        self.inner.insert(key, value);
+    }
+
+    fn iter(
+        &self,
+    ) -> impl Iterator<
+        Item = (
+            &stable_mir::mir::alloc::AllocId,
+            &(stable_mir::ty::Ty, GlobalAlloc),
+        ),
+    > {
+        self.inner.iter()
+    }
+
+    fn into_entries(
+        self,
+    ) -> impl Iterator<Item = (stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc))>
+    {
+        self.inner.into_iter()
+    }
+
+    /// Verify that alloc ids in the stored Item bodies match this map.
+    ///
+    /// Walks every stored body to extract AllocIds from provenance, then
+    /// checks that each one exists in this map. A mismatch means the
+    /// analysis phase walked a different body than what's stored in the
+    /// Items (which is exactly the bug that the declarative pipeline
+    /// restructuring was designed to prevent).
+    #[cfg(debug_assertions)]
+    fn verify_coherence(&self, items: &[Item]) {
+        // Collect alloc ids referenced in stored bodies
+        let mut body_ids: HashSet<stable_mir::mir::alloc::AllocId> = HashSet::new();
+        for item in items {
+            let body = match &item.mono_item_kind {
+                MonoItemKind::MonoItemFn {
+                    body: Some(body), ..
+                } => Some(body),
+                MonoItemKind::MonoItemStatic { .. } => None,
+                _ => None,
+            };
+            if let Some(body) = body {
+                AllocIdCollector {
+                    ids: &mut body_ids,
+                }
+                .visit_body(body);
+            }
+        }
+
+        let map_ids: HashSet<_> = self.inner.keys().copied().collect();
+        let missing_from_map: Vec<_> = body_ids.difference(&map_ids).collect();
+
+        assert!(
+            missing_from_map.is_empty(),
+            "Alloc-id coherence violation: AllocIds {:?} are referenced in \
+             stored Item bodies but missing from the alloc map. This means \
+             the analysis phase collected allocations from a different body \
+             than what is stored in the Items.",
+            missing_from_map
+        );
+
+        assert!(
+            self.duplicate_ids.is_empty(),
+            "Alloc-id duplicate insertion: AllocIds {:?} were inserted into \
+             the alloc map more than once, indicating a body was walked \
+             multiple times.",
+            self.duplicate_ids
+        );
+    }
+}
+
+/// MirVisitor that extracts AllocIds from provenance in Allocated constants.
+/// Used by AllocMap::verify_coherence to find which alloc ids the stored
+/// bodies actually reference.
+#[cfg(debug_assertions)]
+struct AllocIdCollector<'a> {
+    ids: &'a mut HashSet<stable_mir::mir::alloc::AllocId>,
+}
+
+#[cfg(debug_assertions)]
+impl MirVisitor for AllocIdCollector<'_> {
+    fn visit_mir_const(
+        &mut self,
+        constant: &stable_mir::ty::MirConst,
+        loc: stable_mir::mir::visit::Location,
+    ) {
+        if let stable_mir::ty::ConstantKind::Allocated(alloc) = constant.kind() {
+            for (_, prov) in &alloc.provenance.ptrs {
+                self.ids.insert(prov.0);
+            }
+        }
+        self.super_mir_const(constant, loc);
+    }
+}
 type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 type SpanMap = HashMap<usize, (String, usize, usize, usize, usize)>;
@@ -751,8 +892,7 @@ fn collect_alloc(
     offset: &usize,
     val: stable_mir::mir::alloc::AllocId,
 ) {
-    let entry = val_collector.visited_allocs.entry(val);
-    if matches!(entry, std::collections::hash_map::Entry::Occupied(_)) {
+    if val_collector.visited_allocs.contains_key(&val) {
         return;
     }
     let kind = ty.kind();
@@ -773,7 +913,9 @@ fn collect_alloc(
                 global_alloc
             );
             if let Some(p_ty) = pointed_ty {
-                entry.or_insert((p_ty, global_alloc.clone()));
+                val_collector
+                    .visited_allocs
+                    .insert(val, (p_ty, global_alloc.clone()));
                 alloc
                     .provenance
                     .ptrs
@@ -782,7 +924,10 @@ fn collect_alloc(
                         collect_alloc(val_collector, p_ty, prov_offset, prov.0);
                     });
             } else {
-                entry.or_insert((stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                val_collector.visited_allocs.insert(
+                    val,
+                    (stable_mir::ty::Ty::to_val(0), global_alloc.clone()),
+                );
             }
         }
         GlobalAlloc::Static(_) => {
@@ -791,7 +936,9 @@ fn collect_alloc(
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((ty, global_alloc.clone()));
+            val_collector
+                .visited_allocs
+                .insert(val, (ty, global_alloc.clone()));
         }
         GlobalAlloc::VTable(_, _) => {
             assert!(
@@ -799,7 +946,9 @@ fn collect_alloc(
                 "Allocated pointer is not a built-in pointer type: {:?}",
                 kind
             );
-            entry.or_insert((ty, global_alloc.clone()));
+            val_collector
+                .visited_allocs
+                .insert(val, (ty, global_alloc.clone()));
         }
         GlobalAlloc::Function(_) => {
             if !kind.is_fn_ptr() {
@@ -813,14 +962,21 @@ fn collect_alloc(
                     prov_ty
                 );
                 if let Some(p_ty) = prov_ty {
-                    entry.or_insert((p_ty, global_alloc.clone()));
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (p_ty, global_alloc.clone()));
                 } else {
                     // Could not recover a precise pointee type; use an opaque 0-valued Ty
                     // as a conservative placeholder.
-                    entry.or_insert((stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                    val_collector.visited_allocs.insert(
+                        val,
+                        (stable_mir::ty::Ty::to_val(0), global_alloc.clone()),
+                    );
                 }
             } else {
-                entry.or_insert((ty, global_alloc.clone()));
+                val_collector
+                    .visited_allocs
+                    .insert(val, (ty, global_alloc.clone()));
             }
         }
     };
@@ -947,7 +1103,7 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
 
 fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> InternedValues<'tcx> {
     let mut calls_map = HashMap::new();
-    let mut visited_allocs = HashMap::new();
+    let mut visited_allocs = AllocMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
     let mut span_map = HashMap::new();
     if link_items_enabled() {
@@ -1380,6 +1536,11 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let (calls_map, visited_allocs, visited_tys, span_map) =
         collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
 
+    // Verify alloc coherence: no duplicate AllocIds, and every AllocId
+    // referenced in a stored body was actually collected.
+    #[cfg(debug_assertions)]
+    visited_allocs.verify_coherence(&items);
+
     // FIXME: We dump extra static items here --- this should be handled better
     for (_, alloc) in visited_allocs.iter() {
         if let (_, GlobalAlloc::Static(def)) = alloc {
@@ -1416,7 +1577,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
         .map(|(k, (_, name))| (k, name))
         .collect::<Vec<_>>();
     let mut allocs = visited_allocs
-        .into_iter()
+        .into_entries()
         .map(|(alloc_id, (ty, global_alloc))| AllocInfo {
             alloc_id,
             ty,
