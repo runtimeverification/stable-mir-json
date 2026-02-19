@@ -1101,14 +1101,14 @@ impl MirVisitor for InternedValueCollector<'_, '_> {
     }
 }
 
-fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> InternedValues<'tcx> {
+fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: &[Item]) -> InternedValues<'tcx> {
     let mut calls_map = HashMap::new();
     let mut visited_allocs = AllocMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
     let mut span_map = HashMap::new();
     if link_items_enabled() {
         for item in items.iter() {
-            if let MonoItem::Fn(inst) = item {
+            if let MonoItem::Fn(inst) = &item.mono_item {
                 update_link_map(
                     &mut calls_map,
                     fn_inst_sym(tcx, None, Some(inst)),
@@ -1118,9 +1118,12 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
         }
     }
     for item in items.iter() {
-        match &item {
+        match &item.mono_item {
             MonoItem::Fn(inst) => {
-                if let Some(body) = inst.body() {
+                if let MonoItemKind::MonoItemFn {
+                    body: Some(body), ..
+                } = &item.mono_item_kind
+                {
                     InternedValueCollector {
                         tcx,
                         _sym: inst.mangled_name(),
@@ -1130,7 +1133,7 @@ fn collect_interned_values<'tcx>(tcx: TyCtxt<'tcx>, items: Vec<&MonoItem>) -> In
                         ty_visitor: &mut ty_visitor,
                         spans: &mut span_map,
                     }
-                    .visit_body(&body)
+                    .visit_body(body)
                 } else {
                     eprintln!(
                         "Failed to retrive body for Instance of MonoItem::Fn {}",
@@ -1533,8 +1536,7 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let items = collect_items(tcx);
     let items_clone = items.clone();
     let (unevaluated_consts, mut items) = collect_unevaluated_constant_items(tcx, items);
-    let (calls_map, visited_allocs, visited_tys, span_map) =
-        collect_interned_values(tcx, items.iter().map(|i| &i.mono_item).collect::<Vec<_>>());
+    let (calls_map, visited_allocs, visited_tys, span_map) = collect_interned_values(tcx, &items);
 
     // Verify alloc coherence: no duplicate AllocIds, and every AllocId
     // referenced in a stored body was actually collected.
