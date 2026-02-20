@@ -11,7 +11,7 @@ use crate::mk_graph::util::{
     escape_d2, is_unqualified, name_lines, short_name, terminator_targets,
 };
 
-impl SmirJson<'_> {
+impl SmirJson {
     /// Convert the MIR to D2 diagram format
     pub fn to_d2_file(self) -> String {
         let ctx = GraphContext::from_smir(&self);

@@ -10,16 +10,11 @@
 //! otherwise re-enter rustc. `MonoItem` values live only in the phase 1+2
 //! maps and are dropped before phase 3 begins.
 
-extern crate rustc_middle;
-extern crate rustc_smir;
-extern crate rustc_span;
-extern crate stable_mir;
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
-use rustc_middle::ty::TyCtxt;
-use rustc_smir::rustc_internal;
-use rustc_span::def_id::LOCAL_CRATE;
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::ty::IndexedVal;
@@ -56,16 +51,7 @@ fn warn_missing_body(mono_item: &MonoItem) {
 }
 
 fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
-    let units = tcx.collect_and_partition_mono_items(()).1;
-    units
-        .iter()
-        .flat_map(|unit| {
-            unit.items_in_deterministic_order(tcx)
-                .iter()
-                .map(|(internal_item, _)| rustc_internal::stable(internal_item))
-                .collect::<Vec<_>>()
-        })
-        .collect()
+    crate::compat::mono_collect::mono_collect(tcx)
 }
 
 fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item)> {
@@ -111,11 +97,11 @@ fn enqueue_unevaluated_consts(
 /// (calling `inst.body()` exactly once) and adds it to the work queue. The
 /// `MonoItem` half is used for link-map registration and diagnostics during
 /// this phase, then dropped; only the `Item` survives into `CollectedCrate`.
-fn collect_and_analyze_items<'tcx>(
-    tcx: TyCtxt<'tcx>,
+fn collect_and_analyze_items(
+    tcx: TyCtxt<'_>,
     initial_items: HashMap<String, (MonoItem, Item)>,
-) -> (CollectedCrate, DerivedInfo<'tcx>) {
-    let mut calls_map: LinkMap<'tcx> = HashMap::new();
+) -> (CollectedCrate, DerivedInfo) {
+    let mut calls_map: LinkMap = HashMap::new();
     let mut visited_allocs = AllocMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
     let mut span_map: SpanMap = HashMap::new();
@@ -173,11 +159,7 @@ fn collect_and_analyze_items<'tcx>(
 
 /// Phase 3: Assemble the final SmirJson from collected and derived data.
 /// This is a pure data transformation with no inst.body() calls.
-fn assemble_smir<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    collected: CollectedCrate,
-    derived: DerivedInfo<'tcx>,
-) -> SmirJson<'tcx> {
+fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInfo) -> SmirJson {
     let local_crate = stable_mir::local_crate();
     let CollectedCrate {
         mut items,
@@ -217,7 +199,7 @@ fn assemble_smir<'tcx>(
         .into_entries()
         .map(|(alloc_id, (ty, global_alloc))| AllocInfo::new(alloc_id, ty, global_alloc))
         .collect::<Vec<_>>();
-    let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+    let crate_id = crate::compat::types::local_crate_id(tcx);
 
     let mut types = visited_tys
         .into_iter()

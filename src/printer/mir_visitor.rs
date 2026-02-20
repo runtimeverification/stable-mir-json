@@ -12,13 +12,9 @@
 //! offset within a struct or tuple, walking down through nested fields until it
 //! reaches the actual pointer type.
 
-extern crate rustc_middle;
-extern crate rustc_smir;
-extern crate rustc_span;
-extern crate stable_mir;
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::stable_mir;
 
-use rustc_middle::ty::{TyCtxt, TypingEnv};
-use rustc_smir::rustc_internal::{self, internal};
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::Instance;
@@ -31,7 +27,7 @@ use stable_mir::CrateDef;
 use super::link_map::{fn_inst_sym, update_link_map};
 use super::schema::{AllocMap, ItemSource, LinkMap, SpanMap, FPTR, ITEM, TERM};
 use super::ty_visitor::TyCollector;
-use super::util::{fn_inst_for_ty, mono_item_name_int};
+use super::util::fn_inst_for_ty;
 
 /// Single-pass body visitor that collects all derived information from a MIR body:
 /// link map entries (calls, drops, fn pointers), allocations, types, spans,
@@ -42,7 +38,7 @@ use super::util::{fn_inst_for_ty, mono_item_name_int};
 pub(super) struct BodyAnalyzer<'tcx, 'local> {
     pub tcx: TyCtxt<'tcx>,
     pub locals: &'local [LocalDecl],
-    pub link_map: &'local mut LinkMap<'tcx>,
+    pub link_map: &'local mut LinkMap,
     pub visited_allocs: &'local mut AllocMap,
     pub ty_visitor: &'local mut TyCollector<'tcx>,
     pub spans: &'local mut SpanMap,
@@ -61,10 +57,10 @@ pub(super) struct UnevalConstInfo {
 }
 
 /// Register a `MonoItem::Fn` in the link map (when `LINK_ITEMS` is enabled).
-pub(super) fn maybe_add_to_link_map<'tcx>(
-    tcx: TyCtxt<'tcx>,
+pub(super) fn maybe_add_to_link_map(
+    tcx: TyCtxt<'_>,
     mono_item: &stable_mir::mir::mono::MonoItem,
-    link_map: &mut LinkMap<'tcx>,
+    link_map: &mut LinkMap,
 ) {
     if !super::link_items_enabled() {
         return;
@@ -308,22 +304,9 @@ fn collect_alloc(
 
 impl MirVisitor for BodyAnalyzer<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
-        let span_internal = internal(self.tcx, span);
-        let (source_file, lo_line, lo_col, hi_line, hi_col) = self
-            .tcx
-            .sess
-            .source_map()
-            .span_to_location_info(span_internal);
-        let file_name = match source_file {
-            Some(sf) => sf
-                .name
-                .display(rustc_span::FileNameDisplayPreference::Remapped)
-                .to_string(),
-            None => "no-location".to_string(),
-        };
         self.spans.insert(
             span.to_index(),
-            (file_name, lo_line, lo_col, hi_line, hi_col),
+            crate::compat::spans::resolve_span(self.tcx, span),
         );
     }
 
@@ -416,24 +399,15 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                 }
             }
             ConstantKind::Unevaluated(uconst) => {
-                let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
-                let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
-                let maybe_inst = rustc_middle::ty::Instance::try_resolve(
+                let (mono_item, item_name) = crate::compat::bridge::resolve_unevaluated_const(
                     self.tcx,
-                    TypingEnv::post_analysis(self.tcx, internal_def),
-                    internal_def,
-                    internal_args,
+                    uconst.def.def_id(),
+                    uconst.args.clone(),
                 );
-                let inst = maybe_inst
-                    .ok()
-                    .flatten()
-                    .unwrap_or_else(|| panic!("Failed to resolve mono item for {:?}", uconst));
-                let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
-                let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
                 self.new_unevaluated.push(UnevalConstInfo {
                     const_def: uconst.def,
                     item_name,
-                    mono_item: rustc_internal::stable(internal_mono_item),
+                    mono_item,
                 });
             }
             ConstantKind::Param(_) => {}

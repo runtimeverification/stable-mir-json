@@ -6,12 +6,8 @@
 use std::fs::File;
 use std::io::{self, Write};
 
-extern crate rustc_middle;
-use rustc_middle::ty::TyCtxt;
-
-extern crate rustc_session;
-use rustc_session::config::{OutFileName, OutputType};
-
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::output::{mir_output_path, OutputDest};
 use crate::printer::collect_smir;
 
 // Sub-modules
@@ -33,15 +29,14 @@ pub use util::GraphLabelString;
 pub fn emit_dotfile(tcx: TyCtxt<'_>) {
     let smir_dot = collect_smir(tcx).to_dot_file();
 
-    match tcx.output_filenames(()).path(OutputType::Mir) {
-        OutFileName::Stdout => {
+    match mir_output_path(tcx, "smir.dot") {
+        OutputDest::Stdout => {
             write!(io::stdout(), "{}", smir_dot).expect("Failed to write smir.dot");
         }
-        OutFileName::Real(path) => {
-            let out_path = path.with_extension("smir.dot");
+        OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
-                File::create(&out_path)
-                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", out_path.display(), e)),
+                File::create(&path)
+                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
             write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
         }
@@ -52,15 +47,14 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
 pub fn emit_d2file(tcx: TyCtxt<'_>) {
     let smir_d2 = collect_smir(tcx).to_d2_file();
 
-    match tcx.output_filenames(()).path(OutputType::Mir) {
-        OutFileName::Stdout => {
+    match mir_output_path(tcx, "smir.d2") {
+        OutputDest::Stdout => {
             write!(io::stdout(), "{}", smir_d2).expect("Failed to write smir.d2");
         }
-        OutFileName::Real(path) => {
-            let out_path = path.with_extension("smir.d2");
+        OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
-                File::create(&out_path)
-                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", out_path.display(), e)),
+                File::create(&path)
+                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
             write!(b, "{}", smir_d2).expect("Failed to write smir.d2");
         }
