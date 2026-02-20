@@ -1,35 +1,9 @@
-use std::hash::Hash;
-use std::io::Write;
-use std::ops::ControlFlow;
-use std::{
-    collections::{HashMap, HashSet},
-    fs::File,
-    io,
-    iter::Iterator,
-    str,
-    vec::Vec,
-};
-extern crate rustc_middle;
-extern crate rustc_monomorphize;
-extern crate rustc_session;
-extern crate rustc_smir;
-extern crate rustc_span;
-extern crate stable_mir;
-// HACK: typically, we would source serde/serde_json separately from the compiler
-//       However, due to issues matching crate versions when we have our own serde
-//       in addition to the rustc serde, we force ourselves to use rustc serde
-extern crate serde;
-extern crate serde_json;
-use rustc_middle as middle;
-use rustc_middle::ty::{
-    EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
-};
-use rustc_session::config::{OutFileName, OutputType};
-use rustc_smir::rustc_internal::{self, internal};
-use rustc_span::{
-    def_id::{DefId, LOCAL_CRATE},
-    symbol,
-};
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::rustc_span;
+use crate::compat::serde;
+use crate::compat::serde_json;
+use crate::compat::stable_mir;
+use rustc_span::{def_id::DefId, symbol};
 use serde::{Serialize, Serializer};
 use stable_mir::{
     abi::{FieldsShape, LayoutShape},
@@ -41,6 +15,17 @@ use stable_mir::{
     ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
     visitor::{Visitable, Visitor},
     CrateDef, CrateItem, ItemKind,
+};
+use std::hash::Hash;
+use std::io::Write;
+use std::ops::ControlFlow;
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io,
+    iter::Iterator,
+    str,
+    vec::Vec,
 };
 
 // Structs for serializing extra details about mono items
@@ -63,19 +48,7 @@ fn get_body_details(body: &Body) -> BodyDetails {
 struct GenericData(Vec<(String, String)>); // Alternatively, GenericData<'a>(Vec<(&'a Generics,GenericPredicates<'a>)>);
 
 fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
-    let mut v = Vec::new();
-    let mut next_id = Some(id);
-    while let Some(curr_id) = next_id {
-        let params = tcx.generics_of(curr_id);
-        let preds = tcx.predicates_of(curr_id);
-        if params.parent != preds.parent {
-            panic!("Generics and predicates parent ids are distinct");
-        }
-        v.push((format!("{:#?}", params), format!("{:#?}", preds)));
-        next_id = params.parent;
-    }
-    v.reverse();
-    GenericData(v)
+    GenericData(crate::compat::types::generic_data(tcx, id))
 }
 
 #[derive(Serialize, Clone)]
@@ -91,53 +64,6 @@ struct ItemDetails {
     generic_data: GenericData,
 }
 
-// unwrap early binder in a default manner; panic on error
-fn default_unwrap_early_binder<'tcx, T>(tcx: TyCtxt<'tcx>, id: DefId, v: EarlyBinder<'tcx, T>) -> T
-where
-    T: TypeFoldable<TyCtxt<'tcx>>,
-{
-    let v_copy = v.clone();
-    let body = tcx.optimized_mir(id);
-    match tcx.try_instantiate_and_normalize_erasing_regions(
-        GenericArgs::identity_for_item(tcx, id),
-        body.typing_env(tcx),
-        v,
-    ) {
-        Ok(res) => res,
-        Err(err) => {
-            println!("{:?}", err);
-            v_copy.skip_binder()
-        }
-    }
-}
-
-fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>>) -> String {
-    // lookup type kind in order to perform case analysis
-    let kind: &middle::ty::TyKind = ty.skip_binder().kind();
-    if let middle::ty::TyKind::FnDef(fun_id, args) = kind {
-        // since FnDef doesn't contain signature, lookup actual function type
-        // via getting fn signature with parameters and resolving those parameters
-        let sig0 = tcx.fn_sig(fun_id);
-        let body = tcx.optimized_mir(id);
-        let sig1 = match tcx.try_instantiate_and_normalize_erasing_regions(
-            args,
-            body.typing_env(tcx),
-            sig0,
-        ) {
-            Ok(res) => res,
-            Err(err) => {
-                println!("{:?}", err);
-                sig0.skip_binder()
-            }
-        };
-        let sig2: FnSig<'_> = tcx.instantiate_bound_regions_with_erased(sig1);
-        format!("\nTyKind(FnDef): {:#?}", sig2)
-    } else {
-        let kind = default_unwrap_early_binder(tcx, id, ty);
-        format!("\nTyKind: {:#?}", kind)
-    }
-}
-
 fn get_item_details(
     tcx: TyCtxt<'_>,
     id: DefId,
@@ -145,17 +71,17 @@ fn get_item_details(
     fn_body: Option<&Body>,
 ) -> Option<ItemDetails> {
     if debug_enabled() {
+        let (internal_kind, path, internal_ty) = crate::compat::types::get_def_info(tcx, id);
         Some(ItemDetails {
             fn_instance_kind: fn_inst.map(|i| i.kind),
             fn_item_kind: fn_inst
                 .and_then(|i| CrateItem::try_from(i).ok())
                 .map(|i| i.kind()),
             fn_body_details: fn_body.map(get_body_details),
-            internal_kind: format!("{:#?}", tcx.def_kind(id)),
-            path: tcx.def_path_str(id), // NOTE: underlying data from tcx.def_path(id);
-            internal_ty: print_type(tcx, id, tcx.type_of(id)),
+            internal_kind,
+            path,
+            internal_ty,
             generic_data: generic_data(tcx, id),
-            // TODO: let layout = tcx.layout_of(id);
         })
     } else {
         None
@@ -230,19 +156,11 @@ macro_rules! debug_log_println {
 
 // Possible input: sym::test
 pub fn has_attr(tcx: TyCtxt<'_>, item: &stable_mir::CrateItem, attr: symbol::Symbol) -> bool {
-    tcx.has_attr(rustc_internal::internal(tcx, item), attr)
+    crate::compat::types::has_attr(tcx, item, attr)
 }
 
 fn mono_item_name(tcx: TyCtxt<'_>, item: &MonoItem) -> String {
-    if let MonoItem::GlobalAsm(data) = item {
-        hash(data).to_string()
-    } else {
-        mono_item_name_int(tcx, &rustc_internal::internal(tcx, item))
-    }
-}
-
-fn mono_item_name_int<'a>(tcx: TyCtxt<'a>, item: &rustc_middle::mir::mono::MonoItem<'a>) -> String {
-    item.symbol_name(tcx).name.into()
+    crate::compat::mono_collect::mono_item_name(tcx, item)
 }
 
 fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance> {
@@ -257,9 +175,7 @@ fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Option<Instance>
 }
 
 fn def_id_to_inst(tcx: TyCtxt<'_>, id: stable_mir::DefId) -> Instance {
-    let internal_id = rustc_internal::internal(tcx, id);
-    let internal_inst = rustc_middle::ty::Instance::mono(tcx, internal_id);
-    rustc_internal::stable(internal_inst)
+    crate::compat::bridge::mono_instance(tcx, id)
 }
 
 fn take_any<K: Clone + std::hash::Hash + std::cmp::Eq, V>(
@@ -269,7 +185,7 @@ fn take_any<K: Clone + std::hash::Hash + std::cmp::Eq, V>(
     map.remove(&key).map(|val| (key, val))
 }
 
-fn hash<T: std::hash::Hash>(obj: T) -> u64 {
+pub(crate) fn hash<T: std::hash::Hash>(obj: T) -> u64 {
     use std::hash::Hasher;
     let mut hasher = std::hash::DefaultHasher::new();
     obj.hash(&mut hasher);
@@ -377,7 +293,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
         MonoItem::Fn(inst) => {
             let id = inst.def.def_id();
             let name = inst.name();
-            let internal_id = rustc_internal::internal(tcx, id);
+            let internal_id = crate::compat::types::internal_def_id(tcx, id);
             let body = inst.body();
             let details = get_item_details(tcx, internal_id, Some(inst), body.as_ref());
             Item {
@@ -392,7 +308,7 @@ fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
             }
         }
         MonoItem::Static(static_def) => {
-            let internal_id = rustc_internal::internal(tcx, static_def.def_id());
+            let internal_id = crate::compat::types::internal_def_id(tcx, static_def.def_id());
             let alloc = match static_def.eval_initializer() {
                 Ok(alloc) => Some(alloc),
                 err => {
@@ -439,23 +355,21 @@ pub enum FnSymType {
     NormalSym(String),
 }
 
-type FnSymInfo<'tcx> = (
-    stable_mir::ty::Ty,
-    middle::ty::InstanceKind<'tcx>,
-    FnSymType,
-);
+use crate::compat::bridge::OpaqueInstanceKind;
 
-fn fn_inst_sym<'tcx>(
-    tcx: TyCtxt<'tcx>,
+type FnSymInfo = (stable_mir::ty::Ty, OpaqueInstanceKind, FnSymType);
+
+fn fn_inst_sym(
+    tcx: TyCtxt<'_>,
     ty: Option<stable_mir::ty::Ty>,
     inst: Option<&Instance>,
-) -> Option<FnSymInfo<'tcx>> {
+) -> Option<FnSymInfo> {
     use FnSymType::*;
     inst.and_then(|inst| {
         let ty = if let Some(ty) = ty { ty } else { inst.ty() };
         let kind = ty.kind();
         if kind.fn_def().is_some() {
-            let internal_inst = rustc_internal::internal(tcx, inst);
+            let opaque_kind = crate::compat::bridge::instance_kind(tcx, inst);
             let sym_type = if inst.is_empty_shim() {
                 NoOpSym(String::from(""))
             } else if let Some(intrinsic_name) = inst.intrinsic_name() {
@@ -463,7 +377,7 @@ fn fn_inst_sym<'tcx>(
             } else {
                 NormalSym(inst.mangled_name())
             };
-            Some((ty, internal_inst.def, sym_type))
+            Some((ty, opaque_kind, sym_type))
         } else {
             None
         }
@@ -471,12 +385,9 @@ fn fn_inst_sym<'tcx>(
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct LinkMapKey<'tcx>(
-    pub stable_mir::ty::Ty,
-    Option<middle::ty::InstanceKind<'tcx>>,
-);
+pub struct LinkMapKey(pub stable_mir::ty::Ty, Option<OpaqueInstanceKind>);
 
-impl Serialize for LinkMapKey<'_> {
+impl Serialize for LinkMapKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -519,7 +430,7 @@ impl Serialize for ItemSource {
     }
 }
 
-type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
+type LinkMap = HashMap<LinkMapKey, (ItemSource, FnSymType)>;
 /// Wrapper around the alloc-id-to-allocation map that tracks insertion
 /// behavior in debug builds. This serves two purposes:
 ///
@@ -585,8 +496,12 @@ impl AllocMap {
 
     fn into_entries(
         self,
-    ) -> impl Iterator<Item = (stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc))>
-    {
+    ) -> impl Iterator<
+        Item = (
+            stable_mir::mir::alloc::AllocId,
+            (stable_mir::ty::Ty, GlobalAlloc),
+        ),
+    > {
         self.inner.into_iter()
     }
 
@@ -612,10 +527,7 @@ impl AllocMap {
                 _ => None,
             };
             if let Some(body) = body {
-                AllocIdCollector {
-                    ids: &mut body_ids,
-                }
-                .visit_body(body);
+                AllocIdCollector { ids: &mut body_ids }.visit_body(body);
             }
         }
 
@@ -719,18 +631,10 @@ impl Visitor for TyCollector<'_> {
             }
             TyKind::RigidTy(RigidTy::FnPtr(binder_stable)) => {
                 self.resolved.insert(*ty);
-                let binder_internal = internal(self.tcx, binder_stable);
-                let sig_stable = rustc_internal::stable(
-                    self.tcx
-                        .fn_abi_of_fn_ptr(
-                            TypingEnv::fully_monomorphized()
-                                .as_query_input((binder_internal, List::empty())),
-                        )
-                        .unwrap(),
-                );
+                let fn_abi = crate::compat::types::fn_ptr_abi(self.tcx, binder_stable);
                 let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
-                    sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
-                inputs_outputs.push(sig_stable.ret.ty);
+                    fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
+                inputs_outputs.push(fn_abi.ret.ty);
                 inputs_outputs.super_visit(self)
             }
             // The visitor won't collect field types for ADTs, therefore doing it explicitly
@@ -775,7 +679,7 @@ impl Visitor for TyCollector<'_> {
 struct BodyAnalyzer<'tcx, 'local> {
     tcx: TyCtxt<'tcx>,
     locals: &'local [LocalDecl],
-    link_map: &'local mut LinkMap<'tcx>,
+    link_map: &'local mut LinkMap,
     visited_allocs: &'local mut AllocMap,
     ty_visitor: &'local mut TyCollector<'tcx>,
     spans: &'local mut SpanMap,
@@ -793,19 +697,12 @@ struct UnevalConstInfo {
     mono_item: MonoItem,
 }
 
-fn is_reify_shim(kind: &middle::ty::InstanceKind<'_>) -> bool {
-    matches!(kind, middle::ty::InstanceKind::ReifyShim(..))
-}
-
-fn update_link_map<'tcx>(
-    link_map: &mut LinkMap<'tcx>,
-    fn_sym: Option<FnSymInfo<'tcx>>,
-    source: ItemSource,
-) {
+fn update_link_map(link_map: &mut LinkMap, fn_sym: Option<FnSymInfo>, source: ItemSource) {
     if fn_sym.is_none() {
         return;
     }
     let (ty, kind, name) = fn_sym.unwrap();
+    let is_reify_shim = kind.is_reify_shim;
     let new_val = (source, name.clone());
     let key = if link_instance_enabled() {
         LinkMapKey(ty, Some(kind))
@@ -817,18 +714,18 @@ fn update_link_map<'tcx>(
             if !link_instance_enabled() {
                 // When LINK_INST is disabled, prefer Item over ReifyShim.
                 // ReifyShim has no body in items, so Item is more useful.
-                if is_reify_shim(&kind) {
-                    // New entry is ReifyShim, existing is Item → skip
+                if is_reify_shim {
+                    // New entry is ReifyShim, existing is Item -> skip
                     return;
                 }
-                // New entry is Item, existing is ReifyShim → replace
+                // New entry is Item, existing is ReifyShim -> replace
                 curr_val.1 = name;
                 curr_val.0 .0 |= new_val.0 .0;
                 return;
             }
             panic!(
                 "Added inconsistent entries into link map! {:?} -> {:?}, {:?}",
-                (ty, ty.kind().fn_def(), &kind),
+                (ty, ty.kind().fn_def(), &key.1),
                 curr_val.1,
                 new_val.1
             );
@@ -976,10 +873,9 @@ fn collect_alloc(
                         collect_alloc(val_collector, p_ty, prov_offset, prov.0);
                     });
             } else {
-                val_collector.visited_allocs.insert(
-                    val,
-                    (stable_mir::ty::Ty::to_val(0), global_alloc.clone()),
-                );
+                val_collector
+                    .visited_allocs
+                    .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
             }
         }
         GlobalAlloc::Static(_) => {
@@ -1020,10 +916,9 @@ fn collect_alloc(
                 } else {
                     // Could not recover a precise pointee type; use an opaque 0-valued Ty
                     // as a conservative placeholder.
-                    val_collector.visited_allocs.insert(
-                        val,
-                        (stable_mir::ty::Ty::to_val(0), global_alloc.clone()),
-                    );
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
                 }
             } else {
                 val_collector
@@ -1036,22 +931,9 @@ fn collect_alloc(
 
 impl MirVisitor for BodyAnalyzer<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
-        let span_internal = internal(self.tcx, span);
-        let (source_file, lo_line, lo_col, hi_line, hi_col) = self
-            .tcx
-            .sess
-            .source_map()
-            .span_to_location_info(span_internal);
-        let file_name = match source_file {
-            Some(sf) => sf
-                .name
-                .display(rustc_span::FileNameDisplayPreference::Remapped)
-                .to_string(),
-            None => "no-location".to_string(),
-        };
         self.spans.insert(
             span.to_index(),
-            (file_name, lo_line, lo_col, hi_line, hi_col),
+            crate::compat::spans::resolve_span(self.tcx, span),
         );
     }
 
@@ -1143,24 +1025,15 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                 }
             }
             ConstantKind::Unevaluated(uconst) => {
-                let internal_def = rustc_internal::internal(self.tcx, uconst.def.def_id());
-                let internal_args = rustc_internal::internal(self.tcx, uconst.args.clone());
-                let maybe_inst = rustc_middle::ty::Instance::try_resolve(
+                let (mono_item, item_name) = crate::compat::bridge::resolve_unevaluated_const(
                     self.tcx,
-                    TypingEnv::post_analysis(self.tcx, internal_def),
-                    internal_def,
-                    internal_args,
+                    uconst.def.def_id(),
+                    uconst.args.clone(),
                 );
-                let inst = maybe_inst
-                    .ok()
-                    .flatten()
-                    .unwrap_or_else(|| panic!("Failed to resolve mono item for {:?}", uconst));
-                let internal_mono_item = rustc_middle::mir::mono::MonoItem::Fn(inst);
-                let item_name = mono_item_name_int(self.tcx, &internal_mono_item);
                 self.new_unevaluated.push(UnevalConstInfo {
                     const_def: uconst.def,
                     item_name,
-                    mono_item: rustc_internal::stable(internal_mono_item),
+                    mono_item,
                 });
             }
             ConstantKind::Param(_) => {}
@@ -1182,8 +1055,8 @@ struct CollectedCrate {
     unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,
 }
 
-struct DerivedInfo<'tcx> {
-    calls: LinkMap<'tcx>,
+struct DerivedInfo {
+    calls: LinkMap,
     allocs: AllocMap,
     types: TyMap,
     spans: SpanMap,
@@ -1211,7 +1084,7 @@ fn enqueue_unevaluated_consts(
 }
 
 /// Register a function item in the link map (when LINK_ITEMS is enabled).
-fn maybe_add_to_link_map<'tcx>(tcx: TyCtxt<'tcx>, item: &Item, link_map: &mut LinkMap<'tcx>) {
+fn maybe_add_to_link_map(tcx: TyCtxt<'_>, item: &Item, link_map: &mut LinkMap) {
     if !link_items_enabled() {
         return;
     }
@@ -1235,13 +1108,13 @@ fn maybe_add_to_link_map<'tcx>(tcx: TyCtxt<'tcx>, item: &Item, link_map: &mut Li
 /// discovery of items through unevaluated constants: when a body references an
 /// unknown unevaluated const, a new Item is created (calling inst.body() once)
 /// and added to the work queue.
-fn collect_and_analyze_items<'tcx>(
-    tcx: TyCtxt<'tcx>,
+fn collect_and_analyze_items(
+    tcx: TyCtxt<'_>,
     initial_items: HashMap<String, Item>,
-) -> (CollectedCrate, DerivedInfo<'tcx>) {
+) -> (CollectedCrate, DerivedInfo) {
     let original_item_names: HashSet<String> = initial_items.keys().cloned().collect();
 
-    let mut calls_map: LinkMap<'tcx> = HashMap::new();
+    let mut calls_map: LinkMap = HashMap::new();
     let mut visited_allocs = AllocMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
     let mut span_map: SpanMap = HashMap::new();
@@ -1302,16 +1175,7 @@ fn collect_and_analyze_items<'tcx>(
 // ==========================
 
 fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
-    let units = tcx.collect_and_partition_mono_items(()).1;
-    units
-        .iter()
-        .flat_map(|unit| {
-            unit.items_in_deterministic_order(tcx)
-                .iter()
-                .map(|(internal_item, _)| rustc_internal::stable(internal_item))
-                .collect::<Vec<_>>()
-        })
-        .collect()
+    crate::compat::mono_collect::mono_collect(tcx)
 }
 
 fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
@@ -1386,11 +1250,7 @@ fn mk_type_metadata(
         // for enums, we need a mapping of variantIdx to discriminant
         // this requires access to the internals and is not provided as an interface function at the moment
         T(Adt(adt_def, args)) if t.is_enum() => {
-            let adt_internal = rustc_internal::internal(tcx, adt_def);
-            let discriminants = adt_internal
-                .discriminants(tcx)
-                .map(|(_, discr)| discr.val)
-                .collect::<Vec<_>>();
+            let discriminants = crate::compat::types::adt_discriminants(tcx, adt_def);
             let fields = adt_def
                 .variants()
                 .iter()
@@ -1523,26 +1383,26 @@ fn mk_type_metadata(
     }
 }
 
-type SourceData = (String, usize, usize, usize, usize);
+type SourceData = crate::compat::spans::SourceData;
 
 /// the serialised data structure as a whole
 #[derive(Serialize)]
-pub struct SmirJson<'t> {
+pub struct SmirJson {
     pub name: String,
     pub crate_id: u64,
     pub allocs: Vec<AllocInfo>,
-    pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
+    pub functions: Vec<(LinkMapKey, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
     pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
     pub spans: Vec<(usize, SourceData)>,
-    pub debug: Option<SmirJsonDebugInfo<'t>>,
+    pub debug: Option<SmirJsonDebugInfo>,
     pub machine: stable_mir::target::MachineInfo,
 }
 
 #[derive(Serialize)]
-pub struct SmirJsonDebugInfo<'t> {
-    fn_sources: Vec<(LinkMapKey<'t>, ItemSource)>,
+pub struct SmirJsonDebugInfo {
+    fn_sources: Vec<(LinkMapKey, ItemSource)>,
     types: TyMap,
     foreign_modules: Vec<(String, Vec<ForeignModule>)>,
 }
@@ -1573,11 +1433,7 @@ impl AllocInfo {
 
 /// Phase 3: Assemble the final SmirJson from collected and derived data.
 /// This is a pure data transformation with no inst.body() calls.
-fn assemble_smir<'tcx>(
-    tcx: TyCtxt<'tcx>,
-    collected: CollectedCrate,
-    derived: DerivedInfo<'tcx>,
-) -> SmirJson<'tcx> {
+fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInfo) -> SmirJson {
     let local_crate = stable_mir::local_crate();
     let CollectedCrate {
         mut items,
@@ -1640,7 +1496,7 @@ fn assemble_smir<'tcx>(
             global_alloc,
         })
         .collect::<Vec<_>>();
-    let crate_id = tcx.stable_crate_id(LOCAL_CRATE).as_u64();
+    let crate_id = crate::compat::types::local_crate_id(tcx);
 
     let mut types = visited_tys
         .into_iter()
@@ -1690,14 +1546,14 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
     let smir_json =
         serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");
 
-    match tcx.output_filenames(()).path(OutputType::Mir) {
-        OutFileName::Stdout => {
+    match crate::compat::output::mir_output_path(tcx, "smir.json") {
+        crate::compat::output::OutputDest::Stdout => {
             write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json");
         }
-        OutFileName::Real(path) => {
+        crate::compat::output::OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
-                File::create(path.with_extension("smir.json"))
-                    .expect("Failed to create {path}.smir.json output file"),
+                File::create(&path)
+                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
             write!(b, "{}", smir_json).expect("Failed to write smir.json");
         }
