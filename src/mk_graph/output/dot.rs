@@ -12,14 +12,24 @@ use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
+use crate::mk_graph::{compute_lang_start_exclusions, skip_lang_start};
 
 impl SmirJson<'_> {
     /// Convert the MIR to DOT (Graphviz) format
-    pub fn to_dot_file(self) -> String {
+    pub fn to_dot_file(mut self) -> String {
         let mut bytes = Vec::new();
 
         // Build context BEFORE consuming self
         let ctx = GraphContext::from_smir(&self);
+
+        // Optionally filter out lang_start items and their unique descendants
+        let excluded: HashSet<String> = if skip_lang_start() {
+            let excluded = compute_lang_start_exclusions(&self.items, &ctx);
+            self.items.retain(|i| !excluded.contains(&i.symbol_name));
+            excluded
+        } else {
+            HashSet::new()
+        };
 
         {
             let mut writer = DotWriter::from(&mut bytes);
@@ -57,7 +67,7 @@ impl SmirJson<'_> {
 
             // first create all nodes for functions not in the items list
             for f in ctx.functions.values() {
-                if !item_names.contains(f) {
+                if !item_names.contains(f) && !excluded.contains(f) {
                     graph
                         .node_named(block_name(f, 0))
                         .set_label(&name_lines(f))
@@ -245,6 +255,20 @@ impl SmirJson<'_> {
 
                                     match &b.terminator.kind {
                                         TerminatorKind::Call { func, args, .. } => {
+                                            // Skip call edges to excluded nodes
+                                            if let Operand::Constant(ConstOperand {
+                                                const_, ..
+                                            }) = func
+                                            {
+                                                if ctx
+                                                    .functions
+                                                    .get(&const_.ty())
+                                                    .is_some_and(|c| excluded.contains(c))
+                                                {
+                                                    continue;
+                                                }
+                                            }
+
                                             let e = match func {
                                                 Operand::Constant(ConstOperand {
                                                     const_, ..
