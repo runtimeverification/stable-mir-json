@@ -185,9 +185,6 @@ impl Item {
         }
     }
 
-    pub(super) fn mono_item(&self) -> &MonoItem {
-        &self.mono_item
-    }
 }
 
 impl PartialEq for Item {
