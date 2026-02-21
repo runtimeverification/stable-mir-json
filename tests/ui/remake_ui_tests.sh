@@ -20,6 +20,10 @@ fi
 
 RUST_DIR="$1"
 UI_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Ensure the rust checkout is at the expected commit (handles bare repos)
+source "$UI_DIR/ensure_rustc_commit.sh"
+
 UI_SOURCES="${UI_DIR}/ui_sources.txt"
 FAILING_TSV="${UI_DIR}/failing.tsv"
 PASSING_TSV="${UI_DIR}/passing.tsv"
@@ -37,7 +41,7 @@ fi
 
 echo "Running UI tests..."
 while read -r test; do
-    full_path="$RUST_DIR/$test"
+    full_path="$RUST_SRC_DIR/$test"
 
     if [ ! -f "$full_path" ]; then
         echo "Error: Test file '$full_path' not found."

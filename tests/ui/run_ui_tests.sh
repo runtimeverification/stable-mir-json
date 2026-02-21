@@ -12,8 +12,12 @@ else
     VERBOSE="$2"
 fi
 
-RUST_DIR_ROOT="$1"
+RUST_DIR="$1"
 UI_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Ensure the rust checkout is at the expected commit (handles bare repos)
+source "$UI_DIR/ensure_rustc_commit.sh"
+
 PASSING_TSV="${UI_DIR}/passing.tsv"
 
 KEEP_FILES=${KEEP_FILES:-""}
@@ -29,7 +33,7 @@ passed=0
 total=0
 
 while read -r test; do
-    test_path="${RUST_DIR_ROOT}/${test}"
+    test_path="${RUST_SRC_DIR}/${test}"
     test_name="$(basename "$test" .rs)"
     json_file="${PWD}/${test_name}.smir.json"
 

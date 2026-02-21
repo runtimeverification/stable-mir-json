@@ -99,11 +99,25 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
+      - name: 'Install yq'
+        uses: mikefarah/yq-action@v4
+
+      - name: 'Read rustc commit from rust-toolchain.toml'
+        id: rustc-meta
+        run: |
+          set -euo pipefail
+          COMMIT=$(yq -r '.metadata.rustc-commit' rust-toolchain.toml)
+          if [ -z "$COMMIT" ] || [ "$COMMIT" = "null" ]; then
+            echo "::error::metadata.rustc-commit not found in rust-toolchain.toml"
+            exit 1
+          fi
+          echo "rustc-commit=$COMMIT" >> "$GITHUB_OUTPUT"
+
       - name: 'Check out Rust repo'
         uses: actions/checkout@v4
         with:
           repository: rust-lang/rust
-          ref: a2545fd6fc66b4323f555223a860c451885d1d2b # hash of Hardcoded Rust version
+          ref: ${{ steps.rustc-meta.outputs.rustc-commit }}
           path: rust
           fetch-depth: 1
 
