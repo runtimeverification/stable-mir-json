@@ -585,8 +585,12 @@ impl AllocMap {
 
     fn into_entries(
         self,
-    ) -> impl Iterator<Item = (stable_mir::mir::alloc::AllocId, (stable_mir::ty::Ty, GlobalAlloc))>
-    {
+    ) -> impl Iterator<
+        Item = (
+            stable_mir::mir::alloc::AllocId,
+            (stable_mir::ty::Ty, GlobalAlloc),
+        ),
+    > {
         self.inner.into_iter()
     }
 
@@ -612,10 +616,7 @@ impl AllocMap {
                 _ => None,
             };
             if let Some(body) = body {
-                AllocIdCollector {
-                    ids: &mut body_ids,
-                }
-                .visit_body(body);
+                AllocIdCollector { ids: &mut body_ids }.visit_body(body);
             }
         }
 
@@ -976,10 +977,9 @@ fn collect_alloc(
                         collect_alloc(val_collector, p_ty, prov_offset, prov.0);
                     });
             } else {
-                val_collector.visited_allocs.insert(
-                    val,
-                    (stable_mir::ty::Ty::to_val(0), global_alloc.clone()),
-                );
+                val_collector
+                    .visited_allocs
+                    .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
             }
         }
         GlobalAlloc::Static(_) => {
@@ -1020,10 +1020,9 @@ fn collect_alloc(
                 } else {
                     // Could not recover a precise pointee type; use an opaque 0-valued Ty
                     // as a conservative placeholder.
-                    val_collector.visited_allocs.insert(
-                        val,
-                        (stable_mir::ty::Ty::to_val(0), global_alloc.clone()),
-                    );
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
                 }
             } else {
                 val_collector
