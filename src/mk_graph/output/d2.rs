@@ -1,6 +1,6 @@
 //! D2 diagram format output for MIR graphs.
 
-extern crate stable_mir;
+use crate::compat::stable_mir;
 use stable_mir::mir::TerminatorKind;
 
 use crate::printer::SmirJson;

@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-extern crate stable_mir;
+use crate::compat::stable_mir;
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::ty::{IndexedVal, Ty};

@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
 
-extern crate stable_mir;
+use crate::compat::stable_mir;
 use stable_mir::mir::{BasicBlock, ConstOperand, Operand, TerminatorKind, UnwindAction};
 
 use crate::printer::SmirJson;

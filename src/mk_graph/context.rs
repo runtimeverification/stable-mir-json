@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-extern crate stable_mir;
+use crate::compat::stable_mir;
 use stable_mir::mir::{
     BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue, Statement,
     StatementKind, Terminator, TerminatorKind,
