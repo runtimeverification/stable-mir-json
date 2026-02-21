@@ -1,7 +1,7 @@
-# ADR-001: Compatibility layer for rustc internal APIs
+# ADR-003: Compatibility layer for rustc internal APIs
 
 **Status:** Accepted
-**Date:** 2025-02-21
+**Date:** 2026-02-21
 
 ## Context
 
