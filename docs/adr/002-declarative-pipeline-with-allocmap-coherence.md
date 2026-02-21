@@ -1,7 +1,7 @@
 # ADR-002: Declarative collect/analyze/assemble pipeline with AllocMap coherence
 
 **Status:** Accepted
-**Date:** 2025-02-21
+**Date:** 2026-02-21
 
 ## Context
 
