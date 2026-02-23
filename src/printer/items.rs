@@ -13,8 +13,7 @@ use crate::compat::middle::ty::TyCtxt;
 use crate::compat::stable_mir;
 use crate::compat::serde;
 
-use rustc_span::def_id::DefId;
-use crate::compat::rustc_span;
+use crate::compat::DefId;
 use serde::Serialize;
 use stable_mir::mir::mono::{Instance, MonoItem};
 use stable_mir::mir::Body;

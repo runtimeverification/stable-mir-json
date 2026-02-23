@@ -9,6 +9,7 @@ use super::stable_mir;
 use super::TyCtxt;
 use stable_mir::ty::Span;
 
+/// Source location tuple: `(file, lo_line, lo_col, hi_line, hi_col)`.
 pub type SourceData = (String, usize, usize, usize, usize);
 
 /// Resolve a stable MIR span to a (file, lo_line, lo_col, hi_line, hi_col) tuple.
