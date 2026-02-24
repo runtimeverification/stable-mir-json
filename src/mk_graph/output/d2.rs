@@ -11,6 +11,8 @@ use crate::mk_graph::util::{
     escape_d2, is_unqualified, name_lines, short_name, terminator_targets,
 };
 
+use crate::mk_graph::traverse::GraphBuilder;
+
 // =============================================================================
 // D2 Builder
 // =============================================================================
@@ -22,6 +24,78 @@ struct D2Builder {
 impl D2Builder {
     fn new() -> Self {
         Self { buf: String::new() }
+    }
+}
+
+impl GraphBuilder for D2Builder {
+    type Output = String;
+
+    fn begin_graph(&mut self, _name: &str) {
+        self.buf.push_str("direction: right\n\n");
+    }
+
+    fn alloc_legend(&mut self, lines: &[String]) {
+        self.buf.push_str("ALLOCS: {\n");
+        self.buf.push_str("  style.fill: \"#ffffcc\"\n");
+        self.buf.push_str("  style.stroke: \"#999999\"\n");
+        let legend_text = lines
+            .iter()
+            .map(|s| escape_d2(s))
+            .collect::<Vec<_>>()
+            .join("\\n");
+        self.buf.push_str(&format!("  label: \"{}\"\n", legend_text));
+        self.buf.push_str("}\n\n");
+    }
+
+    fn type_legend(&mut self, _: &[String]) {}
+
+    fn begin_function(&mut self, id: &str, label: &str, _is_local: bool) {
+        self.buf.push_str(&format!("{}: {{\n", id));
+        self.buf.push_str(&format!("  label: \"{}\"\n", label));
+        self.buf.push_str("  style.fill: \"#e0e0ff\"\n");
+    }
+
+    fn block( &mut self, _fn_id: &str, idx: usize, stmts: &[String], terminator: &str) {
+        let mut label = format!("bb{}:", idx);
+        for stmt in stmts {
+            label.push_str(&format!("\\n{}", stmt));
+        }
+        label.push_str(&format!("\\n---\\n{}", terminator));
+
+        self.buf.push_str(&format!("  bb{}: \"{}\"\n", idx, label));
+    }
+
+    fn block_edge(&mut self, _fn_id: &str, from: usize, to: usize, _label: Option<&str>) {
+        self.buf.push_str(&format!("  bb{} -> bb{}\n", from, to));
+    }
+
+    fn call_edge(&mut self, fn_id: &str, block: usize, callee_id: &str, callee_name: &str) {
+        self.buf.push_str(&format!("{}: \"{}\"\n", callee_id, escape_d2(callee_name)));
+        self.buf.push_str(&format!("{}.style.fill: \"#ffe0e0\"\n", callee_id));
+        self.buf.push_str(&format!("{}.bb{} -> {}: call\n", fn_id, block, callee_id
+        ));
+    }
+
+    fn end_function(&mut self, _id: &str) {
+        self.buf.push_str("}\n\n");
+    }
+
+    fn static_item(&mut self, id: &str, name: &str) {
+        self.buf
+            .push_str(&format!("{}: \"{}\" {{\n", id, escape_d2(name)));
+        self.buf.push_str("  style.fill: \"#e0ffe0\"\n");
+        self.buf.push_str("}\n\n");
+    }
+
+    fn asm_item(&mut self, id: &str, content: &str) {
+        let asm_text = escape_d2(&content.lines().collect::<String>());
+        self.buf.push_str(&format!("{}: \"{}\" {{\n", id, asm_text));
+        self.buf.push_str("  style.fill: \"#ffe0ff\"\n");
+        self.buf.push_str("}\n\n");
+    }
+
+    fn finish(self) -> String {
+        self.buf
     }
 }
 
