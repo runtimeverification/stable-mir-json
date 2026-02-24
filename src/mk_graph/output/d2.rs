@@ -20,19 +20,7 @@ impl SmirJson {
         output.push_str("direction: right\n\n");
         render_d2_allocs_legend(&ctx, &mut output);
 
-        for item in self.items {
-            match item.mono_item_kind {
-                MonoItemKind::MonoItemFn { name, body, .. } => {
-                    render_d2_function(&name, body.as_ref(), &ctx, &mut output);
-                }
-                MonoItemKind::MonoItemGlobalAsm { asm } => {
-                    render_d2_asm(&asm, &mut output);
-                }
-                MonoItemKind::MonoItemStatic { name, .. } => {
-                    render_d2_static(&name, &mut output);
-                }
-            }
-        }
+        render_d2_items(&self.items, &ctx, &mut output);
 
         output
     }
@@ -41,6 +29,22 @@ impl SmirJson {
 // =============================================================================
 // D2 Rendering Helpers
 // =============================================================================
+
+fn render_d2_items(items: &[crate::printer::Item], ctx: &GraphContext, out: &mut String) {
+    for item in items {
+        match &item.mono_item_kind {
+            MonoItemKind::MonoItemFn { name, body, .. } => {
+                render_d2_function(name, body.as_ref(), ctx, out);
+            }
+            MonoItemKind::MonoItemGlobalAsm { asm } => {
+                render_d2_asm(asm, out);
+            }
+            MonoItemKind::MonoItemStatic { name, .. } => {
+                render_d2_static(name, out);
+            }
+        }
+    }
+}
 
 fn render_d2_allocs_legend(ctx: &GraphContext, out: &mut String) {
     let legend_lines = ctx.allocs_legend_lines();
