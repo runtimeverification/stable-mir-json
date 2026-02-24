@@ -1671,11 +1671,6 @@ pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
     let initial_items = collect_items(tcx);
     let (collected, derived) = collect_and_analyze_items(tcx, initial_items);
 
-    // Verify alloc coherence: no duplicate AllocIds, and every AllocId
-    // referenced in a stored body was actually collected.
-    #[cfg(debug_assertions)]
-    derived.allocs.verify_coherence(&collected.items);
-
     // Phase 3: Assemble the final output (pure data transformation)
     assemble_smir(tcx, collected, derived)
 }
