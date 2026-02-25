@@ -1053,11 +1053,12 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                 ..
             } => {
                 if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized {
-                    return;
+                    None
+                } else {
+                    let inst = fn_inst_for_ty(cnst.ty(), true)
+                        .expect("Direct calls to functions must resolve to an instance");
+                    fn_inst_sym(self.tcx, Some(cnst.ty()), Some(&inst))
                 }
-                let inst = fn_inst_for_ty(cnst.ty(), true)
-                    .expect("Direct calls to functions must resolve to an instance");
-                fn_inst_sym(self.tcx, Some(cnst.ty()), Some(&inst))
             }
             Drop { place, .. } => {
                 let drop_ty = place.ty(self.locals).unwrap();
