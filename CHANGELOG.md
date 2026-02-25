@@ -24,11 +24,14 @@ retroactive best-effort summary; earlier changes were not formally tracked.
 - macOS support ([#97])
 
 ### Changed
-- Refactored serialization pipeline into declarative collect/analyze/assemble phases
+- Restructured `printer.rs` into a declarative 3-phase pipeline: `collect_items` -> `collect_and_analyze_items` -> `assemble_smir`, with `CollectedCrate`/`DerivedInfo` interface types enforcing the boundary between collection and assembly
+- Added `AllocMap` with debug-mode coherence checking (`verify_coherence`): asserts that every `AllocId` in stored bodies exists in the alloc map and that no body is walked twice; zero cost in release builds
+- Removed dead static-item fixup from `assemble_smir` (violated the phase boundary, misclassified statics as functions; never triggered in integration tests)
 - Switched from compiler build to `rustup`-managed toolchain ([#33])
 - Removed forked rust dependency ([#19])
 
 ### Fixed
+- Fixed early `return` in `BodyAnalyzer::visit_terminator` that skipped `super_terminator()`, causing alloc/type/span collection to miss everything inside `Call` terminators with non-`ZeroSized` function operands (const-evaluated function pointers); bug present since [`aff2dd0`](https://github.com/runtimeverification/stable-mir-json/commit/aff2dd0)
 - Avoided duplicate `inst.body()` calls that were reallocating `AllocId`s ([#120])
 - Prevented svg/png generation when `dot` is unavailable ([#117])
 - Removed unreachable early return in D2 legend rendering ([#118])
