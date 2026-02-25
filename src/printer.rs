@@ -572,17 +572,6 @@ impl AllocMap {
         self.inner.insert(key, value);
     }
 
-    fn iter(
-        &self,
-    ) -> impl Iterator<
-        Item = (
-            &stable_mir::mir::alloc::AllocId,
-            &(stable_mir::ty::Ty, GlobalAlloc),
-        ),
-    > {
-        self.inner.iter()
-    }
-
     fn into_entries(
         self,
     ) -> impl Iterator<
@@ -1177,7 +1166,6 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
 /// After this phase completes, no more inst.body() calls should be needed.
 struct CollectedCrate {
     items: Vec<Item>,
-    original_item_names: HashSet<String>,
     unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,
 }
 
@@ -1233,16 +1221,14 @@ fn collect_and_analyze_items<'tcx>(
     tcx: TyCtxt<'tcx>,
     initial_items: HashMap<String, Item>,
 ) -> (CollectedCrate, DerivedInfo<'tcx>) {
-    let original_item_names: HashSet<String> = initial_items.keys().cloned().collect();
-
     let mut calls_map: LinkMap<'tcx> = HashMap::new();
     let mut visited_allocs = AllocMap::new();
     let mut ty_visitor = TyCollector::new(tcx);
     let mut span_map: SpanMap = HashMap::new();
     let mut unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String> = HashMap::new();
 
+    let mut known_names: HashSet<String> = initial_items.keys().cloned().collect();
     let mut pending: HashMap<String, Item> = initial_items;
-    let mut known_names: HashSet<String> = original_item_names.clone();
     let mut all_items: Vec<Item> = Vec::new();
 
     while let Some((_name, item)) = take_any(&mut pending) {
@@ -1280,7 +1266,6 @@ fn collect_and_analyze_items<'tcx>(
     (
         CollectedCrate {
             items: all_items,
-            original_item_names,
             unevaluated_consts,
         },
         DerivedInfo {
@@ -1575,7 +1560,6 @@ fn assemble_smir<'tcx>(
     let local_crate = stable_mir::local_crate();
     let CollectedCrate {
         mut items,
-        original_item_names,
         unevaluated_consts,
     } = collected;
     let DerivedInfo {
@@ -1589,24 +1573,6 @@ fn assemble_smir<'tcx>(
     // referenced in a stored body was actually collected.
     #[cfg(debug_assertions)]
     visited_allocs.verify_coherence(&items);
-
-    // FIXME: We dump extra static items here --- this should be handled better.
-    // Statics discovered through allocation provenance that weren't in the
-    // original mono item collection.
-    for (_, alloc) in visited_allocs.iter() {
-        if let (_, GlobalAlloc::Static(def)) = alloc {
-            let mono_item =
-                stable_mir::mir::mono::MonoItem::Fn(stable_mir::mir::mono::Instance::from(*def));
-            let item_name = &mono_item_name(tcx, &mono_item);
-            if !original_item_names.contains(item_name) {
-                println!(
-                    "Items missing static with id {:?} and name {:?}",
-                    def, item_name
-                );
-                items.push(mk_item(tcx, mono_item, item_name.clone()));
-            }
-        }
-    }
 
     let debug: Option<SmirJsonDebugInfo> = if debug_enabled() {
         let fn_sources = calls
