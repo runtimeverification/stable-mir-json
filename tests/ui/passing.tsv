@@ -403,6 +403,7 @@ tests/ui/cast/cast-rfc0401-vtable-kinds.rs
 tests/ui/cast/cast-rfc0401.rs
 tests/ui/cast/cast-to-infer-ty.rs
 tests/ui/cast/cast.rs
+tests/ui/cast/codegen-object-shim.rs
 tests/ui/cast/fat-ptr-cast-rpass.rs
 tests/ui/cast/supported-cast.rs
 tests/ui/catch-unwind-bang.rs
@@ -586,6 +587,7 @@ tests/ui/const_prop/apfloat-f64-roundtrip.rs
 tests/ui/const_prop/apfloat-remainder-regression.rs
 tests/ui/const_prop/const-prop-ice3.rs
 tests/ui/const_prop/dont-propagate-generic-instance-2.rs
+tests/ui/const_prop/dont-propagate-generic-instance.rs
 tests/ui/const_prop/overwrite_with_const_with_params.rs
 tests/ui/consts/assoc-const.rs
 tests/ui/consts/bswap-const.rs
@@ -908,9 +910,11 @@ tests/ui/dropck/issue-28498-ugeh-with-passed-to-fn.rs
 tests/ui/dropck/issue-28498-ugeh-with-trait-bound.rs
 tests/ui/dropck/issue-29844.rs
 tests/ui/dropck/issue-34053.rs
+tests/ui/dyn-star/box.rs
 tests/ui/dyn-star/const.rs
 tests/ui/dyn-star/dont-unsize-coerce-dyn-star.rs
 tests/ui/dyn-star/drop.rs
+tests/ui/dyn-star/dyn-star-to-dyn.rs
 tests/ui/dyn-star/make-dyn-star.rs
 tests/ui/dyn-star/method.rs
 tests/ui/dynamically-sized-types/dst-coerce-custom.rs
@@ -2276,6 +2280,8 @@ tests/ui/rfcs/rfc-2091-track-caller/std-panic-locations.rs
 tests/ui/rfcs/rfc-2091-track-caller/track-caller-attribute.rs
 tests/ui/rfcs/rfc-2091-track-caller/track-caller-ffi.rs
 tests/ui/rfcs/rfc-2091-track-caller/tracked-closure.rs
+tests/ui/rfcs/rfc-2091-track-caller/tracked-fn-ptr-with-arg.rs
+tests/ui/rfcs/rfc-2091-track-caller/tracked-fn-ptr.rs
 tests/ui/rfcs/rfc-2091-track-caller/tracked-trait-impls.rs
 tests/ui/rfcs/rfc-2091-track-caller/tracked-trait-obj.rs
 tests/ui/rfcs/rfc-2151-raw-identifiers/attr.rs
