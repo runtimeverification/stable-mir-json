@@ -956,7 +956,11 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
             let relative_offset = *offset - field_start;
             debug_log_println!(
                 "get_prov_ty: tuple offset={} -> field {} (start={}) type {:?}, relative_offset={}",
-                offset, field_idx, field_start, field_ty.kind(), relative_offset
+                offset,
+                field_idx,
+                field_start,
+                field_ty.kind(),
+                relative_offset
             );
             return get_prov_ty(field_ty, &relative_offset);
         }
