@@ -972,21 +972,11 @@ fn collect_alloc(
             }
         }
         GlobalAlloc::Static(_) => {
-            assert!(
-                kind.clone().builtin_deref(true).is_some(),
-                "Allocated pointer is not a built-in pointer type: {:?}",
-                kind
-            );
             val_collector
                 .visited_allocs
                 .insert(val, (ty, global_alloc.clone()));
         }
         GlobalAlloc::VTable(_, _) => {
-            assert!(
-                kind.clone().builtin_deref(true).is_some(),
-                "Allocated pointer is not a built-in pointer type: {:?}",
-                kind
-            );
             val_collector
                 .visited_allocs
                 .insert(val, (ty, global_alloc.clone()));

@@ -350,6 +350,10 @@ tests/ui/box/into-boxed-slice.rs
 tests/ui/box/new-box-syntax.rs
 tests/ui/box/new-box.rs
 tests/ui/box/new.rs
+tests/ui/box/thin_align.rs
+tests/ui/box/thin_drop.rs
+tests/ui/box/thin_new.rs
+tests/ui/box/thin_zst.rs
 tests/ui/box/unit/expr-block-generic-unique1.rs
 tests/ui/box/unit/expr-block-generic-unique2.rs
 tests/ui/box/unit/expr-if-unique.rs
@@ -678,6 +682,7 @@ tests/ui/consts/const-repeated-values.rs
 tests/ui/consts/const-size_of-align_of.rs
 tests/ui/consts/const-size_of_val-align_of_val.rs
 tests/ui/consts/const-struct.rs
+tests/ui/consts/const-trait-to-trait.rs
 tests/ui/consts/const-tuple-struct.rs
 tests/ui/consts/const-typeid-of-rpass.rs
 tests/ui/consts/const-unit-struct.rs
@@ -1249,6 +1254,7 @@ tests/ui/issues/issue-10802.rs
 tests/ui/issues/issue-10806.rs
 tests/ui/issues/issue-11047.rs
 tests/ui/issues/issue-11085.rs
+tests/ui/issues/issue-11205.rs
 tests/ui/issues/issue-11267.rs
 tests/ui/issues/issue-11382.rs
 tests/ui/issues/issue-11552.rs
