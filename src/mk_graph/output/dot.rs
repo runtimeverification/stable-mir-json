@@ -295,11 +295,7 @@ impl SmirJson<'_> {
                         let mut n = graph.node_named(short_name(&asm));
                         n.set_label(&asm.lines().collect::<String>()[..]);
                     }
-                    MonoItemKind::MonoItemStatic {
-                        name,
-                        id: _,
-                        allocation: _,
-                    } => {
+                    MonoItemKind::MonoItemStatic { name, .. } => {
                         let mut n = graph.node_named(short_name(&name));
                         n.set_label(&name[..]);
                     }
