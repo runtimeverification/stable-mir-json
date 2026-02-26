@@ -2131,13 +2131,13 @@
                 {
                   "Initialized": {
                     "valid_range": {
-                      "end": 4294967295,
+                      "end": 1,
                       "start": 0
                     },
                     "value": {
                       "Int": {
-                        "length": "I32",
-                        "signed": true
+                        "length": "I8",
+                        "signed": false
                       }
                     }
                   }
@@ -2193,13 +2193,13 @@
                 {
                   "Initialized": {
                     "valid_range": {
-                      "end": 1,
+                      "end": 4294967295,
                       "start": 0
                     },
                     "value": {
                       "Int": {
-                        "length": "I8",
-                        "signed": false
+                        "length": "I32",
+                        "signed": true
                       }
                     }
                   }

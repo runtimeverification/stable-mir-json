@@ -16,6 +16,7 @@ use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
+use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::ty::IndexedVal;
@@ -155,6 +156,15 @@ fn collect_and_analyze_items(
     )
 }
 
+fn alloc_sort_key(info: &AllocInfo) -> String {
+    match info.global_alloc() {
+        GlobalAlloc::Memory(alloc) => format!("0_Memory_{:020}", alloc.bytes.len()),
+        GlobalAlloc::Static(def) => format!("1_Static_{}", def.name()),
+        GlobalAlloc::VTable(ty, _) => format!("2_VTable_{}", ty),
+        GlobalAlloc::Function(inst) => format!("3_Function_{}", inst.name()),
+    }
+}
+
 /// Phase 3: Assemble the final SmirJson from collected and derived data.
 /// This is a pure data transformation with no inst.body() calls.
 fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInfo) -> SmirJson {
@@ -206,19 +216,38 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
 
     let mut spans = span_map.into_iter().collect::<Vec<_>>();
 
-    // sort output vectors to stabilise output (a bit)
-    allocs.sort_by_key(|a| a.alloc_id().to_index());
-    functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
+    // sort output vectors by content-derived keys for deterministic output.
+    // Ty's Display impl (ty_pretty) should be injective for monomorphized types,
+    // but we use the interned index as a tiebreaker just in case two distinct
+    // types produce the same display string.
+    allocs.sort_by_key(alloc_sort_key);
+    functions.sort_by(|a, b| {
+        format!("{}", a.0 .0)
+            .cmp(&format!("{}", b.0 .0))
+            .then_with(|| {
+                let a_kind = a.0 .1.as_ref().map(|k| format!("{k}"));
+                let b_kind = b.0 .1.as_ref().map(|k| format!("{k}"));
+                a_kind.cmp(&b_kind)
+            })
+            .then_with(|| a.0 .0.to_index().cmp(&b.0 .0.to_index()))
+    });
     items.sort();
-    types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
-    spans.sort();
+    types.sort_by(|a, b| {
+        format!("{}", a.0)
+            .cmp(&format!("{}", b.0))
+            .then_with(|| a.0.to_index().cmp(&b.0.to_index()))
+    });
+    spans.sort_by(|a, b| a.1.cmp(&b.1));
+
+    let mut uneval_consts: Vec<_> = unevaluated_consts.into_iter().collect();
+    uneval_consts.sort_by(|a, b| a.1.cmp(&b.1));
 
     SmirJson {
         name: local_crate.name,
         crate_id,
         allocs,
         functions,
-        uneval_consts: unevaluated_consts.into_iter().collect(),
+        uneval_consts,
         items,
         types,
         spans,

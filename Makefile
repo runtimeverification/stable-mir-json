@@ -48,7 +48,7 @@ format:
 	bash -O globstar -c 'nixfmt **/*.nix'
 
 style-check: format
-	cargo clippy
+	cargo clippy -- -Dwarnings
 
 .PHONY: remake-ui-tests test-ui
 
