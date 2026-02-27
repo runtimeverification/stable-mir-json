@@ -1,3 +1,22 @@
+//! Serialization of Rust's Stable MIR to JSON.
+//!
+//! This module is the core of `stable-mir-json`: it collects monomorphized items,
+//! type metadata, allocations, and span information from the compiler, then
+//! serializes them into a [`SmirJson`] structure (emitted as `*.smir.json`).
+//!
+//! # Module structure
+//!
+//! | Module | Responsibility |
+//! |--------|----------------|
+//! | [`schema`] | Data model types ([`SmirJson`], [`Item`], [`AllocInfo`], etc.) and type aliases |
+//! | [`collect`] | Three-phase pipeline: collect items, analyze bodies, assemble final output |
+//! | [`items`] | Constructing [`Item`] values and extracting debug-level details |
+//! | [`mir_visitor`] | `BodyAnalyzer`: single-pass MIR traversal collecting calls, allocs, types, spans |
+//! | [`ty_visitor`] | Type visitor that recursively collects all reachable types with layout info |
+//! | [`link_map`] | Function resolution map: type + instance kind to symbol name |
+//! | [`types`] | Type helpers and [`TypeMetadata`](schema::TypeMetadata) construction |
+//! | [`util`] | Name resolution, attribute queries, and small collection utilities |
+
 use std::io::Write;
 use std::{fs::File, io};
 

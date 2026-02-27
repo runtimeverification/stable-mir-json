@@ -1,3 +1,9 @@
+//! Data model types for the `*.smir.json` output.
+//!
+//! Contains the top-level [`SmirJson`] structure and all supporting types:
+//! [`Item`], [`AllocMap`], [`AllocInfo`], [`TypeMetadata`], [`LinkMapKey`],
+//! [`FnSymType`], and serialization helpers.
+
 extern crate rustc_middle;
 extern crate serde;
 extern crate stable_mir;

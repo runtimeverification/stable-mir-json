@@ -1,3 +1,12 @@
+//! Link-time function resolution map.
+//!
+//! Maintains a mapping from function types (optionally qualified by instance kind)
+//! to their resolved symbol names. Entries are added from three sources:
+//! - `ITEM`: the function appears as a monomorphized item,
+//! - `TERM`: the function is called in a `Call` or `Drop` terminator,
+//! - `FPTR`: the function is referenced via a `ReifyFnPointer` cast or a
+//!   zero-sized FnDef constant.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate stable_mir;

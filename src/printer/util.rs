@@ -1,3 +1,5 @@
+//! Small helpers: name resolution, attribute queries, and collection utilities.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;

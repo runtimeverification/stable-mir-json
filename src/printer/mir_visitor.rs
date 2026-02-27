@@ -1,3 +1,17 @@
+//! MIR body traversal for collecting interned values.
+//!
+//! [`BodyAnalyzer`] implements `MirVisitor` and walks each function body exactly
+//! once, collecting:
+//! - function calls and drop glue into the link map
+//! - global allocations (memory, statics, vtables, function pointers) with
+//!   provenance type resolution via [`get_prov_ty`]
+//! - reachable types via the type visitor
+//! - source spans
+//!
+//! [`get_prov_ty`] recursively resolves the type of a pointer at a given byte
+//! offset within a struct or tuple, walking down through nested fields until it
+//! reaches the actual pointer type.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;

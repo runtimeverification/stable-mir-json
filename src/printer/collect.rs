@@ -1,3 +1,14 @@
+//! Three-phase collection pipeline.
+//!
+//! - [`collect_items`]: phase 1, enumerates monomorphized items from rustc
+//! - [`collect_and_analyze_items`]: phase 2, walks bodies with [`BodyAnalyzer`],
+//!   discovering transitive items through unevaluated constants
+//! - [`assemble_smir`]: phase 3, pure data transformation into [`SmirJson`]
+//!
+//! The phase boundary between 2 and 3 is enforced by types: `assemble_smir`
+//! receives [`CollectedCrate`] and [`DerivedInfo`], neither of which carries
+//! `Instance` or `MonoItem` handles, so it structurally cannot call `inst.body()`.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate rustc_span;

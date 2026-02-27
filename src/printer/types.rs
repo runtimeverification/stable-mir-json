@@ -1,3 +1,10 @@
+//! Type helpers and [`TypeMetadata`] construction.
+//!
+//! Provides utilities for working with `stable_mir` types: resolving function
+//! instances from types, checking for unresolved generics, and constructing
+//! [`TypeMetadata`](super::schema::TypeMetadata) entries from `TyKind` + layout
+//! for the final JSON output.
+
 extern crate rustc_middle;
 extern crate rustc_smir;
 extern crate stable_mir;
