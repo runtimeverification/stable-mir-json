@@ -982,7 +982,7 @@ fn collect_alloc(
             }
         }
         GlobalAlloc::Static(_) => {
-            if !kind.clone().builtin_deref(true).is_some() {
+            if kind.clone().builtin_deref(true).is_none() {
                 let prov_ty = get_prov_ty(ty, offset);
                 debug_log_println!(
                     "DEBUG: GlobalAlloc::Static with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
@@ -1008,7 +1008,7 @@ fn collect_alloc(
             }
         }
         GlobalAlloc::VTable(_, _) => {
-            if !kind.clone().builtin_deref(true).is_some() {
+            if kind.clone().builtin_deref(true).is_none() {
                 let prov_ty = get_prov_ty(ty, offset);
                 debug_log_println!(
                     "DEBUG: GlobalAlloc::VTable with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
