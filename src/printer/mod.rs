@@ -74,15 +74,9 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
         }
         OutFileName::Real(path) => {
             let out_path = path.with_extension("smir.json");
-            let mut b = io::BufWriter::new(
-                File::create(&out_path).unwrap_or_else(|e| {
-                    panic!(
-                        "Failed to create {} output file: {}",
-                        out_path.display(),
-                        e
-                    )
-                }),
-            );
+            let mut b = io::BufWriter::new(File::create(&out_path).unwrap_or_else(|e| {
+                panic!("Failed to create {} output file: {}", out_path.display(), e)
+            }));
             write!(b, "{}", smir_json).expect("Failed to write smir.json");
         }
     }
