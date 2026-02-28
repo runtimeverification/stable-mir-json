@@ -1,14 +1,16 @@
 //! D2 diagram format output for MIR graphs.
 
 extern crate stable_mir;
-use stable_mir::mir::TerminatorKind;
-
-use crate::printer::SmirJson;
-use crate::MonoItemKind;
-
-use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{
-    escape_d2, is_unqualified, name_lines, short_name, terminator_targets,
+use {
+    crate::{
+        mk_graph::{
+            context::GraphContext,
+            util::{escape_d2, is_unqualified, name_lines, short_name, terminator_targets},
+        },
+        printer::SmirJson,
+        MonoItemKind,
+    },
+    stable_mir::mir::TerminatorKind,
 };
 
 impl SmirJson<'_> {

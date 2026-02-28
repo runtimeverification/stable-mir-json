@@ -1,7 +1,7 @@
 //! This module provides a compiler driver such that:
 //!
-//! 1.  the rustc compiler context is available
-//! 2.  the rustc `stable_mir` APIs are available
+//! 1. the rustc compiler context is available
+//! 2. the rustc `stable_mir` APIs are available
 //!
 //! It exports a single function:
 //!
@@ -22,10 +22,10 @@ extern crate rustc_interface;
 extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_smir;
-use rustc_driver::Compilation;
-use rustc_interface::interface::Compiler;
-use rustc_middle::ty::TyCtxt;
-use rustc_smir::rustc_internal;
+use {
+    rustc_driver::Compilation, rustc_interface::interface::Compiler, rustc_middle::ty::TyCtxt,
+    rustc_smir::rustc_internal,
+};
 
 struct StableMirCallbacks {
     callback_fn: fn(TyCtxt) -> (),

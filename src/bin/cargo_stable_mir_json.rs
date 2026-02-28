@@ -1,10 +1,12 @@
-use std::env;
-
-use std::io::Write;
-use std::os::unix::fs::PermissionsExt;
-use std::path::{Path, PathBuf};
-
-use anyhow::{bail, Result};
+use {
+    anyhow::{bail, Result},
+    std::{
+        env,
+        io::Write,
+        os::unix::fs::PermissionsExt,
+        path::{Path, PathBuf},
+    },
+};
 
 fn main() -> Result<()> {
     let args: Vec<_> = env::args().collect();

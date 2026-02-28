@@ -1,17 +1,22 @@
 //! DOT (Graphviz) format output for MIR graphs.
 
-use std::collections::HashSet;
-
-use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
+use {
+    dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style},
+    std::collections::HashSet,
+};
 
 extern crate stable_mir;
-use stable_mir::mir::{BasicBlock, ConstOperand, Operand, TerminatorKind, UnwindAction};
-
-use crate::printer::SmirJson;
-use crate::MonoItemKind;
-
-use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
+use {
+    crate::{
+        mk_graph::{
+            context::GraphContext,
+            util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString},
+        },
+        printer::SmirJson,
+        MonoItemKind,
+    },
+    stable_mir::mir::{BasicBlock, ConstOperand, Operand, TerminatorKind, UnwindAction},
+};
 
 impl SmirJson<'_> {
     /// Convert the MIR to DOT (Graphviz) format
@@ -91,7 +96,8 @@ impl SmirJson<'_> {
                         local_node.set("color", "palegreen3", false);
                         drop(local_node);
 
-                        // Cannot define local functions that capture env. variables. Instead we define _closures_.
+                        // Cannot define local functions that capture env. variables. Instead we
+                        // define _closures_.
                         let process_block =
                             |cluster: &mut Scope<'_, '_>, node_id: usize, b: &BasicBlock| {
                                 let name = &item.symbol_name;
@@ -173,8 +179,11 @@ impl SmirJson<'_> {
                                                 .set_label(&dest);
                                         }
 
-                                        // The call edge has to be drawn outside the cluster, outside this function (cluster borrows &mut graph)!
-                                        // Code for that is therefore separated into its own second function below.
+                                        // The call edge has to be drawn outside
+                                        // the cluster, outside this function
+                                        // (cluster borrows &mut graph)!
+                                        // Code for that is therefore separated
+                                        // into its own second function below.
                                     }
                                     Assert {
                                         cond,
@@ -235,9 +244,10 @@ impl SmirJson<'_> {
 
                         drop(c); // so we can borrow graph again
 
-                        // call edges have to be added _outside_ the cluster of blocks for one function
-                        // because they go between different clusters. Due to a scope/borrow issue, we have
-                        // to make a 2nd pass over the bodies of the item.
+                        // call edges have to be added _outside_ the cluster of blocks for one
+                        // function because they go between different
+                        // clusters. Due to a scope/borrow issue, we have to
+                        // make a 2nd pass over the bodies of the item.
                         let add_call_edges =
                             |graph: &mut Scope<'_, '_>, offset: usize, bs: &Vec<BasicBlock>| {
                                 for (i, b) in bs.iter().enumerate() {
@@ -252,7 +262,8 @@ impl SmirJson<'_> {
                                                     if let Some(callee) =
                                                         ctx.functions.get(&const_.ty())
                                                     {
-                                                        // callee node/body will be added when its body is added, missing ones added before
+                                                        // callee node/body will be added when its
+                                                        // body is added, missing ones added before
                                                         graph.edge(
                                                             &this_block,
                                                             block_name(callee, 0),
@@ -260,7 +271,8 @@ impl SmirJson<'_> {
                                                     } else {
                                                         let unknown = format!("{}", const_.ty());
                                                         // pathological case, could panic! instead.
-                                                        // all unknown callees will be collapsed into one `unknown` node
+                                                        // all unknown callees will be collapsed
+                                                        // into one `unknown` node
                                                         graph.edge(&this_block, unknown)
                                                     }
                                                 }

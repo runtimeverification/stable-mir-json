@@ -3,13 +3,16 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 extern crate stable_mir;
-use stable_mir::mir::{
-    AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
-    Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
+use {
+    crate::printer::FnSymType,
+    stable_mir::{
+        mir::{
+            AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
+            Operand, Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
+        },
+        ty::{IndexedVal, RigidTy},
+    },
 };
-use stable_mir::ty::{IndexedVal, RigidTy};
-
-use crate::printer::FnSymType;
 
 // =============================================================================
 // GraphLabelString Trait
