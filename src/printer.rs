@@ -698,7 +698,12 @@ impl Visitor for TyCollector<'_> {
                 self.resolved.insert(*ty);
                 let instance =
                     Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
-                self.visit_instance(instance)
+                let control = self.visit_instance(instance);
+                if matches!(control, ControlFlow::Continue(_)) {
+                    let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                    self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                }
+                control
             }
             // Break on CoroutineWitnesses, because they aren't expected when getting the layout
             TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => ControlFlow::Break(()),
