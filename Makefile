@@ -63,12 +63,7 @@ remake-ui-tests:
 
 test-ui: VERBOSE?=0
 test-ui:
-	# Check if RUST_DIR_ROOT is set
-	if [ -z "$$RUST_DIR_ROOT" ]; then \
-	  echo "Error: RUST_DIR_ROOT is not set. Please set it to the absolute path to rust compiler checkout."; \
-	  exit 1; \
-	fi
-	bash tests/ui/run_ui_tests.sh "$$RUST_DIR_ROOT" "${VERBOSE}"
+	bash tests/ui/run_ui_tests.sh $(if $(filter 1,$(VERBOSE)),--verbose) "$$RUST_DIR_ROOT"
 
 .PHONY: dot svg png d2 clean-graphs check-graphviz
 

@@ -181,6 +181,8 @@ tests/ui/associated-types/issue-54467.rs
 tests/ui/associated-types/issue-55846.rs
 tests/ui/associated-types/object-method-numbering.rs
 tests/ui/async-await/context-is-sorta-unwindsafe.rs
+tests/ui/async-await/issue-60709.rs
+tests/ui/async-await/issues/issue-59972.rs
 tests/ui/attributes/tool_attributes.rs
 tests/ui/augmented-assignments-rpass.rs
 tests/ui/auto-instantiate.rs
@@ -350,6 +352,10 @@ tests/ui/box/into-boxed-slice.rs
 tests/ui/box/new-box-syntax.rs
 tests/ui/box/new-box.rs
 tests/ui/box/new.rs
+tests/ui/box/thin_align.rs
+tests/ui/box/thin_drop.rs
+tests/ui/box/thin_new.rs
+tests/ui/box/thin_zst.rs
 tests/ui/box/unit/expr-block-generic-unique1.rs
 tests/ui/box/unit/expr-block-generic-unique2.rs
 tests/ui/box/unit/expr-if-unique.rs
@@ -412,7 +418,9 @@ tests/ui/cfg/cfg-macros-notfoo.rs
 tests/ui/cfg/cfg-target-abi.rs
 tests/ui/cfg/cfg-target-compact.rs
 tests/ui/cfg/cfg-target-vendor.rs
+tests/ui/cfg/cfg_attr.rs
 tests/ui/cfg/cfg_stmt_expr.rs
+tests/ui/cfg/cfgs-on-items.rs
 tests/ui/cfg/conditional-compile.rs
 tests/ui/cfg/true-false.rs
 tests/ui/cfguard-run.rs
@@ -629,6 +637,7 @@ tests/ui/consts/const-enum-vec-index.rs
 tests/ui/consts/const-enum-vec-ptr.rs
 tests/ui/consts/const-enum-vector.rs
 tests/ui/consts/const-err-rpass.rs
+tests/ui/consts/const-eval/const_fn_ptr.rs
 tests/ui/consts/const-eval/enum_discr.rs
 tests/ui/consts/const-eval/float_methods.rs
 tests/ui/consts/const-eval/heap/alloc_intrinsic_nontransient.rs
@@ -654,6 +663,7 @@ tests/ui/consts/const-fn-type-name.rs
 tests/ui/consts/const-fn-val.rs
 tests/ui/consts/const-fn.rs
 tests/ui/consts/const-index-feature-gate.rs
+tests/ui/consts/const-int-arithmetic-overflow.rs
 tests/ui/consts/const-int-arithmetic.rs
 tests/ui/consts/const-int-conversion-rpass.rs
 tests/ui/consts/const-int-overflowing-rpass.rs
@@ -678,6 +688,7 @@ tests/ui/consts/const-repeated-values.rs
 tests/ui/consts/const-size_of-align_of.rs
 tests/ui/consts/const-size_of_val-align_of_val.rs
 tests/ui/consts/const-struct.rs
+tests/ui/consts/const-trait-to-trait.rs
 tests/ui/consts/const-tuple-struct.rs
 tests/ui/consts/const-typeid-of-rpass.rs
 tests/ui/consts/const-unit-struct.rs
@@ -959,6 +970,8 @@ tests/ui/enum/issue-19340-2.rs
 tests/ui/enum/issue-23304-1.rs
 tests/ui/enum/issue-23304-2.rs
 tests/ui/enum/issue-42747.rs
+tests/ui/env-macro/env-env-overload.rs
+tests/ui/env-macro/env-env.rs
 tests/ui/env-macro/option_env-not-defined.rs
 tests/ui/errors/remap-path-prefix-macro.rs
 tests/ui/explicit-i-suffix.rs
@@ -998,6 +1011,7 @@ tests/ui/float/classify-runtime-const.rs
 tests/ui/float/conv-bits-runtime-const.rs
 tests/ui/float/int-to-float-miscompile-issue-105626.rs
 tests/ui/fmt/fmt_debug/full.rs
+tests/ui/fmt/fmt_debug/none.rs
 tests/ui/fmt/fmt_debug/shallow.rs
 tests/ui/fmt/format-args-capture-macro-hygiene-pass.rs
 tests/ui/fmt/format-args-capture.rs
@@ -1249,6 +1263,7 @@ tests/ui/issues/issue-10802.rs
 tests/ui/issues/issue-10806.rs
 tests/ui/issues/issue-11047.rs
 tests/ui/issues/issue-11085.rs
+tests/ui/issues/issue-11205.rs
 tests/ui/issues/issue-11267.rs
 tests/ui/issues/issue-11382.rs
 tests/ui/issues/issue-11552.rs
@@ -1647,6 +1662,7 @@ tests/ui/iterators/iter-sum-overflow-debug.rs
 tests/ui/iterators/iter-sum-overflow-ndebug.rs
 tests/ui/iterators/iter-sum-overflow-overflow-checks.rs
 tests/ui/iterators/skip-count-overflow.rs
+tests/ui/label/label_break_value_desugared_break.rs
 tests/ui/last-use-in-cap-clause.rs
 tests/ui/last-use-is-capture.rs
 tests/ui/late-bound-lifetimes/issue-36381.rs
@@ -1742,6 +1758,7 @@ tests/ui/macros/macro-lifetime-used-with-labels.rs
 tests/ui/macros/macro-lifetime-used-with-static.rs
 tests/ui/macros/macro-lifetime.rs
 tests/ui/macros/macro-literal.rs
+tests/ui/macros/macro-meta-items.rs
 tests/ui/macros/macro-metavar-expr-concat/allowed-operations.rs
 tests/ui/macros/macro-metavar-expr-concat/repetitions.rs
 tests/ui/macros/macro-metavar-expr-concat/unicode-expansion.rs
@@ -2271,6 +2288,7 @@ tests/ui/rfcs/rfc-2008-non-exhaustive/structs_same_crate.rs
 tests/ui/rfcs/rfc-2008-non-exhaustive/variants_same_crate.rs
 tests/ui/rfcs/rfc-2027-dyn-compatible-for-dispatch/manual-self-impl-for-unsafe-obj.rs
 tests/ui/rfcs/rfc-2091-track-caller/call-chain.rs
+tests/ui/rfcs/rfc-2091-track-caller/caller-location-fnptr-rt-ctfe-equiv.rs
 tests/ui/rfcs/rfc-2091-track-caller/caller-location-intrinsic.rs
 tests/ui/rfcs/rfc-2091-track-caller/const-caller-location.rs
 tests/ui/rfcs/rfc-2091-track-caller/intrinsic-wrapper.rs
@@ -2308,7 +2326,6 @@ tests/ui/runtime/stdout-before-main.rs
 tests/ui/runtime/stdout-during-shutdown-unix.rs
 tests/ui/runtime/stdout-during-shutdown-windows.rs
 tests/ui/sanitizer/cfi/complex-receiver.rs
-tests/ui/sanitizer/cfi/drop-in-place.rs
 tests/ui/sanitizer/cfi/fn-ptr.rs
 tests/ui/sanitizer/cfi/self-ref.rs
 tests/ui/sanitizer/cfi/sized-associated-ty.rs
@@ -2527,6 +2544,7 @@ tests/ui/syntax-extension-minor.rs
 tests/ui/tail-call-arg-leak.rs
 tests/ui/tail-cps.rs
 tests/ui/test-attrs/test-main-not-dead.rs
+tests/ui/test-attrs/test-panic-while-printing.rs
 tests/ui/test-attrs/test-runner-hides-main.rs
 tests/ui/thread-local/tls.rs
 tests/ui/threads-sendsync/child-outlives-parent.rs
@@ -2602,6 +2620,7 @@ tests/ui/traits/bug-7295.rs
 tests/ui/traits/coercion-generic.rs
 tests/ui/traits/coercion.rs
 tests/ui/traits/conditional-dispatch.rs
+tests/ui/traits/const-traits/const-drop.rs
 tests/ui/traits/const-traits/specialization/const-default-const-specialized.rs
 tests/ui/traits/const-traits/specialization/non-const-default-const-specialized.rs
 tests/ui/traits/const-traits/trait-where-clause-run.rs
@@ -2713,6 +2732,10 @@ tests/ui/traits/with-bounds-default.rs
 tests/ui/transmute-non-immediate-to-immediate.rs
 tests/ui/transmute/transmute-zst-generics.rs
 tests/ui/trivial_casts-rpass.rs
+tests/ui/try-block/issue-45124.rs
+tests/ui/try-block/try-block-in-match.rs
+tests/ui/try-block/try-block-in-return.rs
+tests/ui/try-block/try-block.rs
 tests/ui/try-block/try-is-identifier-edition2015.rs
 tests/ui/try-from-int-error-partial-eq.rs
 tests/ui/try-operator-hygiene.rs
