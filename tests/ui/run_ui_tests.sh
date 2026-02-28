@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: run_ui_tests.sh [--verbose] [--save-generated-output] [--save-debug-output] RUST_DIR_ROOT
+Usage: run_ui_tests.sh [--verbose] [--save-generated-output] [--save-debug-output] RUST_DIR
 
 Options:
   --verbose                Print passing and skipped tests.
@@ -74,7 +74,7 @@ extract_test_flags() {
 VERBOSE=0
 SAVE_GENERATED_OUTPUT=0
 SAVE_DEBUG_OUTPUT=0
-RUST_DIR_ROOT=""
+RUST_DIR=""
 
 while (( $# > 0 )); do
   case "$1" in
@@ -98,8 +98,8 @@ while (( $# > 0 )); do
       die "unknown option: $1"
       ;;
     *)
-      if [[ -z "$RUST_DIR_ROOT" ]]; then
-        RUST_DIR_ROOT=$1
+      if [[ -z "$RUST_DIR" ]]; then
+        RUST_DIR=$1
       else
         die "unexpected argument: $1"
       fi
@@ -108,13 +108,16 @@ while (( $# > 0 )); do
   esac
 done
 
-[[ -n "$RUST_DIR_ROOT" ]] || { usage; exit 1; }
-[[ -d "$RUST_DIR_ROOT" ]] || die "RUST_DIR_ROOT is not a directory: $RUST_DIR_ROOT"
+[[ -n "$RUST_DIR" ]] || { usage; exit 1; }
+[[ -d "$RUST_DIR" ]] || die "RUST_DIR is not a directory: $RUST_DIR"
 
 # -------------------------
 # Paths
 # -------------------------
 UI_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+# Ensure the rust checkout is at the expected commit (handles bare repos)
+source "$UI_DIR/ensure_rustc_commit.sh"
 PASSING_TSV="${UI_DIR}/passing.tsv"
 [[ -f "$PASSING_TSV" ]] || die "Missing TSV file: $PASSING_TSV"
 
@@ -185,7 +188,7 @@ total=0
 while IFS= read -r test; do
   [[ -n "$test" ]] || continue
 
-  test_path="${RUST_DIR_ROOT}/${test}"
+  test_path="${RUST_SRC_DIR}/${test}"
   test_name="$(basename "$test" .rs)"
   json_file="${PWD}/${test_name}.smir.json"
 

@@ -4,7 +4,6 @@ components = ["llvm-tools", "rustc-dev", "rust-src", "rust-analyzer"]
 
 # Ignored by rustup; used by our test scripts.
 # This is the rustc commit that backs the nightly above.
-# UI tests (make test-ui, make remake-ui-tests) need a rust compiler
-# checkout at this commit: git -C $RUST_DIR_ROOT checkout <commit>
+# UI test scripts automatically checkout this commit in RUST_DIR_ROOT.
 [metadata]
 rustc-commit = "a2545fd6fc66b4323f555223a860c451885d1d2b"
