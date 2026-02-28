@@ -1,9 +1,12 @@
 //! Recursive type visitor for collecting reachable types with layout info.
 //!
 //! [`TyCollector`] implements `stable_mir::visitor::Visitor` and traverses
-//! type trees, recording each encountered type along with its `TyKind` and
-//! `LayoutShape`. The collected types are later transformed into
+//! type trees, recording each relevant type along with its `TyKind` and
+//! `LayoutShape`. These collected types are later transformed into
 //! [`TypeMetadata`](super::schema::TypeMetadata) entries in the final output.
+//! Note that some special kinds (closures, function definitions/pointers, and
+//! coroutine witnesses) are traversed only to gather the types they reference
+//! and are not themselves stored as entries in the type map.
 
 extern crate rustc_middle;
 extern crate rustc_smir;

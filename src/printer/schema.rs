@@ -467,7 +467,8 @@ pub type SourceData = (String, usize, usize, usize, usize);
 /// monomorphized items with bodies, the link-time function map, type metadata,
 /// global allocations, source spans, and optionally debug information.
 ///
-/// Fields are sorted for deterministic output across runs.
+/// Collection fields (`allocs`, `functions`, `items`, `types`, `spans`) are
+/// sorted where applicable to improve output determinism across runs.
 #[derive(Serialize)]
 pub struct SmirJson<'t> {
     pub name: String,

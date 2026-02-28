@@ -5,9 +5,12 @@
 //!   discovering transitive items through unevaluated constants
 //! - [`assemble_smir`]: phase 3, pure data transformation into [`SmirJson`]
 //!
-//! The phase boundary between 2 and 3 is enforced by types: `assemble_smir`
-//! receives [`CollectedCrate`] and [`DerivedInfo`], neither of which carries
-//! `Instance` or `MonoItem` handles, so it structurally cannot call `inst.body()`.
+//! The phase boundary between 2 and 3 is enforced by interface and convention:
+//! `assemble_smir` operates on [`CollectedCrate`] and [`DerivedInfo`] as
+//! read-only data and does not call `inst.body()` or otherwise re-enter rustc.
+//! (Note: `CollectedCrate` contains [`Item`], which retains a `MonoItem` field
+//! for sorting and display; the invariant is maintained by discipline, not by
+//! the type system.)
 
 extern crate rustc_middle;
 extern crate rustc_smir;

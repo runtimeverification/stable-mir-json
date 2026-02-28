@@ -1,9 +1,9 @@
 //! Type helpers and [`TypeMetadata`] construction.
 //!
-//! Provides utilities for working with `stable_mir` types: resolving function
-//! instances from types, checking for unresolved generics, and constructing
-//! [`TypeMetadata`](super::schema::TypeMetadata) entries from `TyKind` + layout
-//! for the final JSON output.
+//! Provides [`mk_type_metadata`], which constructs
+//! [`TypeMetadata`](super::schema::TypeMetadata) entries from `TyKind` and
+//! optional [`LayoutShape`](stable_mir::abi::LayoutShape) for the final JSON
+//! output.
 
 extern crate rustc_middle;
 extern crate rustc_smir;

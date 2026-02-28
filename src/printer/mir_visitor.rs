@@ -1,4 +1,4 @@
-//! MIR body traversal for collecting interned values.
+//! MIR body traversal for collecting calls, allocations, types, and spans.
 //!
 //! [`BodyAnalyzer`] implements `MirVisitor` and walks each function body exactly
 //! once, collecting:

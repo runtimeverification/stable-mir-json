@@ -11,8 +11,8 @@
 //! | [`schema`] | Data model types ([`SmirJson`], [`Item`], [`AllocInfo`], etc.) and type aliases |
 //! | [`collect`] | Three-phase pipeline: collect items, analyze bodies, assemble final output |
 //! | [`items`] | Constructing [`Item`] values and extracting debug-level details |
-//! | [`mir_visitor`] | `BodyAnalyzer`: single-pass MIR traversal collecting calls, allocs, types, spans |
-//! | [`ty_visitor`] | Type visitor that recursively collects all reachable types with layout info |
+//! | [`mir_visitor`] | `BodyAnalyzer`: single-pass MIR body traversal collecting calls, allocs, types, spans |
+//! | [`ty_visitor`] | `TyCollector`: recursively collects reachable types with layout info (some special kinds are traversed but not stored) |
 //! | [`link_map`] | Function resolution map: type + instance kind to symbol name |
 //! | [`types`] | Type helpers and [`TypeMetadata`](schema::TypeMetadata) construction |
 //! | [`util`] | Name resolution, attribute queries, and small collection utilities |
