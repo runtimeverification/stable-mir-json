@@ -228,7 +228,7 @@ impl Serialize for LinkMapKey<'_> {
         if super::link_instance_enabled() {
             let mut tup = serializer.serialize_tuple(2)?;
             tup.serialize_element(&self.0)?;
-            tup.serialize_element(&format!("{:?}", self.1).as_str())?;
+            tup.serialize_element(&format!("{:?}", self.1))?;
             tup.end()
         } else {
             <stable_mir::ty::Ty as Serialize>::serialize(&self.0, serializer)

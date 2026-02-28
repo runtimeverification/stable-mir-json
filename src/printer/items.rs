@@ -79,7 +79,7 @@ where
     ) {
         Ok(res) => res,
         Err(err) => {
-            println!("{:?}", err);
+            eprintln!("{:?}", err);
             v_copy.skip_binder()
         }
     }
@@ -100,7 +100,7 @@ fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'tcx>
         ) {
             Ok(res) => res,
             Err(err) => {
-                println!("{:?}", err);
+                eprintln!("{:?}", err);
                 sig0.skip_binder()
             }
         };
@@ -160,7 +160,7 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item
             let alloc = match static_def.eval_initializer() {
                 Ok(alloc) => Some(alloc),
                 err => {
-                    println!(
+                    eprintln!(
                         "StaticDef({:#?}).eval_initializer() failed with: {:#?}",
                         static_def, err
                     );

@@ -92,19 +92,27 @@ fn field_for_offset(l: &LayoutShape, offset: usize) -> Option<usize> {
     }
 }
 
-/// Find the field whose byte range contains the given offset.
-/// Returns (field_index, field_start_byte_offset).
+/// Find the field whose byte range contains the given offset by scanning for
+/// the field with the largest start offset that doesn't exceed the target.
+/// Returns `(field_index, field_start_byte_offset)`. Single linear pass; no
+/// allocation or sorting needed since we only track the running best.
 fn field_containing_offset(l: &LayoutShape, offset: usize) -> Option<(usize, usize)> {
     match &l.fields {
         FieldsShape::Arbitrary { offsets } => {
-            let mut indexed: Vec<(usize, usize)> = offsets
-                .iter()
-                .enumerate()
-                .map(|(i, o)| (i, o.bytes()))
-                .collect();
-            indexed.sort_by_key(|&(_, o)| o);
-            // The containing field is the one with the largest start offset <= target.
-            indexed.into_iter().rev().find(|&(_, o)| o <= offset)
+            let mut best: Option<(usize, usize)> = None;
+            for (i, o) in offsets.iter().enumerate() {
+                let start = o.bytes();
+                if start <= offset {
+                    match best {
+                        None => best = Some((i, start)),
+                        Some((_, best_start)) if start > best_start => {
+                            best = Some((i, start));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            best
         }
         _ => None,
     }
