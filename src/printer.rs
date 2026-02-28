@@ -1338,10 +1338,12 @@ pub enum TypeMetadata {
     PtrType {
         pointee_type: stable_mir::ty::Ty,
         layout: Option<LayoutShape>,
+        mutability: stable_mir::mir::Mutability,
     },
     RefType {
         pointee_type: stable_mir::ty::Ty,
         layout: Option<LayoutShape>,
+        mutability: stable_mir::mir::Mutability,
     },
     TupleType {
         types: Vec<stable_mir::ty::Ty>,
@@ -1459,18 +1461,20 @@ fn mk_type_metadata(
             },
         )),
         // for raw pointers and references store the pointee type
-        T(RawPtr(pointee_type, _)) => Some((
+        T(RawPtr(pointee_type, mutability)) => Some((
             k,
             PtrType {
                 pointee_type,
                 layout,
+                mutability,
             },
         )),
-        T(Ref(_, pointee_type, _)) => Some((
+        T(Ref(_, pointee_type, mutability)) => Some((
             k,
             RefType {
                 pointee_type,
                 layout,
+                mutability,
             },
         )),
         // for tuples the element types are provided

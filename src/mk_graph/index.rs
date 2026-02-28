@@ -51,13 +51,30 @@ pub struct TypeEntry {
 #[derive(Clone)]
 pub enum TypeKind {
     Primitive,
-    Struct { fields: Vec<FieldInfo> },
-    Enum { variants: Vec<VariantInfo> },
-    Union { fields: Vec<FieldInfo> },
-    Array { elem_ty: Ty, len: Option<u64> },
-    Tuple { fields: Vec<Ty> },
-    Ptr { pointee: Ty },
-    Ref { pointee: Ty },
+    Struct {
+        fields: Vec<FieldInfo>,
+    },
+    Enum {
+        variants: Vec<VariantInfo>,
+    },
+    Union {
+        fields: Vec<FieldInfo>,
+    },
+    Array {
+        elem_ty: Ty,
+        len: Option<u64>,
+    },
+    Tuple {
+        fields: Vec<Ty>,
+    },
+    Ptr {
+        pointee: Ty,
+        mutability: stable_mir::mir::Mutability,
+    },
+    Ref {
+        pointee: Ty,
+        mutability: stable_mir::mir::Mutability,
+    },
     Function,
     Void,
 }
@@ -365,12 +382,14 @@ impl TypeEntry {
             TypeMetadata::PtrType {
                 pointee_type,
                 layout,
+                mutability,
             } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
                     format!("{}", ty),
                     TypeKind::Ptr {
                         pointee: *pointee_type,
+                        mutability: *mutability,
                     },
                     layout_info,
                 )
@@ -378,12 +397,14 @@ impl TypeEntry {
             TypeMetadata::RefType {
                 pointee_type,
                 layout,
+                mutability,
             } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
                     format!("{}", ty),
                     TypeKind::Ref {
                         pointee: *pointee_type,
+                        mutability: *mutability,
                     },
                     layout_info,
                 )
