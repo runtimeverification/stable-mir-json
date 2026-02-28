@@ -11,6 +11,7 @@
 //! maps and are dropped before phase 3 begins.
 
 use crate::compat::middle::ty::TyCtxt;
+use crate::compat::mono_collect::mono_collect;
 use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
@@ -18,7 +19,6 @@ use std::collections::{HashMap, HashSet};
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::ty::IndexedVal;
-
 use stable_mir::CrateDef;
 
 use super::items::{get_foreign_module_details, mk_item};
@@ -29,7 +29,9 @@ use super::schema::{
 };
 use super::ty_visitor::TyCollector;
 use super::types::mk_type_metadata;
-use super::util::{mono_item_name, take_any};
+use super::util::take_any;
+
+use crate::compat::mono_collect::mono_item_name;
 
 /// Log a warning when a body was expected but missing.
 fn warn_missing_body(mono_item: &MonoItem) {
@@ -48,10 +50,6 @@ fn warn_missing_body(mono_item: &MonoItem) {
         }
         MonoItem::GlobalAsm(_) => {}
     }
-}
-
-fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
-    crate::compat::mono_collect::mono_collect(tcx)
 }
 
 fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item)> {

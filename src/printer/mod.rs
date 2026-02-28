@@ -58,7 +58,6 @@ mod util;
 pub use collect::collect_smir;
 pub use items::MonoItemKind;
 pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, SmirJson, TypeMetadata};
-pub use util::has_attr;
 pub(crate) use util::hash;
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {

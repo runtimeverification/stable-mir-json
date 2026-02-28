@@ -21,8 +21,9 @@ use stable_mir::mir::Body;
 use stable_mir::ty::Allocation;
 use stable_mir::{CrateDef, CrateItem};
 
+use crate::compat::bridge::mono_instance;
+
 use super::schema::{BodyDetails, ForeignItem, ForeignModule, GenericData, Item, ItemDetails};
-use super::util::def_id_to_inst;
 
 #[derive(Serialize, Clone)]
 pub enum MonoItemKind {
@@ -49,9 +50,6 @@ fn get_body_details(body: &Body) -> BodyDetails {
     BodyDetails::new(std::str::from_utf8(&v).unwrap().into())
 }
 
-fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> GenericData {
-    GenericData(crate::compat::types::generic_data(tcx, id))
-}
 
 fn get_item_details(
     tcx: TyCtxt<'_>,
@@ -70,7 +68,7 @@ fn get_item_details(
             internal_kind,
             path,
             internal_ty,
-            generic_data: generic_data(tcx, id),
+            generic_data: GenericData(crate::compat::types::generic_data(tcx, id)),
         })
     } else {
         None
@@ -111,7 +109,7 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (Mon
                     None
                 }
             };
-            let inst = def_id_to_inst(tcx, static_def.def_id());
+            let inst = mono_instance(tcx, static_def.def_id());
             let body = inst.body();
             let mono_item = MonoItem::Static(static_def);
             (
