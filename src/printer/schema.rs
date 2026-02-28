@@ -191,13 +191,28 @@ impl Serialize for ItemSource {
     }
 }
 
+/// Classification of a function symbol's resolution.
+///
+/// Each function encountered during MIR traversal is categorized as one of:
+/// a no-op shim (empty body), a compiler intrinsic, or a normal function
+/// with a mangled symbol name.
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub enum FnSymType {
+    /// An empty shim (no-op); the string is unused.
     NoOpSym(String),
+    /// A compiler intrinsic; carries the intrinsic name.
     IntrinsicSym(String),
+    /// A regular function; carries the mangled symbol name.
     NormalSym(String),
 }
 
+/// Key into the link-time function resolution map.
+///
+/// Pairs a Stable MIR type (always an `FnDef`) with an optional internal
+/// `InstanceKind` for disambiguation. When serialized, the representation
+/// depends on the `LINK_INST` environment variable: with it set, both
+/// components are emitted as a 2-tuple; without it, only the type index
+/// is written.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct LinkMapKey<'tcx>(
     pub stable_mir::ty::Ty,
@@ -351,6 +366,11 @@ impl Ord for Item {
     }
 }
 
+/// A recorded global allocation encountered during MIR traversal.
+///
+/// Captures the allocation id, the pointee type (as best as can be determined
+/// from provenance analysis), and the underlying [`GlobalAlloc`] data
+/// (memory contents, static reference, vtable, or function pointer).
 #[derive(Serialize)]
 pub struct AllocInfo {
     alloc_id: AllocId,
@@ -371,19 +391,28 @@ impl AllocInfo {
         }
     }
 
+    /// The unique allocation identifier within the crate.
     pub fn alloc_id(&self) -> AllocId {
         self.alloc_id
     }
 
+    /// The pointee type of this allocation, as determined by provenance analysis.
     pub fn ty(&self) -> stable_mir::ty::Ty {
         self.ty
     }
 
+    /// The underlying global allocation data (memory, static, vtable, or function).
     pub fn global_alloc(&self) -> &GlobalAlloc {
         &self.global_alloc
     }
 }
 
+/// Structured metadata about a Rust type, suitable for execution or verification.
+///
+/// Each variant captures the information a consumer needs to interpret values
+/// of that type: field types and layouts for aggregates, element types for
+/// arrays/slices, pointee types for pointers/references, and discriminant
+/// mappings for enums.
 #[derive(Serialize)]
 pub enum TypeMetadata {
     PrimitiveType(RigidTy),
@@ -429,9 +458,16 @@ pub enum TypeMetadata {
     VoidType,
 }
 
+/// Span location data: `(filename, start_line, start_col, end_line, end_col)`.
 pub type SourceData = (String, usize, usize, usize, usize);
 
-/// the serialised data structure as a whole
+/// Top-level output structure serialized as the `*.smir.json` file.
+///
+/// Contains all information extracted from the crate's Stable MIR:
+/// monomorphized items with bodies, the link-time function map, type metadata,
+/// global allocations, source spans, and optionally debug information.
+///
+/// Fields are sorted for deterministic output across runs.
 #[derive(Serialize)]
 pub struct SmirJson<'t> {
     pub name: String,
@@ -446,6 +482,11 @@ pub struct SmirJson<'t> {
     pub machine: stable_mir::target::MachineInfo,
 }
 
+/// Extra debug information included when the `DEBUG` environment variable is set.
+///
+/// Contains the provenance of each function map entry (whether it came from
+/// an item, a terminator call, or a function pointer cast), the raw type map,
+/// and foreign module details.
 #[derive(Serialize)]
 pub struct SmirJsonDebugInfo<'t> {
     pub(super) fn_sources: Vec<(LinkMapKey<'t>, ItemSource)>,

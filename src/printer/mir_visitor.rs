@@ -103,16 +103,22 @@ fn field_containing_offset(l: &LayoutShape, offset: usize) -> Option<(usize, usi
                 .map(|(i, o)| (i, o.bytes()))
                 .collect();
             indexed.sort_by_key(|&(_, o)| o);
+            // The containing field is the one with the largest start offset <= target.
             indexed.into_iter().rev().find(|&(_, o)| o <= offset)
         }
         _ => None,
     }
 }
 
+fn opaque_placeholder_ty() -> stable_mir::ty::Ty {
+    stable_mir::ty::Ty::to_val(0)
+}
+
 fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty::Ty> {
     use stable_mir::ty::RigidTy;
     let ty_kind = ty.kind();
     debug_log_println!("get_prov_ty: {:?} offset={}", ty_kind, offset);
+    // if ty is a pointer, box, or Ref, expect no offset and dereference
     if let Some(derefed) = ty_kind.builtin_deref(true) {
         if *offset != 0 {
             eprintln!(
@@ -125,6 +131,8 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         return Some(derefed.ty);
     }
 
+    // Otherwise the allocation is a reference within another kind of data.
+    // Decompose this outer data type to determine the reference type
     let layout = match ty.layout().map(|l| l.shape()) {
         Ok(l) => l,
         Err(_) => {
@@ -143,15 +151,21 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         }
     };
     let ref_ty = match rigid {
+        // homogenous, so no choice. Could check alignment of the offset...
         RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
+        // cases covered above
         RigidTy::Ref(_, _, _) | RigidTy::RawPtr(_, _) => {
             unreachable!("Covered by builtin_deref above")
         }
         RigidTy::Adt(def, _) if def.is_box() => {
             unreachable!("Covered by builtin_deref above")
         }
+        // For structs, find the field containing this offset and recurse.
+        // The provenance offset may point into a nested struct field, so we
+        // walk down through the field hierarchy until we reach the pointer.
         RigidTy::Adt(adt_def, args) if ty_kind.is_struct() => {
             let (field_idx, field_start) = field_containing_offset(&layout, *offset)?;
+            // NB struct, single variant
             let fields = adt_def.variants().pop().map(|v| v.fields())?;
             let field_ty = fields.get(field_idx)?.ty_with_args(args);
             let relative_offset = *offset - field_start;
@@ -162,11 +176,15 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
             return get_prov_ty(field_ty, &relative_offset);
         }
         RigidTy::Adt(_adt_def, _args) if ty_kind.is_enum() => {
+            // we have to figure out which variant we are dealing with (requires the data)
             match field_for_offset(&layout, *offset) {
-                None => { None }
-                Some(_idx) => { None }
+                // FIXME we'd have to figure out which variant we are dealing with (requires the data)
+                None => None,
+                // FIXME we'd have to figure out where that shared field is in the source ordering
+                Some(_idx) => None,
             }
         }
+        // Same as structs: find containing field and recurse.
         RigidTy::Tuple(fields) => {
             let (field_idx, field_start) = field_containing_offset(&layout, *offset)?;
             let field_ty = *fields.get(field_idx)?;
@@ -195,7 +213,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
 fn collect_alloc(
     val_collector: &mut BodyAnalyzer,
     ty: stable_mir::ty::Ty,
-    offset: &usize,
+    offset: usize,
     val: stable_mir::mir::alloc::AllocId,
 ) {
     if val_collector.visited_allocs.contains_key(&val) {
@@ -211,7 +229,7 @@ fn collect_alloc(
     );
     match global_alloc {
         GlobalAlloc::Memory(ref alloc) => {
-            let pointed_ty = get_prov_ty(ty, offset);
+            let pointed_ty = get_prov_ty(ty, &offset);
             debug_log_println!(
                 "DEBUG: adding alloc: {:?}:{:?}: {:?}",
                 val,
@@ -227,12 +245,12 @@ fn collect_alloc(
                     .ptrs
                     .iter()
                     .for_each(|(prov_offset, prov)| {
-                        collect_alloc(val_collector, p_ty, prov_offset, prov.0);
+                        collect_alloc(val_collector, p_ty, *prov_offset, prov.0);
                     });
             } else {
                 val_collector
                     .visited_allocs
-                    .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                    .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
             }
         }
         GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
@@ -242,7 +260,7 @@ fn collect_alloc(
         }
         GlobalAlloc::Function(_) => {
             if !kind.is_fn_ptr() {
-                let prov_ty = get_prov_ty(ty, offset);
+                let prov_ty = get_prov_ty(ty, &offset);
                 debug_log_println!(
                     "DEBUG: GlobalAlloc::Function with non-fn-ptr type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
                     val,
@@ -260,7 +278,7 @@ fn collect_alloc(
                     // as a conservative placeholder.
                     val_collector
                         .visited_allocs
-                        .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
+                        .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
                 }
             } else {
                 val_collector
@@ -353,7 +371,7 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                     .provenance
                     .ptrs
                     .iter()
-                    .for_each(|(offset, prov)| collect_alloc(self, constant.ty(), offset, prov.0));
+                    .for_each(|(offset, prov)| collect_alloc(self, constant.ty(), *offset, prov.0));
             }
             ConstantKind::Ty(ty_const) => {
                 if let TyConstKind::Value(..) = ty_const.kind() {
