@@ -40,6 +40,8 @@ pub trait GraphBuilder {
     fn finish(self) -> Self::Output;
 }
 
+/// Format-agnostic MIR graph traversal.
+/// Owns traversal order and graph semantics, delegates rendering to `GraphBuilder`.
 pub fn render_graph<B: GraphBuilder>(
     smir: &SmirJson,
     mut builder: B,
@@ -70,6 +72,8 @@ pub fn render_graph<B: GraphBuilder>(
     builder.finish()
 }
 
+/// Emit graph events for a single function body.
+/// Traverses blocks, CFG edges, and call edges without renderer-specific logic.
 fn render_function<B: GraphBuilder>(
     ctx: &GraphContext,
     builder: &mut B,
