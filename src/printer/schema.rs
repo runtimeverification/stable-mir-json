@@ -10,17 +10,14 @@ extern crate stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
+use super::items::MonoItemKind;
 use rustc_middle as middle;
 use serde::{Serialize, Serializer};
 use stable_mir::abi::LayoutShape;
 use stable_mir::mir::alloc::{AllocId, GlobalAlloc};
-use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::mir::Body;
 use stable_mir::ty::{AdtDef, ConstDef, ForeignItemKind, RigidTy};
-use stable_mir::CrateDef;
-
-use super::items::MonoItemKind;
 
 // Type aliases
 pub(super) type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
@@ -279,8 +276,6 @@ pub(super) struct ForeignModule {
 /// A single monomorphized item (function, static, or global asm) collected from the crate.
 #[derive(Serialize, Clone)]
 pub struct Item {
-    #[serde(skip)]
-    pub(super) mono_item: MonoItem,
     pub symbol_name: String,
     pub mono_item_kind: MonoItemKind,
     details: Option<ItemDetails>,
@@ -288,13 +283,11 @@ pub struct Item {
 
 impl Item {
     pub(super) fn new(
-        mono_item: MonoItem,
         symbol_name: String,
         mono_item_kind: MonoItemKind,
         details: Option<ItemDetails>,
     ) -> Self {
         Item {
-            mono_item,
             symbol_name,
             mono_item_kind,
             details,
@@ -314,30 +307,11 @@ impl Item {
             _ => None,
         }
     }
-
-    /// Log a warning when a body was expected but missing.
-    pub(super) fn warn_missing_body(&self) {
-        match &self.mono_item {
-            MonoItem::Fn(inst) => {
-                eprintln!(
-                    "Failed to retrieve body for Instance of MonoItem::Fn {}",
-                    inst.name()
-                );
-            }
-            MonoItem::Static(def) => {
-                eprintln!(
-                    "Failed to retrieve body for Instance of MonoItem::Static {}",
-                    def.name()
-                );
-            }
-            MonoItem::GlobalAsm(_) => {}
-        }
-    }
 }
 
 impl PartialEq for Item {
     fn eq(&self, other: &Item) -> bool {
-        self.mono_item.eq(&other.mono_item)
+        self.cmp(other) == std::cmp::Ordering::Equal
     }
 }
 impl Eq for Item {}

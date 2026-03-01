@@ -5,12 +5,10 @@
 //!   discovering transitive items through unevaluated constants
 //! - [`assemble_smir`]: phase 3, pure data transformation into [`SmirJson`]
 //!
-//! The phase boundary between 2 and 3 is enforced by interface and convention:
-//! `assemble_smir` operates on [`CollectedCrate`] and [`DerivedInfo`] as
-//! read-only data and does not call `inst.body()` or otherwise re-enter rustc.
-//! (Note: `CollectedCrate` contains [`Item`], which retains a `MonoItem` field
-//! for sorting and display; the invariant is maintained by discipline, not by
-//! the type system.)
+//! The phase boundary between 2 and 3 is enforced structurally: [`Item`] does
+//! not carry a `MonoItem`, so phase 3 code cannot call `inst.body()` or
+//! otherwise re-enter rustc. `MonoItem` values live only in the phase 1+2
+//! maps and are dropped before phase 3 begins.
 
 extern crate rustc_middle;
 extern crate rustc_smir;
@@ -26,6 +24,8 @@ use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::ty::IndexedVal;
 
+use stable_mir::CrateDef;
+
 use super::items::{get_foreign_module_details, mk_item};
 use super::mir_visitor::{maybe_add_to_link_map, BodyAnalyzer, UnevalConstInfo};
 use super::schema::{
@@ -35,6 +35,25 @@ use super::schema::{
 use super::ty_visitor::TyCollector;
 use super::types::mk_type_metadata;
 use super::util::{mono_item_name, take_any};
+
+/// Log a warning when a body was expected but missing.
+fn warn_missing_body(mono_item: &MonoItem) {
+    match mono_item {
+        MonoItem::Fn(inst) => {
+            eprintln!(
+                "Failed to retrieve body for Instance of MonoItem::Fn {}",
+                inst.name()
+            );
+        }
+        MonoItem::Static(def) => {
+            eprintln!(
+                "Failed to retrieve body for Instance of MonoItem::Static {}",
+                def.name()
+            );
+        }
+        MonoItem::GlobalAsm(_) => {}
+    }
+}
 
 fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
     let units = tcx.collect_and_partition_mono_items(()).1;
@@ -49,14 +68,15 @@ fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
         .collect()
 }
 
-fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, Item> {
+fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item)> {
     // get initial set of mono_items
     let items = mono_collect(tcx);
     items
         .iter()
         .map(|item| {
             let name = mono_item_name(tcx, item);
-            (name.clone(), mk_item(tcx, item.clone(), name))
+            let (mono_item, built_item) = mk_item(tcx, item.clone(), name.clone());
+            (name, (mono_item, built_item))
         })
         .collect::<HashMap<_, _>>()
 }
@@ -67,7 +87,7 @@ fn enqueue_unevaluated_consts(
     tcx: TyCtxt<'_>,
     discovered: Vec<UnevalConstInfo>,
     known_names: &mut HashSet<String>,
-    pending: &mut HashMap<String, Item>,
+    pending: &mut HashMap<String, (MonoItem, Item)>,
     unevaluated_consts: &mut HashMap<stable_mir::ty::ConstDef, String>,
 ) {
     for info in discovered {
@@ -76,8 +96,8 @@ fn enqueue_unevaluated_consts(
         }
         debug_log_println!("Adding unevaluated const body for: {}", info.item_name);
         unevaluated_consts.insert(info.const_def, info.item_name.clone());
-        let new_item = mk_item(tcx, info.mono_item, info.item_name.clone());
-        pending.insert(info.item_name.clone(), new_item);
+        let new_entry = mk_item(tcx, info.mono_item, info.item_name.clone());
+        pending.insert(info.item_name.clone(), new_entry);
         known_names.insert(info.item_name);
     }
 }
@@ -90,7 +110,7 @@ fn enqueue_unevaluated_consts(
 /// and added to the work queue.
 fn collect_and_analyze_items<'tcx>(
     tcx: TyCtxt<'tcx>,
-    initial_items: HashMap<String, Item>,
+    initial_items: HashMap<String, (MonoItem, Item)>,
 ) -> (CollectedCrate, DerivedInfo<'tcx>) {
     let mut calls_map: LinkMap<'tcx> = HashMap::new();
     let mut visited_allocs = AllocMap::new();
@@ -99,14 +119,14 @@ fn collect_and_analyze_items<'tcx>(
     let mut unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String> = HashMap::new();
 
     let mut known_names: HashSet<String> = initial_items.keys().cloned().collect();
-    let mut pending: HashMap<String, Item> = initial_items;
+    let mut pending: HashMap<String, (MonoItem, Item)> = initial_items;
     let mut all_items: Vec<Item> = Vec::new();
 
-    while let Some((_name, item)) = take_any(&mut pending) {
-        maybe_add_to_link_map(tcx, &item, &mut calls_map);
+    while let Some((_name, (mono_item, item))) = take_any(&mut pending) {
+        maybe_add_to_link_map(tcx, &mono_item, &mut calls_map);
 
         let Some((body, locals)) = item.body_and_locals() else {
-            item.warn_missing_body();
+            warn_missing_body(&mono_item);
             all_items.push(item);
             continue;
         };

@@ -136,7 +136,7 @@ fn get_item_details(
     }
 }
 
-pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item {
+pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (MonoItem, Item) {
     match item {
         MonoItem::Fn(inst) => {
             let id = inst.def.def_id();
@@ -144,15 +144,18 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item
             let internal_id = rustc_internal::internal(tcx, id);
             let body = inst.body();
             let details = get_item_details(tcx, internal_id, Some(inst), body.as_ref());
-            Item::new(
-                item,
-                sym_name.clone(),
-                MonoItemKind::MonoItemFn {
-                    name: name.clone(),
-                    id,
-                    body,
-                },
-                details,
+            let mono_item = MonoItem::Fn(inst);
+            (
+                mono_item,
+                Item::new(
+                    sym_name.clone(),
+                    MonoItemKind::MonoItemFn {
+                        name: name.clone(),
+                        id,
+                        body,
+                    },
+                    details,
+                ),
             )
         }
         MonoItem::Static(static_def) => {
@@ -169,25 +172,30 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> Item
             };
             let inst = def_id_to_inst(tcx, static_def.def_id());
             let body = inst.body();
-            Item::new(
-                item,
-                sym_name,
-                MonoItemKind::MonoItemStatic {
-                    name: static_def.name(),
-                    id: static_def.def_id(),
-                    allocation: alloc,
-                    body,
-                },
-                get_item_details(tcx, internal_id, None, None),
+            let mono_item = MonoItem::Static(static_def);
+            (
+                mono_item,
+                Item::new(
+                    sym_name,
+                    MonoItemKind::MonoItemStatic {
+                        name: static_def.name(),
+                        id: static_def.def_id(),
+                        allocation: alloc,
+                        body,
+                    },
+                    get_item_details(tcx, internal_id, None, None),
+                ),
             )
         }
         MonoItem::GlobalAsm(ref asm) => {
-            let asm = format!("{:#?}", asm);
-            Item::new(
+            let asm_str = format!("{:#?}", asm);
+            (
                 item,
-                sym_name,
-                MonoItemKind::MonoItemGlobalAsm { asm },
-                None,
+                Item::new(
+                    sym_name,
+                    MonoItemKind::MonoItemGlobalAsm { asm: asm_str },
+                    None,
+                ),
             )
         }
     }

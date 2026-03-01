@@ -63,13 +63,13 @@ pub(super) struct UnevalConstInfo {
 /// Register a function item in the link map (when LINK_ITEMS is enabled).
 pub(super) fn maybe_add_to_link_map<'tcx>(
     tcx: TyCtxt<'tcx>,
-    item: &super::schema::Item,
+    mono_item: &stable_mir::mir::mono::MonoItem,
     link_map: &mut LinkMap<'tcx>,
 ) {
     if !super::link_items_enabled() {
         return;
     }
-    if let stable_mir::mir::mono::MonoItem::Fn(inst) = &item.mono_item {
+    if let stable_mir::mir::mono::MonoItem::Fn(inst) = mono_item {
         update_link_map(
             link_map,
             fn_inst_sym(tcx, None, Some(inst)),
