@@ -15,6 +15,7 @@ pub mod context;
 pub mod index;
 pub mod output;
 pub mod util;
+pub mod traverse;
 
 // Re-exports for convenience
 pub use context::GraphContext;
