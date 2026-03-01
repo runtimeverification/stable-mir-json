@@ -12,6 +12,7 @@ use crate::mk_graph::util::{
 };
 
 use crate::mk_graph::traverse::GraphBuilder;
+use crate::mk_graph::traverse::render_graph;
 
 // =============================================================================
 // D2 Builder
@@ -115,6 +116,11 @@ impl SmirJson<'_> {
         render_d2_items(&self.items, &ctx, &mut output);
 
         output
+    }
+
+    /// Convert the MIR to D2 using GraphBuilder traversal (experimental)
+    pub fn to_d2_file_new(&self) -> String {
+        render_graph(self, D2Builder::new())
     }
 }
 
