@@ -9,7 +9,7 @@ use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{
-    escape_d2, is_unqualified, name_lines, short_name, terminator_targets,
+    is_unqualified, name_lines, short_name, terminator_targets,
 };
 
 /// Format agnostic graph sink.
@@ -77,8 +77,8 @@ fn render_function<B: GraphBuilder>(
     body: Option<&stable_mir::mir::Body>,
 ) {
     let fn_id = short_name(name);
-    let label = escape_d2(&name_lines(name));
-    let is_local = true; // preserve current behavior
+    let label = name_lines(name);
+    let is_local = true;
 
     builder.begin_function(&fn_id, &label, is_local);
 
@@ -88,10 +88,10 @@ fn render_function<B: GraphBuilder>(
             let stmts = block
                 .statements
                 .iter()
-                .map(|s| escape_d2(&ctx.render_stmt(s)))
+                .map(|s| ctx.render_stmt(s))
                 .collect::<Vec<_>>();
 
-            let term = escape_d2(&ctx.render_terminator(&block.terminator));
+            let term = ctx.render_terminator(&block.terminator);
 
             builder.block(&fn_id, idx, &stmts, &term);
         }

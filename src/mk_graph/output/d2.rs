@@ -52,16 +52,16 @@ impl GraphBuilder for D2Builder {
 
     fn begin_function(&mut self, id: &str, label: &str, _is_local: bool) {
         self.buf.push_str(&format!("{}: {{\n", id));
-        self.buf.push_str(&format!("  label: \"{}\"\n", label));
+        self.buf.push_str(&format!("  label: \"{}\"\n", escape_d2(label)));
         self.buf.push_str("  style.fill: \"#e0e0ff\"\n");
     }
 
     fn block( &mut self, _fn_id: &str, idx: usize, stmts: &[String], terminator: &str) {
         let mut label = format!("bb{}:", idx);
         for stmt in stmts {
-            label.push_str(&format!("\\n{}", stmt));
+            label.push_str(&format!("\\n{}", escape_d2(stmt)));
         }
-        label.push_str(&format!("\\n---\\n{}", terminator));
+        label.push_str(&format!("\\n---\\n{}", escape_d2(terminator)));
 
         self.buf.push_str(&format!("  bb{}: \"{}\"\n", idx, label));
     }
