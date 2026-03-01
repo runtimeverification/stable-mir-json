@@ -1,9 +1,13 @@
 //! Construction of [`Item`] values from monomorphized compiler items.
 //!
-//! Handles the mapping from `MonoItem` (function, static, or global asm) to the
-//! serializable [`Item`] structure, including optional debug-level details
-//! (instance kind, body pretty-print, generic parameters, internal type info)
-//! and foreign module enumeration.
+//! [`mk_item`] takes a `MonoItem` and returns `(MonoItem, Item)`: the caller
+//! gets back the original `MonoItem` (needed during phase 2 for link-map
+//! registration and diagnostics) alongside the serializable [`Item`]. This
+//! split is what keeps `MonoItem` out of [`Item`] while still making it
+//! available during collection.
+//!
+//! Also handles optional debug-level details (instance kind, body pretty-print,
+//! generic parameters, internal type info) and foreign module enumeration.
 
 extern crate rustc_middle;
 extern crate rustc_smir;

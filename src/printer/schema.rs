@@ -274,6 +274,11 @@ pub(super) struct ForeignModule {
 }
 
 /// A single monomorphized item (function, static, or global asm) collected from the crate.
+///
+/// Deliberately does not carry a `MonoItem`: by the time an `Item` reaches
+/// phase 3 (`assemble_smir`), no handle to re-enter rustc should exist.
+/// The `MonoItem` lives alongside the `Item` in the phase 1+2 work queue
+/// and is dropped before assembly begins.
 #[derive(Serialize, Clone)]
 pub struct Item {
     pub symbol_name: String,
@@ -470,7 +475,9 @@ pub struct SmirJsonDebugInfo<'t> {
 }
 
 /// Result of collecting all mono items and analyzing their bodies in a single pass.
-/// After this phase completes, no more inst.body() calls should be needed.
+///
+/// Contains only [`Item`] values (no `MonoItem`), so code that operates on a
+/// `CollectedCrate` structurally cannot call `inst.body()` or re-enter rustc.
 pub(super) struct CollectedCrate {
     pub items: Vec<Item>,
     pub unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,

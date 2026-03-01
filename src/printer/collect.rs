@@ -82,7 +82,8 @@ fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item)> {
 }
 
 /// Enqueue newly discovered unevaluated-const items into the fixpoint work queue.
-/// Each new item calls mk_item (which calls inst.body() exactly once).
+/// Each new entry calls `mk_item` (which calls `inst.body()` exactly once),
+/// producing a `(MonoItem, Item)` pair for the pending map.
 fn enqueue_unevaluated_consts(
     tcx: TyCtxt<'_>,
     discovered: Vec<UnevalConstInfo>,
@@ -106,8 +107,10 @@ fn enqueue_unevaluated_consts(
 ///
 /// Each body is walked exactly once. The fixpoint loop handles transitive
 /// discovery of items through unevaluated constants: when a body references an
-/// unknown unevaluated const, a new Item is created (calling inst.body() once)
-/// and added to the work queue.
+/// unknown unevaluated const, `mk_item` produces a new `(MonoItem, Item)` pair
+/// (calling `inst.body()` exactly once) and adds it to the work queue. The
+/// `MonoItem` half is used for link-map registration and diagnostics during
+/// this phase, then dropped; only the `Item` survives into `CollectedCrate`.
 fn collect_and_analyze_items<'tcx>(
     tcx: TyCtxt<'tcx>,
     initial_items: HashMap<String, (MonoItem, Item)>,

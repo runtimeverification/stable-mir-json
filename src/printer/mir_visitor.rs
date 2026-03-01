@@ -60,7 +60,7 @@ pub(super) struct UnevalConstInfo {
     pub mono_item: stable_mir::mir::mono::MonoItem,
 }
 
-/// Register a function item in the link map (when LINK_ITEMS is enabled).
+/// Register a `MonoItem::Fn` in the link map (when `LINK_ITEMS` is enabled).
 pub(super) fn maybe_add_to_link_map<'tcx>(
     tcx: TyCtxt<'tcx>,
     mono_item: &stable_mir::mir::mono::MonoItem,

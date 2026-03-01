@@ -8,9 +8,9 @@
 //!
 //! | Module | Responsibility |
 //! |--------|----------------|
-//! | [`schema`] | Data model types ([`SmirJson`], [`Item`], [`AllocInfo`], etc.) and type aliases |
-//! | [`collect`] | Three-phase pipeline: collect items, analyze bodies, assemble final output |
-//! | [`items`] | Constructing [`Item`] values and extracting debug-level details |
+//! | [`schema`] | Data model types ([`SmirJson`], [`Item`], [`AllocInfo`], etc.) and type aliases; [`Item`] deliberately excludes `MonoItem` for structural phase separation |
+//! | [`collect`] | Three-phase pipeline: collect items, analyze bodies, assemble final output; phase boundary is enforced structurally via the `(MonoItem, Item)` split |
+//! | [`items`] | Constructing `(MonoItem, Item)` pairs and extracting debug-level details |
 //! | [`mir_visitor`] | `BodyAnalyzer`: single-pass MIR body traversal collecting calls, allocs, types, spans |
 //! | [`ty_visitor`] | `TyCollector`: recursively collects reachable types with layout info (some special kinds are traversed but not stored) |
 //! | [`link_map`] | Function resolution map: type + instance kind to symbol name |
