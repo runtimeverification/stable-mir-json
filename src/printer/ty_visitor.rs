@@ -4,9 +4,9 @@
 //! type trees, recording each relevant type along with its `TyKind` and
 //! `LayoutShape`. These collected types are later transformed into
 //! [`TypeMetadata`](super::schema::TypeMetadata) entries in the final output.
-//! Note that some special kinds (closures, function definitions/pointers, and
-//! coroutine witnesses) are traversed only to gather the types they reference
-//! and are not themselves stored as entries in the type map.
+//! Note that some special kinds (function definitions/pointers and coroutine
+//! witnesses) are traversed only to gather the types they reference and are
+//! not themselves stored as entries in the type map.
 
 extern crate rustc_middle;
 extern crate rustc_smir;
@@ -63,7 +63,13 @@ impl Visitor for TyCollector<'_> {
                 self.resolved.insert(*ty);
                 let instance =
                     Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
-                self.visit_instance(instance)
+                let control = self.visit_instance(instance);
+                // Mirror other branches: record closure Ty only when traversal succeeds.
+                if matches!(control, ControlFlow::Continue(_)) {
+                    let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                    self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                }
+                control
             }
             // Break on CoroutineWitnesses, because they aren't expected when getting the layout
             TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => {

@@ -15,7 +15,7 @@ rustup-clear-toolchain:
 	rustup override unset --nonexistent
 	rustup toolchain uninstall "${TOOLCHAIN_NAME}"
 
-TESTDIR=$(CURDIR)/tests/integration/programs
+TESTDIR=tests/integration/programs
 
 .PHONY: integration-test
 integration-test: TESTS     ?= $(shell find $(TESTDIR) -type f -name "*.rs")
