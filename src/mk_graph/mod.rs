@@ -14,8 +14,8 @@ use crate::printer::collect_smir;
 pub mod context;
 pub mod index;
 pub mod output;
-pub mod util;
 pub mod traverse;
+pub mod util;
 
 // Re-exports for convenience
 pub use context::GraphContext;
