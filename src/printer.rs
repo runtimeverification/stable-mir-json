@@ -699,6 +699,7 @@ impl Visitor for TyCollector<'_> {
                 let instance =
                     Instance::resolve_closure(def, args, stable_mir::ty::ClosureKind::Fn).unwrap();
                 let control = self.visit_instance(instance);
+                // Mirror other visit_ty branches: only record this Ty when traversal succeeds.
                 if matches!(control, ControlFlow::Continue(_)) {
                     let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
                     self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
