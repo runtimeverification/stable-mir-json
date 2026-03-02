@@ -266,8 +266,7 @@ fn collect_alloc(
             }
         }
         GlobalAlloc::Static(_) => {
-            // Keep established behavior for direct pointer/reference types.
-            // Recovery is only for non-builtin-deref container paths.
+            // Keep builtin-deref behavior; recover only non-builtin-deref cases.
             if kind.clone().builtin_deref(true).is_none() {
                 let prov_ty = get_prov_ty(ty, &offset);
                 debug_log_println!(
@@ -283,7 +282,7 @@ fn collect_alloc(
                         .visited_allocs
                         .insert(val, (p_ty, global_alloc.clone()));
                 } else {
-                    // Unknown is safer than recording an incorrect outer container type.
+                    // Recovery failed: do not treat outer container `ty` as pointee.
                     val_collector
                         .visited_allocs
                         .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
@@ -295,8 +294,7 @@ fn collect_alloc(
             }
         }
         GlobalAlloc::VTable(_, _) => {
-            // Same policy as static allocs: preserve direct-deref behavior,
-            // recover only on the fallback path.
+            // Same policy as Static: keep builtin-deref, recover non-builtin-deref.
             if kind.clone().builtin_deref(true).is_none() {
                 let prov_ty = get_prov_ty(ty, &offset);
                 debug_log_println!(
@@ -312,7 +310,7 @@ fn collect_alloc(
                         .visited_allocs
                         .insert(val, (p_ty, global_alloc.clone()));
                 } else {
-                    // Unknown is safer than recording an incorrect outer container type.
+                    // Unknown is safer than wrong pointee type.
                     val_collector
                         .visited_allocs
                         .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
