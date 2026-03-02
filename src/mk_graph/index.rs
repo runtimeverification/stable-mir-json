@@ -75,6 +75,7 @@ pub enum TypeKind {
         pointee: Ty,
         mutability: stable_mir::mir::Mutability,
     },
+    Dyn,
     Function,
     Void,
 }
@@ -408,6 +409,10 @@ impl TypeEntry {
                     },
                     layout_info,
                 )
+            }
+            TypeMetadata::DynType { name, layout } => {
+                let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
+                (name.clone(), TypeKind::Dyn, layout_info)
             }
             TypeMetadata::FunType(name) => (name.clone(), TypeKind::Function, None),
             TypeMetadata::VoidType => ("()".to_string(), TypeKind::Void, None),
