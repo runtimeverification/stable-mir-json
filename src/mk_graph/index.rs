@@ -3,15 +3,12 @@
 use std::collections::HashMap;
 
 extern crate stable_mir;
-use {
-    crate::printer::{AllocInfo, TypeMetadata},
-    stable_mir::{
-        abi::{FieldsShape, LayoutShape},
-        mir::alloc::GlobalAlloc,
-        ty::{IndexedVal, Ty},
-        CrateDef,
-    },
-};
+use stable_mir::abi::{FieldsShape, LayoutShape};
+use stable_mir::mir::alloc::GlobalAlloc;
+use stable_mir::ty::{IndexedVal, Ty};
+use stable_mir::CrateDef;
+
+use crate::printer::{AllocInfo, TypeMetadata};
 
 // =============================================================================
 // Index Structures
@@ -326,8 +323,7 @@ impl TypeEntry {
                             .iter()
                             .map(|&t| FieldInfo {
                                 ty: t,
-                                offset: None, /* Enum variant offsets require variant-specific
-                                               * layout */
+                                offset: None, // Enum variant offsets require variant-specific layout
                             })
                             .collect(),
                     })

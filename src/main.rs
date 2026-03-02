@@ -2,11 +2,9 @@
 use std::env;
 pub mod driver;
 pub mod printer;
-use {
-    driver::stable_mir_driver,
-    printer::emit_smir,
-    stable_mir_json::mk_graph::{emit_d2file, emit_dotfile},
-};
+use driver::stable_mir_driver;
+use printer::emit_smir;
+use stable_mir_json::mk_graph::{emit_d2file, emit_dotfile};
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();

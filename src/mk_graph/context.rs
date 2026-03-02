@@ -3,20 +3,16 @@
 use std::collections::HashMap;
 
 extern crate stable_mir;
-use {
-    super::{
-        index::{AllocIndex, LayoutInfo, TypeEntry, TypeIndex, TypeKind},
-        util::{function_string, short_fn_name, GraphLabelString},
-    },
-    crate::printer::SmirJson,
-    stable_mir::{
-        mir::{
-            BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue,
-            Statement, StatementKind, Terminator, TerminatorKind,
-        },
-        ty::{ConstantKind, IndexedVal, MirConst, Ty},
-    },
+use stable_mir::mir::{
+    BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue, Statement,
+    StatementKind, Terminator, TerminatorKind,
 };
+use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
+
+use crate::printer::SmirJson;
+
+use super::index::{AllocIndex, LayoutInfo, TypeEntry, TypeIndex, TypeKind};
+use super::util::{function_string, short_fn_name, GraphLabelString};
 
 // =============================================================================
 // GraphContext
@@ -116,8 +112,7 @@ impl GraphContext {
         lines
     }
 
-    /// Resolve a call target to a function name if it's a constant function
-    /// pointer
+    /// Resolve a call target to a function name if it's a constant function pointer
     pub fn resolve_call_target(&self, func: &Operand) -> Option<String> {
         match func {
             Operand::Constant(ConstOperand { const_, .. }) => {

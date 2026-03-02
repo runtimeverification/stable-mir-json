@@ -3,19 +3,16 @@
 //! This module provides functionality to generate graph visualizations
 //! of Rust's MIR in various formats (DOT, D2).
 
-use std::{
-    fs::File,
-    io::{self, Write},
-};
+use std::fs::File;
+use std::io::{self, Write};
 
 extern crate rustc_middle;
 use rustc_middle::ty::TyCtxt;
 
 extern crate rustc_session;
-use {
-    crate::printer::collect_smir,
-    rustc_session::config::{OutFileName, OutputType},
-};
+use rustc_session::config::{OutFileName, OutputType};
+
+use crate::printer::collect_smir;
 
 // Sub-modules
 pub mod context;
@@ -24,11 +21,9 @@ pub mod output;
 pub mod util;
 
 // Re-exports for convenience
-pub use {
-    context::GraphContext,
-    index::{AllocEntry, AllocIndex, AllocKind, TypeIndex},
-    util::GraphLabelString,
-};
+pub use context::GraphContext;
+pub use index::{AllocEntry, AllocIndex, AllocKind, TypeIndex};
+pub use util::GraphLabelString;
 
 // =============================================================================
 // Entry Points

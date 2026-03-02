@@ -1,10 +1,11 @@
+use std::hash::Hash;
+use std::io::Write;
+use std::ops::ControlFlow;
 use std::{
     collections::{HashMap, HashSet},
     fs::File,
-    hash::Hash,
-    io::{self, Write},
+    io,
     iter::Iterator,
-    ops::ControlFlow,
     str,
     vec::Vec,
 };
@@ -14,36 +15,32 @@ extern crate rustc_session;
 extern crate rustc_smir;
 extern crate rustc_span;
 extern crate stable_mir;
-// HACK: typically, we would source serde/serde_json separately from the
-// compiler       However, due to issues matching crate versions when we have
-// our own serde       in addition to the rustc serde, we force ourselves to use
-// rustc serde
+// HACK: typically, we would source serde/serde_json separately from the compiler
+//       However, due to issues matching crate versions when we have our own serde
+//       in addition to the rustc serde, we force ourselves to use rustc serde
 extern crate serde;
 extern crate serde_json;
-use {
-    rustc_middle::{
-        self as middle,
-        ty::{EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv},
+use rustc_middle as middle;
+use rustc_middle::ty::{
+    EarlyBinder, FnSig, GenericArgs, List, Ty, TyCtxt, TypeFoldable, TypingEnv,
+};
+use rustc_session::config::{OutFileName, OutputType};
+use rustc_smir::rustc_internal::{self, internal};
+use rustc_span::{
+    def_id::{DefId, LOCAL_CRATE},
+    symbol,
+};
+use serde::{Serialize, Serializer};
+use stable_mir::{
+    abi::{FieldsShape, LayoutShape},
+    mir::mono::{Instance, InstanceKind, MonoItem},
+    mir::{
+        alloc::AllocId, alloc::GlobalAlloc, visit::MirVisitor, Body, LocalDecl, Rvalue, Terminator,
+        TerminatorKind,
     },
-    rustc_session::config::{OutFileName, OutputType},
-    rustc_smir::rustc_internal::{self, internal},
-    rustc_span::{
-        def_id::{DefId, LOCAL_CRATE},
-        symbol,
-    },
-    serde::{Serialize, Serializer},
-    stable_mir::{
-        abi::{FieldsShape, LayoutShape},
-        mir::{
-            alloc::{AllocId, GlobalAlloc},
-            mono::{Instance, InstanceKind, MonoItem},
-            visit::MirVisitor,
-            Body, LocalDecl, Rvalue, Terminator, TerminatorKind,
-        },
-        ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
-        visitor::{Visitable, Visitor},
-        CrateDef, CrateItem, ItemKind,
-    },
+    ty::{AdtDef, Allocation, ConstDef, ForeignItemKind, IndexedVal, RigidTy, TyKind},
+    visitor::{Visitable, Visitor},
+    CrateDef, CrateItem, ItemKind,
 };
 
 // Structs for serializing extra details about mono items
@@ -310,9 +307,8 @@ pub struct Item {
 }
 
 impl Item {
-    /// Returns the pre-collected body and appropriate locals slice, if
-    /// available. For functions, locals come from the body; for statics,
-    /// locals are empty.
+    /// Returns the pre-collected body and appropriate locals slice, if available.
+    /// For functions, locals come from the body; for statics, locals are empty.
     fn body_and_locals(&self) -> Option<(&Body, &[LocalDecl])> {
         match &self.mono_item_kind {
             MonoItemKind::MonoItemFn {
@@ -528,13 +524,13 @@ type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
 /// behavior in debug builds. This serves two purposes:
 ///
 /// 1. Duplicate detection: if the same AllocId is inserted twice, that
-///    indicates a body was walked more than once (a regression the declarative
-///    pipeline is designed to prevent).
+///    indicates a body was walked more than once (a regression the
+///    declarative pipeline is designed to prevent).
 ///
-/// 2. Coherence verification (via `verify_coherence`): after collection, checks
-///    that every AllocId in the stored Item bodies actually exists in this map.
-///    A mismatch means the analysis walked a different body than what's stored
-///    (the original alloc-id bug).
+/// 2. Coherence verification (via `verify_coherence`): after collection,
+///    checks that every AllocId in the stored Item bodies actually
+///    exists in this map. A mismatch means the analysis walked a
+///    different body than what's stored (the original alloc-id bug).
 ///
 /// In release builds the tracking fields are compiled out, making this
 /// a zero-cost wrapper.
@@ -765,9 +761,9 @@ impl Visitor for TyCollector<'_> {
     }
 }
 
-/// Single-pass body visitor that collects all derived information from a MIR
-/// body: link map entries (calls, drops, fn pointers), allocations, types,
-/// spans, and unevaluated constant references (for transitive item discovery).
+/// Single-pass body visitor that collects all derived information from a MIR body:
+/// link map entries (calls, drops, fn pointers), allocations, types, spans,
+/// and unevaluated constant references (for transitive item discovery).
 ///
 /// By combining what was previously two separate visitors (BodyAnalyzer
 /// and UnevaluatedConstCollector), each body is walked exactly once.
@@ -947,8 +943,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
             // we have to figure out which variant we are dealing with (requires the data)
             match field_for_offset(&layout, *offset) {
                 None =>
-                // FIXME we'd have to figure out which variant we are dealing with (requires the
-                // data)
+                // FIXME we'd have to figure out which variant we are dealing with (requires the data)
                 {
                     None
                 }
@@ -1137,10 +1132,8 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
     }
 
     fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
-        use {
-            stable_mir::mir::{ConstOperand, Operand::Constant},
-            TerminatorKind::*,
-        };
+        use stable_mir::mir::{ConstOperand, Operand::Constant};
+        use TerminatorKind::*;
         let fn_sym = match &term.kind {
             Call {
                 func: Constant(ConstOperand { const_: cnst, .. }),
@@ -1258,9 +1251,8 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
     }
 }
 
-/// Result of collecting all mono items and analyzing their bodies in a single
-/// pass. After this phase completes, no more inst.body() calls should be
-/// needed.
+/// Result of collecting all mono items and analyzing their bodies in a single pass.
+/// After this phase completes, no more inst.body() calls should be needed.
 struct CollectedCrate {
     items: Vec<Item>,
     unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,
@@ -1273,8 +1265,8 @@ struct DerivedInfo<'tcx> {
     spans: SpanMap,
 }
 
-/// Enqueue newly discovered unevaluated-const items into the fixpoint work
-/// queue. Each new item calls mk_item (which calls inst.body() exactly once).
+/// Enqueue newly discovered unevaluated-const items into the fixpoint work queue.
+/// Each new item calls mk_item (which calls inst.body() exactly once).
 fn enqueue_unevaluated_consts(
     tcx: TyCtxt<'_>,
     discovered: Vec<UnevalConstInfo>,
@@ -1455,13 +1447,14 @@ fn mk_type_metadata(
     t: TyKind,
     layout: Option<LayoutShape>,
 ) -> Option<(stable_mir::ty::Ty, TypeMetadata)> {
-    use {stable_mir::ty::RigidTy::*, TyKind::RigidTy as T, TypeMetadata::*};
+    use stable_mir::ty::RigidTy::*;
+    use TyKind::RigidTy as T;
+    use TypeMetadata::*;
     let name = format!("{k}"); // prints name with type parameters
     match t {
         T(prim_type) if t.is_primitive() => Some((k, PrimitiveType(prim_type))),
         // for enums, we need a mapping of variantIdx to discriminant
-        // this requires access to the internals and is not provided as an interface function at the
-        // moment
+        // this requires access to the internals and is not provided as an interface function at the moment
         T(Adt(adt_def, args)) if t.is_enum() => {
             let adt_internal = rustc_internal::internal(tcx, adt_def);
             let discriminants = adt_internal
@@ -1574,8 +1567,7 @@ fn mk_type_metadata(
         )),
         // for tuples the element types are provided
         T(Tuple(types)) => Some((k, TupleType { types, layout })),
-        // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty
-        // references
+        // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty references
         T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(name))),
         // other types are not provided either
         T(Foreign(_))
