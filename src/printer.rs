@@ -853,40 +853,72 @@ fn update_link_map<'tcx>(
 /// Returns the field index (source order) for a given offset and layout if
 /// the layout contains fields (shared between all variants), otherwise None.
 /// NB No search for fields within variants (needs recursive call).
-fn field_for_offset(l: LayoutShape, offset: usize) -> Option<usize> {
-    // FieldIdx
-    match l.fields {
+fn field_for_offset(l: &LayoutShape, offset: usize) -> Option<usize> {
+    match &l.fields {
         FieldsShape::Primitive | FieldsShape::Union(_) | FieldsShape::Array { .. } => None,
+        FieldsShape::Arbitrary { offsets } => offsets
+            .iter()
+            .enumerate()
+            .find(|(_, o)| o.bytes() == offset)
+            .map(|(i, _)| i),
+    }
+}
+
+/// Find the field whose byte range contains the given offset.
+/// Returns (field_index, field_start_byte_offset).
+fn field_containing_offset(l: &LayoutShape, offset: usize) -> Option<(usize, usize)> {
+    match &l.fields {
         FieldsShape::Arbitrary { offsets } => {
-            let fields: Vec<usize> = offsets.into_iter().map(|o| o.bytes()).collect();
-            fields
-                .into_iter()
+            let mut indexed: Vec<(usize, usize)> = offsets
+                .iter()
                 .enumerate()
-                .find(|(_, o)| *o == offset)
-                .map(|(i, _)| i)
+                .map(|(i, o)| (i, o.bytes()))
+                .collect();
+            indexed.sort_by_key(|&(_, o)| o);
+            // The containing field is the one with the largest start offset <= target.
+            indexed.into_iter().rev().find(|&(_, o)| o <= offset)
         }
+        _ => None,
     }
 }
 
 fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty::Ty> {
     use stable_mir::ty::RigidTy;
     let ty_kind = ty.kind();
+    debug_log_println!("get_prov_ty: {:?} offset={}", ty_kind, offset);
     // if ty is a pointer, box, or Ref, expect no offset and dereference
-    if let Some(ty) = ty_kind.builtin_deref(true) {
-        assert!(*offset == 0);
-        return Some(ty.ty);
+    if let Some(derefed) = ty_kind.builtin_deref(true) {
+        if *offset != 0 {
+            eprintln!(
+                "get_prov_ty: unexpected non-zero offset {} for builtin_deref type {:?}",
+                offset, ty_kind
+            );
+            return None;
+        }
+        debug_log_println!("get_prov_ty: resolved -> pointee {:?}", derefed.ty.kind());
+        return Some(derefed.ty);
     }
 
     // Otherwise the allocation is a reference within another kind of data.
     // Decompose this outer data type to determine the reference type
-    let layout = ty
-        .layout()
-        .map(|l| l.shape())
-        .expect("Unable to get layout for {ty_kind:?}");
-    let ref_ty = match ty_kind
-        .rigid()
-        .expect("Non-rigid-ty allocation found! {ty_kind:?}")
-    {
+    let layout = match ty.layout().map(|l| l.shape()) {
+        Ok(l) => l,
+        Err(_) => {
+            eprintln!("get_prov_ty: unable to get layout for {:?}", ty_kind);
+            return None;
+        }
+    };
+    let rigid = match ty_kind.rigid() {
+        Some(r) => r,
+        None => {
+            eprintln!(
+                "get_prov_ty: non-rigid type in allocation: {:?} (offset={})",
+                ty_kind, offset
+            );
+            return None;
+        }
+    };
+    let ref_ty = match rigid {
         // homogenous, so no choice. Could check alignment of the offset...
         RigidTy::Array(ty, _) | RigidTy::Slice(ty) => Some(*ty),
         // cases covered above
@@ -896,16 +928,24 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         RigidTy::Adt(def, _) if def.is_box() => {
             unreachable!("Covered by builtin_deref above")
         }
-        // For other structs, consult layout to determine field type
+        // For structs, find the field containing this offset and recurse.
+        // The provenance offset may point into a nested struct field, so we
+        // walk down through the field hierarchy until we reach the pointer.
         RigidTy::Adt(adt_def, args) if ty_kind.is_struct() => {
-            let field_idx = field_for_offset(layout, *offset).unwrap();
+            let (field_idx, field_start) = field_containing_offset(&layout, *offset)?;
             // NB struct, single variant
-            let fields = adt_def.variants().pop().map(|v| v.fields()).unwrap();
-            fields.get(field_idx).map(|f| f.ty_with_args(args))
+            let fields = adt_def.variants().pop().map(|v| v.fields())?;
+            let field_ty = fields.get(field_idx)?.ty_with_args(args);
+            let relative_offset = *offset - field_start;
+            debug_log_println!(
+                "get_prov_ty: struct {:?} offset={} -> field {} (start={}) type {:?}, relative_offset={}",
+                adt_def, offset, field_idx, field_start, field_ty.kind(), relative_offset
+            );
+            return get_prov_ty(field_ty, &relative_offset);
         }
         RigidTy::Adt(_adt_def, _args) if ty_kind.is_enum() => {
             // we have to figure out which variant we are dealing with (requires the data)
-            match field_for_offset(layout, *offset) {
+            match field_for_offset(&layout, *offset) {
                 None =>
                 // FIXME we'd have to figure out which variant we are dealing with (requires the
                 // data)
@@ -919,9 +959,20 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
                 }
             }
         }
+        // Same as structs: find containing field and recurse.
         RigidTy::Tuple(fields) => {
-            let field_idx = field_for_offset(layout, *offset)?;
-            fields.get(field_idx).copied()
+            let (field_idx, field_start) = field_containing_offset(&layout, *offset)?;
+            let field_ty = *fields.get(field_idx)?;
+            let relative_offset = *offset - field_start;
+            debug_log_println!(
+                "get_prov_ty: tuple offset={} -> field {} (start={}) type {:?}, relative_offset={}",
+                offset,
+                field_idx,
+                field_start,
+                field_ty.kind(),
+                relative_offset
+            );
+            return get_prov_ty(field_ty, &relative_offset);
         }
         RigidTy::FnPtr(_) => None,
         _unimplemented => {
@@ -1383,10 +1434,12 @@ pub enum TypeMetadata {
     PtrType {
         pointee_type: stable_mir::ty::Ty,
         layout: Option<LayoutShape>,
+        mutability: stable_mir::mir::Mutability,
     },
     RefType {
         pointee_type: stable_mir::ty::Ty,
         layout: Option<LayoutShape>,
+        mutability: stable_mir::mir::Mutability,
     },
     TupleType {
         types: Vec<stable_mir::ty::Ty>,
@@ -1503,18 +1556,20 @@ fn mk_type_metadata(
             },
         )),
         // for raw pointers and references store the pointee type
-        T(RawPtr(pointee_type, _)) => Some((
+        T(RawPtr(pointee_type, mutability)) => Some((
             k,
             PtrType {
                 pointee_type,
                 layout,
+                mutability,
             },
         )),
-        T(Ref(_, pointee_type, _)) => Some((
+        T(Ref(_, pointee_type, mutability)) => Some((
             k,
             RefType {
                 pointee_type,
                 layout,
+                mutability,
             },
         )),
         // for tuples the element types are provided

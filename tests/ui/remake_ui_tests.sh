@@ -35,6 +35,42 @@ if [ -n "${KEEP_OUTPUT}" ]; then
     mkdir -p "$FAILING_DIR" "$PASSING_DIR"
 fi
 
+# Extract //@ compile-flags: and //@ edition: directives from a test file.
+# Prints space-separated flags to stdout.
+extract_test_flags() {
+    local file="$1"
+    local flags=""
+
+    # Extract //@ compile-flags: directives (everything after "compile-flags:")
+    local compile_flags
+    compile_flags=$(grep -s '^[[:space:]]*//@[[:space:]]*compile-flags:' "$file" \
+                    | sed 's/^.*compile-flags:[[:space:]]*//' || true)
+    if [ -n "$compile_flags" ]; then
+        flags="$compile_flags"
+    fi
+
+    # Extract //@ edition: directive (e.g., "//@ edition: 2021")
+    local edition
+    edition=$(grep -s '^[[:space:]]*//@[[:space:]]*edition:' "$file" \
+              | sed 's/^.*edition:[[:space:]]*//' | head -1 || true)
+    if [ -n "$edition" ]; then
+        flags="$flags --edition $edition"
+    fi
+
+    # Extract //@ rustc-env: directives (e.g., "//@ rustc-env:MY_VAR=value")
+    # These set environment variables for the rustc process via --env-set.
+    local rustc_envs
+    rustc_envs=$(grep -s '^[[:space:]]*//@[[:space:]]*rustc-env:' "$file" \
+                 | sed 's/^.*rustc-env:[[:space:]]*//' || true)
+    if [ -n "$rustc_envs" ]; then
+        while IFS= read -r env_pair; do
+            flags="$flags --env-set $env_pair -Zunstable-options"
+        done <<< "$rustc_envs"
+    fi
+
+    echo "$flags"
+}
+
 echo "Running UI tests..."
 while read -r test; do
     full_path="$RUST_DIR/$test"
@@ -45,7 +81,9 @@ while read -r test; do
     fi
 
     echo "Running test: $test"
-    cargo run -- -Zno-codegen "$full_path" > tmp.stdout 2> tmp.stderr
+    test_flags=$(extract_test_flags "$full_path")
+    # shellcheck disable=SC2086 # intentional word-splitting of test_flags
+    cargo run -- -Zno-codegen ${test_flags} "$full_path" > tmp.stdout 2> tmp.stderr
     status=$?
     base_test="$(basename "$test")"
     json_file="${PWD}/$(basename "$test" .rs).smir.json"
