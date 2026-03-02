@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Note: this changelog was introduced at 0.2.0. The 0.1.0 section is a
 retroactive best-effort summary; earlier changes were not formally tracked.
 
+## [Unreleased]
+
+### Added
+- `src/compat/` module isolating all rustc internal API usage behind a stable boundary; printer/ now has zero `extern crate rustc_*` declarations and zero direct `tcx.query()` calls
+- `OpaqueInstanceKind` owned type replacing `middle::ty::InstanceKind<'tcx>`, eliminating the `'tcx` lifetime parameter from `SmirJson`, `LinkMapKey`, `FnSymInfo`, `LinkMap`, `DerivedInfo`, and `SmirJsonDebugInfo`
+- `metadata.rustc-commit` field in `rust-toolchain.toml` as single source of truth for the rustc commit used by UI tests
+- `ensure_rustc_commit.sh` helper that reads the expected commit from `rust-toolchain.toml` (via `yq`) and ensures the rust checkout (regular or bare+worktree) is at that commit; CI installs `yq` on PATH to support this
+- ADR-003 documenting compat layer design decisions and validation results from two toolchain bump stress tests (6-month and 13-month jumps)
+
+### Changed
+- Routed `mk_graph/` stable_mir imports through the compat module
+- Eliminated thin compat wrappers in printer/ (`mono_collect`, `mono_item_name`, `has_attr`, `def_id_to_inst`, `GenericData` newtype, `SourceData` alias); callers now go through the compat boundary directly
+- UI test scripts (`run_ui_tests.sh`, `remake_ui_tests.sh`) now source `ensure_rustc_commit.sh` and use `RUST_SRC_DIR` instead of using the raw directory argument directly
+
 ## [0.2.0] - 2026-02-21
 
 ### Added
