@@ -66,7 +66,10 @@ impl Visitor for TyCollector<'_> {
                 self.visit_instance(instance)
             }
             // Break on CoroutineWitnesses, because they aren't expected when getting the layout
-            TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => ControlFlow::Break(()),
+            TyKind::RigidTy(RigidTy::CoroutineWitness(..)) => {
+                debug_log_println!("DEBUG: TyCollector skipping CoroutineWitness: {:?}", ty);
+                ControlFlow::Break(())
+            }
             TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
                 self.resolved.insert(*ty);
                 let instance = Instance::resolve(def, args).unwrap();

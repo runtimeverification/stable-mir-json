@@ -433,6 +433,10 @@ pub enum TypeMetadata {
         types: Vec<stable_mir::ty::Ty>,
         layout: Option<LayoutShape>,
     },
+    DynType {
+        name: String,
+        layout: Option<LayoutShape>,
+    },
     FunType(String),
     VoidType,
 }
