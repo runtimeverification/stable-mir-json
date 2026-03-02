@@ -1028,56 +1028,14 @@ fn collect_alloc(
             }
         }
         GlobalAlloc::Static(_) => {
-            if kind.clone().builtin_deref(true).is_none() {
-                let prov_ty = get_prov_ty(ty, offset);
-                debug_log_println!(
-                    "DEBUG: GlobalAlloc::Static with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
-                    val,
-                    ty,
-                    offset,
-                    kind,
-                    prov_ty
-                );
-                if let Some(p_ty) = prov_ty {
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (p_ty, global_alloc.clone()));
-                } else {
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
-                }
-            } else {
-                val_collector
-                    .visited_allocs
-                    .insert(val, (ty, global_alloc.clone()));
-            }
+            val_collector
+                .visited_allocs
+                .insert(val, (ty, global_alloc.clone()));
         }
         GlobalAlloc::VTable(_, _) => {
-            if kind.clone().builtin_deref(true).is_none() {
-                let prov_ty = get_prov_ty(ty, offset);
-                debug_log_println!(
-                    "DEBUG: GlobalAlloc::VTable with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
-                    val,
-                    ty,
-                    offset,
-                    kind,
-                    prov_ty
-                );
-                if let Some(p_ty) = prov_ty {
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (p_ty, global_alloc.clone()));
-                } else {
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (stable_mir::ty::Ty::to_val(0), global_alloc.clone()));
-                }
-            } else {
-                val_collector
-                    .visited_allocs
-                    .insert(val, (ty, global_alloc.clone()));
-            }
+            val_collector
+                .visited_allocs
+                .insert(val, (ty, global_alloc.clone()));
         }
         GlobalAlloc::Function(_) => {
             if !kind.is_fn_ptr() {
