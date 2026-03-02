@@ -30,4 +30,3 @@ pub(super) fn fn_inst_for_ty(ty: stable_mir::ty::Ty, direct_call: bool) -> Optio
         .ok()
     })
 }
-

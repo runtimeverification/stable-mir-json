@@ -10,8 +10,8 @@
 //! generic parameters, internal type info) and foreign module enumeration.
 
 use crate::compat::middle::ty::TyCtxt;
-use crate::compat::stable_mir;
 use crate::compat::serde;
+use crate::compat::stable_mir;
 
 use crate::compat::DefId;
 use serde::Serialize;
@@ -48,7 +48,6 @@ fn get_body_details(body: &Body) -> BodyDetails {
     let _ = body.dump(&mut v, "<omitted>");
     BodyDetails::new(std::str::from_utf8(&v).unwrap().into())
 }
-
 
 fn get_item_details(
     tcx: TyCtxt<'_>,

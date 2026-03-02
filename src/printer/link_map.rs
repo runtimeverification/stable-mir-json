@@ -42,7 +42,11 @@ pub(super) fn fn_inst_sym(
     })
 }
 
-pub(super) fn update_link_map(link_map: &mut LinkMap, fn_sym: Option<FnSymInfo>, source: ItemSource) {
+pub(super) fn update_link_map(
+    link_map: &mut LinkMap,
+    fn_sym: Option<FnSymInfo>,
+    source: ItemSource,
+) {
     let Some((ty, kind, name)) = fn_sym else {
         return;
     };

@@ -210,7 +210,10 @@ pub enum FnSymType {
 /// components are emitted as a 2-tuple; without it, only the type index
 /// is written.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct LinkMapKey(pub stable_mir::ty::Ty, pub(super) Option<OpaqueInstanceKind>);
+pub struct LinkMapKey(
+    pub stable_mir::ty::Ty,
+    pub(super) Option<OpaqueInstanceKind>,
+);
 
 impl Serialize for LinkMapKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
