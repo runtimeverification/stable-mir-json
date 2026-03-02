@@ -32,7 +32,7 @@ impl<'a> D2Builder<'a> {
     }
 }
 
-impl<'a> GraphBuilder for D2Builder<'a> {
+impl GraphBuilder for D2Builder<'_> {
     type Output = String;
 
     fn begin_graph(&mut self, _name: &str) {
