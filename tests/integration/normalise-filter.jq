@@ -29,5 +29,12 @@
     ( .types | map(select(.[0].FunType) | sort) )
   ] | flatten(1) )
 }
-# drop unstable compiler-internal ids that are unrelated to this regression
+# Strip def_id fields globally. These are interned compiler indices (the
+# underlying ID inside AdtDef) that are consistent within a single rustc
+# invocation but not stable across runs; the same non-determinism that
+# affects alloc_id, Ty indices, and adt_def (see lines 5-6, 18-21 above).
+# Downstream consumers use adt_def/def_id as cross-reference keys to join
+# AggregateKind::Adt in MIR bodies with type metadata entries, so the
+# values can't be dropped from the output itself; we only strip them here
+# for golden-file comparison.
 | walk(if type == "object" then del(.def_id) else . end)
