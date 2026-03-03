@@ -265,12 +265,21 @@ fn collect_alloc(
                     .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
             }
         }
-        GlobalAlloc::Static(_) => {
-            // Keep builtin-deref behavior; recover only non-builtin-deref cases.
-            if kind.clone().builtin_deref(true).is_none() {
+        GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) | GlobalAlloc::Function(_) => {
+            // Does the outer type need provenance recovery to find the real
+            // pointee? Static/VTable pointers are usable directly when
+            // builtin_deref succeeds; Function allocs are usable directly
+            // when the outer type is already a fn pointer.
+            let needs_recovery = match &global_alloc {
+                GlobalAlloc::Function(_) => !kind.is_fn_ptr(),
+                _ => kind.clone().builtin_deref(true).is_none(),
+            };
+
+            if needs_recovery {
                 let prov_ty = get_prov_ty(ty, &offset);
                 debug_log_println!(
-                    "DEBUG: GlobalAlloc::Static with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
+                    "DEBUG: {:?} with non-direct type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
+                    global_alloc,
                     val,
                     ty,
                     offset,
@@ -288,62 +297,7 @@ fn collect_alloc(
                         .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
                 }
             } else {
-                val_collector
-                    .visited_allocs
-                    .insert(val, (ty, global_alloc.clone()));
-            }
-        }
-        GlobalAlloc::VTable(_, _) => {
-            // Same policy as Static: keep builtin-deref, recover non-builtin-deref.
-            if kind.clone().builtin_deref(true).is_none() {
-                let prov_ty = get_prov_ty(ty, &offset);
-                debug_log_println!(
-                    "DEBUG: GlobalAlloc::VTable with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
-                    val,
-                    ty,
-                    offset,
-                    kind,
-                    prov_ty
-                );
-                if let Some(p_ty) = prov_ty {
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (p_ty, global_alloc.clone()));
-                } else {
-                    // Unknown is safer than wrong pointee type.
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
-                }
-            } else {
-                val_collector
-                    .visited_allocs
-                    .insert(val, (ty, global_alloc.clone()));
-            }
-        }
-        GlobalAlloc::Function(_) => {
-            if !kind.is_fn_ptr() {
-                let prov_ty = get_prov_ty(ty, &offset);
-                debug_log_println!(
-                    "DEBUG: GlobalAlloc::Function with non-fn-ptr type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
-                    val,
-                    ty,
-                    offset,
-                    kind,
-                    prov_ty
-                );
-                if let Some(p_ty) = prov_ty {
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (p_ty, global_alloc.clone()));
-                } else {
-                    // Could not recover a precise pointee type; use an opaque 0-valued Ty
-                    // as a conservative placeholder.
-                    val_collector
-                        .visited_allocs
-                        .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
-                }
-            } else {
+                // Type is already the correct pointee; use it directly.
                 val_collector
                     .visited_allocs
                     .insert(val, (ty, global_alloc.clone()));
