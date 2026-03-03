@@ -5,12 +5,9 @@
 //! optional [`LayoutShape`](stable_mir::abi::LayoutShape) for the final JSON
 //! output.
 
-extern crate rustc_middle;
-extern crate rustc_smir;
-extern crate stable_mir;
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::stable_mir;
 
-use rustc_middle::ty::TyCtxt;
-use rustc_smir::rustc_internal;
 use stable_mir::abi::LayoutShape;
 use stable_mir::ty::TyKind;
 
@@ -31,11 +28,7 @@ pub(super) fn mk_type_metadata(
         // for enums, we need a mapping of variantIdx to discriminant
         // this requires access to the internals and is not provided as an interface function at the moment
         T(Adt(adt_def, args)) if t.is_enum() => {
-            let adt_internal = rustc_internal::internal(tcx, adt_def);
-            let discriminants = adt_internal
-                .discriminants(tcx)
-                .map(|(_, discr)| discr.val)
-                .collect::<Vec<_>>();
+            let discriminants = crate::compat::types::adt_discriminants(tcx, adt_def);
             let fields = adt_def
                 .variants()
                 .iter()

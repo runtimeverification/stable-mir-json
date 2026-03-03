@@ -20,12 +20,8 @@
 use std::io::Write;
 use std::{fs::File, io};
 
-extern crate rustc_middle;
-extern crate rustc_session;
-extern crate serde_json;
-
-use rustc_middle::ty::TyCtxt;
-use rustc_session::config::{OutFileName, OutputType};
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::serde_json;
 
 // Macros must be defined before module declarations (textual scoping)
 macro_rules! def_env_var {
@@ -62,21 +58,21 @@ mod util;
 pub use collect::collect_smir;
 pub use items::MonoItemKind;
 pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, SmirJson, TypeMetadata};
-pub use util::has_attr;
+pub(crate) use util::hash;
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
     let smir_json =
         serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");
 
-    match tcx.output_filenames(()).path(OutputType::Mir) {
-        OutFileName::Stdout => {
+    match crate::compat::output::mir_output_path(tcx, "smir.json") {
+        crate::compat::output::OutputDest::Stdout => {
             write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json");
         }
-        OutFileName::Real(path) => {
-            let out_path = path.with_extension("smir.json");
-            let mut b = io::BufWriter::new(File::create(&out_path).unwrap_or_else(|e| {
-                panic!("Failed to create {} output file: {}", out_path.display(), e)
-            }));
+        crate::compat::output::OutputDest::File(path) => {
+            let mut b = io::BufWriter::new(
+                File::create(&path)
+                    .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
+            );
             write!(b, "{}", smir_json).expect("Failed to write smir.json");
         }
     }

@@ -4,14 +4,13 @@
 //! [`Item`], [`AllocMap`], [`AllocInfo`], [`TypeMetadata`], [`LinkMapKey`],
 //! [`FnSymType`], and serialization helpers.
 
-extern crate rustc_middle;
-extern crate serde;
-extern crate stable_mir;
+use crate::compat::bridge::OpaqueInstanceKind;
+use crate::compat::serde;
+use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
 use super::items::MonoItemKind;
-use rustc_middle as middle;
 use serde::{Serialize, Serializer};
 use stable_mir::abi::LayoutShape;
 use stable_mir::mir::alloc::{AllocId, GlobalAlloc};
@@ -20,7 +19,7 @@ use stable_mir::mir::Body;
 use stable_mir::ty::{AdtDef, ConstDef, ForeignItemKind, RigidTy};
 
 // Type aliases
-pub(super) type LinkMap<'tcx> = HashMap<LinkMapKey<'tcx>, (ItemSource, FnSymType)>;
+pub(super) type LinkMap = HashMap<LinkMapKey, (ItemSource, FnSymType)>;
 pub(super) type TyMap =
     HashMap<stable_mir::ty::Ty, (stable_mir::ty::TyKind, Option<stable_mir::abi::LayoutShape>)>;
 pub(super) type SpanMap = HashMap<usize, SourceData>;
@@ -211,12 +210,12 @@ pub enum FnSymType {
 /// components are emitted as a 2-tuple; without it, only the type index
 /// is written.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct LinkMapKey<'tcx>(
+pub struct LinkMapKey(
     pub stable_mir::ty::Ty,
-    pub(super) Option<middle::ty::InstanceKind<'tcx>>,
+    pub(super) Option<OpaqueInstanceKind>,
 );
 
-impl Serialize for LinkMapKey<'_> {
+impl Serialize for LinkMapKey {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -442,7 +441,7 @@ pub enum TypeMetadata {
 }
 
 /// Span location data: `(filename, start_line, start_col, end_line, end_col)`.
-pub type SourceData = (String, usize, usize, usize, usize);
+pub type SourceData = crate::compat::spans::SourceData;
 
 /// Top-level output structure serialized as the `*.smir.json` file.
 ///
@@ -453,16 +452,16 @@ pub type SourceData = (String, usize, usize, usize, usize);
 /// Collection fields (`allocs`, `functions`, `items`, `types`, `spans`) are
 /// sorted where applicable to improve output determinism across runs.
 #[derive(Serialize)]
-pub struct SmirJson<'t> {
+pub struct SmirJson {
     pub name: String,
     pub crate_id: u64,
     pub allocs: Vec<AllocInfo>,
-    pub functions: Vec<(LinkMapKey<'t>, FnSymType)>,
+    pub functions: Vec<(LinkMapKey, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
     pub items: Vec<Item>,
     pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
     pub spans: Vec<(usize, SourceData)>,
-    pub debug: Option<SmirJsonDebugInfo<'t>>,
+    pub debug: Option<SmirJsonDebugInfo>,
     pub machine: stable_mir::target::MachineInfo,
 }
 
@@ -472,8 +471,8 @@ pub struct SmirJson<'t> {
 /// an item, a terminator call, or a function pointer cast), the raw type map,
 /// and foreign module details.
 #[derive(Serialize)]
-pub struct SmirJsonDebugInfo<'t> {
-    pub(super) fn_sources: Vec<(LinkMapKey<'t>, ItemSource)>,
+pub struct SmirJsonDebugInfo {
+    pub(super) fn_sources: Vec<(LinkMapKey, ItemSource)>,
     pub(super) types: TyMap,
     pub(super) foreign_modules: Vec<(String, Vec<ForeignModule>)>,
 }
@@ -487,8 +486,8 @@ pub(super) struct CollectedCrate {
     pub unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,
 }
 
-pub(super) struct DerivedInfo<'tcx> {
-    pub calls: LinkMap<'tcx>,
+pub(super) struct DerivedInfo {
+    pub calls: LinkMap,
     pub allocs: AllocMap,
     pub types: TyMap,
     pub spans: SpanMap,

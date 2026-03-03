@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use dot_writer::{Attributes, Color, DotWriter, Scope, Shape, Style};
 
-extern crate stable_mir;
+use crate::compat::stable_mir;
 use stable_mir::mir::{BasicBlock, ConstOperand, Operand, TerminatorKind, UnwindAction};
 
 use crate::printer::SmirJson;
@@ -13,7 +13,7 @@ use crate::MonoItemKind;
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
 
-impl SmirJson<'_> {
+impl SmirJson {
     /// Convert the MIR to DOT (Graphviz) format
     pub fn to_dot_file(self) -> String {
         let mut bytes = Vec::new();

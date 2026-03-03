@@ -99,11 +99,34 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          YQ_VERSION="v4.52.4"
+          mkdir -p "$HOME/.local/bin"
+          wget -qO "$HOME/.local/bin/yq" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          chmod +x "$HOME/.local/bin/yq"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          yq --version
+
+
+      - name: 'Read rustc commit from rust-toolchain.toml'
+        id: rustc-meta
+        run: |
+          set -euo pipefail
+          COMMIT=$(yq '.metadata.rustc-commit' rust-toolchain.toml)
+          if [ -z "$COMMIT" ] || [ "$COMMIT" = "null" ]; then
+            echo "::error::metadata.rustc-commit not found in rust-toolchain.toml"
+            exit 1
+          fi
+          echo "rustc-commit=$COMMIT" >> "$GITHUB_OUTPUT"
+
       - name: 'Check out Rust repo'
         uses: actions/checkout@v4
         with:
           repository: rust-lang/rust
-          ref: a2545fd6fc66b4323f555223a860c451885d1d2b # hash of Hardcoded Rust version
+          ref: ${{ steps.rustc-meta.outputs.rustc-commit }}
           path: rust
           fetch-depth: 1
 
@@ -126,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [normal, MacM1]  # MacM1 / normal are self-hosted, 
+        runner: [normal, MacM1]  # MacM1 / normal are self-hosted,
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     steps:

@@ -8,15 +8,12 @@
 //! witnesses) are traversed only to gather the types they reference and are
 //! not themselves stored as entries in the type map.
 
-extern crate rustc_middle;
-extern crate rustc_smir;
-extern crate stable_mir;
+use crate::compat::middle::ty::TyCtxt;
+use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 use std::ops::ControlFlow;
 
-use rustc_middle::ty::{List, TyCtxt, TypingEnv};
-use rustc_smir::rustc_internal::{self, internal};
 use stable_mir::mir::mono::Instance;
 use stable_mir::ty::{RigidTy, TyKind};
 use stable_mir::visitor::{Visitable, Visitor};
@@ -83,18 +80,10 @@ impl Visitor for TyCollector<'_> {
             }
             TyKind::RigidTy(RigidTy::FnPtr(binder_stable)) => {
                 self.resolved.insert(*ty);
-                let binder_internal = internal(self.tcx, binder_stable);
-                let sig_stable = rustc_internal::stable(
-                    self.tcx
-                        .fn_abi_of_fn_ptr(
-                            TypingEnv::fully_monomorphized()
-                                .as_query_input((binder_internal, List::empty())),
-                        )
-                        .unwrap(),
-                );
+                let fn_abi = crate::compat::types::fn_ptr_abi(self.tcx, binder_stable);
                 let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
-                    sig_stable.args.iter().map(|arg_abi| arg_abi.ty).collect();
-                inputs_outputs.push(sig_stable.ret.ty);
+                    fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
+                inputs_outputs.push(fn_abi.ret.ty);
                 inputs_outputs.super_visit(self)
             }
             // The visitor won't collect field types for ADTs, therefore doing it explicitly
