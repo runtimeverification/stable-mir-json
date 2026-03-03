@@ -29,3 +29,5 @@
     ( .types | map(select(.[0].FunType) | sort) )
   ] | flatten(1) )
 }
+# drop unstable compiler-internal ids that are unrelated to this regression
+| walk(if type == "object" then del(.def_id) else . end)

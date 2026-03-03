@@ -265,10 +265,61 @@ fn collect_alloc(
                     .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
             }
         }
-        GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) => {
-            val_collector
-                .visited_allocs
-                .insert(val, (ty, global_alloc.clone()));
+        GlobalAlloc::Static(_) => {
+            // Keep builtin-deref behavior; recover only non-builtin-deref cases.
+            if kind.clone().builtin_deref(true).is_none() {
+                let prov_ty = get_prov_ty(ty, &offset);
+                debug_log_println!(
+                    "DEBUG: GlobalAlloc::Static with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
+                    val,
+                    ty,
+                    offset,
+                    kind,
+                    prov_ty
+                );
+                if let Some(p_ty) = prov_ty {
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (p_ty, global_alloc.clone()));
+                } else {
+                    // Recovery failed: do not treat outer container `ty` as pointee.
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
+                }
+            } else {
+                val_collector
+                    .visited_allocs
+                    .insert(val, (ty, global_alloc.clone()));
+            }
+        }
+        GlobalAlloc::VTable(_, _) => {
+            // Same policy as Static: keep builtin-deref, recover non-builtin-deref.
+            if kind.clone().builtin_deref(true).is_none() {
+                let prov_ty = get_prov_ty(ty, &offset);
+                debug_log_println!(
+                    "DEBUG: GlobalAlloc::VTable with non-builtin-deref type; alloc_id={:?}, ty={:?}, offset={}, kind={:?}, recovered_prov_ty={:?}",
+                    val,
+                    ty,
+                    offset,
+                    kind,
+                    prov_ty
+                );
+                if let Some(p_ty) = prov_ty {
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (p_ty, global_alloc.clone()));
+                } else {
+                    // Unknown is safer than wrong pointee type.
+                    val_collector
+                        .visited_allocs
+                        .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
+                }
+            } else {
+                val_collector
+                    .visited_allocs
+                    .insert(val, (ty, global_alloc.clone()));
+            }
         }
         GlobalAlloc::Function(_) => {
             if !kind.is_fn_ptr() {
