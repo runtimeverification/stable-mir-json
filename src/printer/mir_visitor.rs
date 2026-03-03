@@ -272,7 +272,7 @@ fn collect_alloc(
             // when the outer type is already a fn pointer.
             let needs_recovery = match &global_alloc {
                 GlobalAlloc::Function(_) => !kind.is_fn_ptr(),
-                _ => kind.clone().builtin_deref(true).is_none(),
+                _ => kind.builtin_deref(true).is_none(),
             };
 
             if needs_recovery {
