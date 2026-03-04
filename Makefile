@@ -43,7 +43,12 @@ integration-test:
 golden:
 	make integration-test DIFF=">"
 
-format: 
+.PHONY: trace-report
+trace-report: SMIR ?= cargo run -- "-Zno-codegen"
+trace-report:
+	bash tests/integration/trace-report.sh $(TESTDIR) $(SMIR) | tee tests/integration/trace-report.txt
+
+format:
 	cargo fmt
 	bash -O globstar -c 'nixfmt **/*.nix'
 
