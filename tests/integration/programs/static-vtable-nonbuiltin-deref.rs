@@ -1,3 +1,4 @@
+//! @covers: static trait objects, dyn dispatch, vtable allocation
 use std::fmt::Debug;
 
 static S: u8 = 7;

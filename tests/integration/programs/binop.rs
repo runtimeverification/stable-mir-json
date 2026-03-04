@@ -1,3 +1,4 @@
+//! @covers: binary operators (arithmetic, bitwise, comparison)
 fn test_binop(x:i32, y:i32) -> () {
 // Arithmetic
     // Addition

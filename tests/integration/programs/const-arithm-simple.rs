@@ -1,3 +1,4 @@
+//! @covers: function calls, usize comparison, return values
 fn test(x: usize, y:usize) -> bool {
     return x > y;
 }

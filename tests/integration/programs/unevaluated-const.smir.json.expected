@@ -6355,6 +6355,62 @@
         "TupleType": {
           "layout": {
             "abi": {
+              "ScalarPair": [
+                {
+                  "Initialized": {
+                    "valid_range": {
+                      "end": 18446744073709551615,
+                      "start": 1
+                    },
+                    "value": {
+                      "Pointer": 0
+                    }
+                  }
+                },
+                {
+                  "Initialized": {
+                    "valid_range": {
+                      "end": 18446744073709551615,
+                      "start": 1
+                    },
+                    "value": {
+                      "Pointer": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "abi_align": 8,
+            "fields": {
+              "Arbitrary": {
+                "offsets": [
+                  {
+                    "num_bits": 0
+                  },
+                  {
+                    "num_bits": 64
+                  }
+                ]
+              }
+            },
+            "size": {
+              "num_bits": 128
+            },
+            "variants": {
+              "Single": {
+                "index": 0
+              }
+            }
+          },
+          "types": "elided"
+        }
+      }
+    ],
+    [
+      {
+        "TupleType": {
+          "layout": {
+            "abi": {
               "Aggregate": {
                 "sized": true
               }
@@ -6442,62 +6498,6 @@
     ],
     [
       {
-        "TupleType": {
-          "layout": {
-            "abi": {
-              "ScalarPair": [
-                {
-                  "Initialized": {
-                    "valid_range": {
-                      "end": 18446744073709551615,
-                      "start": 1
-                    },
-                    "value": {
-                      "Pointer": 0
-                    }
-                  }
-                },
-                {
-                  "Initialized": {
-                    "valid_range": {
-                      "end": 18446744073709551615,
-                      "start": 1
-                    },
-                    "value": {
-                      "Pointer": 0
-                    }
-                  }
-                }
-              ]
-            },
-            "abi_align": 8,
-            "fields": {
-              "Arbitrary": {
-                "offsets": [
-                  {
-                    "num_bits": 0
-                  },
-                  {
-                    "num_bits": 64
-                  }
-                ]
-              }
-            },
-            "size": {
-              "num_bits": 128
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "types": "elided"
-        }
-      }
-    ],
-    [
-      {
         "PtrType": {
           "layout": {
             "abi": {
@@ -6524,6 +6524,7 @@
               }
             }
           },
+          "mutability": "Mut",
           "pointee_type": "elided"
         }
       }
@@ -6556,6 +6557,7 @@
               }
             }
           },
+          "mutability": "Mut",
           "pointee_type": "elided"
         }
       }
@@ -6588,6 +6590,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6620,6 +6623,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6652,6 +6656,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6684,6 +6689,7 @@
               }
             }
           },
+          "mutability": "Mut",
           "pointee_type": "elided"
         }
       }
@@ -6716,6 +6722,7 @@
               }
             }
           },
+          "mutability": "Mut",
           "pointee_type": "elided"
         }
       }
@@ -6748,6 +6755,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6780,6 +6788,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6812,6 +6821,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6844,6 +6854,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6876,6 +6887,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6908,6 +6920,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6940,6 +6953,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -6999,6 +7013,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -7058,6 +7073,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -7117,6 +7133,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -7176,6 +7193,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -7235,6 +7253,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -7291,6 +7310,7 @@
               }
             }
           },
+          "mutability": "Mut",
           "pointee_type": "elided"
         }
       }
@@ -7347,6 +7367,7 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
@@ -7403,8 +7424,14 @@
               }
             }
           },
+          "mutability": "Not",
           "pointee_type": "elided"
         }
+      }
+    ],
+    [
+      {
+        "FunType": "{closure@std::rt::lang_start<()>::{closure#0}}"
       }
     ]
   ]

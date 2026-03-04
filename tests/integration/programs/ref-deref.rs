@@ -1,3 +1,4 @@
+//! @covers: reference creation, dereference
 fn main() {
     let a = 42;
     let b = &a;

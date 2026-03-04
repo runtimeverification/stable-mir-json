@@ -1,3 +1,4 @@
+//! @covers: recursion via match expression
 fn sum_to_n_rec(n:u32) -> u32 {
     match n {
         0 => 0,

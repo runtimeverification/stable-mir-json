@@ -1,3 +1,4 @@
+//! @covers: closure with captured arguments, closure call
 fn main() {
     let sum = |x, y| -> i32 { x + y };
 

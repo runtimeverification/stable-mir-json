@@ -1,5 +1,4 @@
-/// Exercises ReifyFnPointer casts: coercing a function item
-/// (which has a unique zero-sized type) into a function pointer.
+//! @covers: ReifyFnPointer cast (fn item coerced to fn pointer via type annotation)
 fn add(a: i32, b: i32) -> i32 {
     a + b
 }

@@ -1,3 +1,4 @@
+//! @covers: fn pointer as higher-order argument, Option::map, byte array conversion
 fn main() {
     let bytes: [u8; 8] = [0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
     let opt: Option<[u8; 8]> = Some(bytes);

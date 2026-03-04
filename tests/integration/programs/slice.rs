@@ -1,3 +1,4 @@
+//! @covers: array slicing, slice comparison
 fn main() {
     let a = [1, 2, 3, 4];
 

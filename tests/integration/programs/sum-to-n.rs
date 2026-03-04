@@ -1,3 +1,4 @@
+//! @covers: while loop, mutable bindings, function composition
 fn sum_to_n(n:usize) -> usize {
     let mut sum = 0;
     let mut counter = n;

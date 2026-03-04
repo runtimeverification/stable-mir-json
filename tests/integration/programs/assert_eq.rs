@@ -1,3 +1,4 @@
+//! @covers: assert_eq macro expansion, string formatting machinery
 fn main() {
     let a = 42;
     let b = 3 + 39;

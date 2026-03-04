@@ -1,3 +1,4 @@
+//! @covers: mutually recursive functions, if/else control flow
 fn is_even(n:u32) -> bool {
     if n == 0 {
         true

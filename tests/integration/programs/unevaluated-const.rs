@@ -1,3 +1,4 @@
+//! @covers: const evaluation (associated consts in generic contexts, const generics)
 /// Exercises const evaluation patterns: associated constants in generic
 /// contexts and const generic parameters. On the current nightly, all
 /// constants are eagerly evaluated during monomorphization (appearing as
