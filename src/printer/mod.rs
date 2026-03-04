@@ -37,6 +37,7 @@ macro_rules! def_env_var {
 def_env_var!(debug_enabled, DEBUG);
 def_env_var!(link_items_enabled, LINK_ITEMS);
 def_env_var!(link_instance_enabled, LINK_INST);
+def_env_var!(trace_enabled, TRACE);
 
 macro_rules! debug_log_println {
     ($($args:tt)*) => {
@@ -50,6 +51,7 @@ mod items;
 mod link_map;
 mod mir_visitor;
 mod schema;
+mod tracer;
 mod ty_visitor;
 mod types;
 mod util;
@@ -61,12 +63,13 @@ pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, SmirJson, TypeMetadata}
 pub(crate) use util::hash;
 
 pub fn emit_smir(tcx: TyCtxt<'_>) {
-    let smir_json =
-        serde_json::to_string(&collect_smir(tcx)).expect("serde_json failed to write result");
+    let (smir, trace_events) = collect::collect_smir_traced(tcx);
+    let smir_json = serde_json::to_string(&smir).expect("serde_json failed to write result");
 
     match crate::compat::output::mir_output_path(tcx, "smir.json") {
         crate::compat::output::OutputDest::Stdout => {
             write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json");
+            // Skip trace output when destination is stdout.
         }
         crate::compat::output::OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
@@ -74,6 +77,17 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
                     .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
             write!(b, "{}", smir_json).expect("Failed to write smir.json");
+
+            // Write trace file alongside the main output when TRACE is enabled.
+            if let Some(events) = trace_events {
+                let trace_path = path.with_extension("trace.json");
+                let trace_json = serde_json::to_string_pretty(&events)
+                    .expect("serde_json failed to write trace");
+                let mut tb = io::BufWriter::new(File::create(&trace_path).unwrap_or_else(|e| {
+                    panic!("Failed to create {}: {}", trace_path.display(), e)
+                }));
+                write!(tb, "{}", trace_json).expect("Failed to write smir.trace.json");
+            }
         }
     }
 }

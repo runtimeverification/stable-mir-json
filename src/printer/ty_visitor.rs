@@ -19,19 +19,26 @@ use stable_mir::ty::{RigidTy, TyKind};
 use stable_mir::visitor::{Visitable, Visitor};
 
 use super::schema::TyMap;
+use super::tracer::{ty_kind_tag, TraceEvent};
 
 pub(super) struct TyCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     pub types: TyMap,
     resolved: HashSet<stable_mir::ty::Ty>,
+    /// When tracing is enabled, newly collected types are buffered here.
+    /// The caller (BodyAnalyzer::visit_ty) drains this buffer after each
+    /// ty.visit() call and copies events into the main Tracer with the
+    /// correct item context. This sidesteps the double-&mut problem.
+    pub trace_buffer: Option<Vec<TraceEvent>>,
 }
 
 impl TyCollector<'_> {
-    pub fn new(tcx: TyCtxt<'_>) -> TyCollector {
+    pub fn new(tcx: TyCtxt<'_>, trace: bool) -> TyCollector {
         TyCollector {
             tcx,
             types: HashMap::new(),
             resolved: HashSet::new(),
+            trace_buffer: if trace { Some(Vec::new()) } else { None },
         }
     }
 }
@@ -97,8 +104,16 @@ impl Visitor for TyCollector<'_> {
 
                 let control = ty.super_visit(self);
                 if matches!(control, ControlFlow::Continue(_)) {
+                    let kind = ty.kind();
                     let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
-                    self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                    if let Some(buf) = &mut self.trace_buffer {
+                        buf.push(TraceEvent::TypeCollected {
+                            item: String::new(), // filled by caller
+                            location: None,      // filled by caller
+                            ty_kind: ty_kind_tag(&kind).to_string(),
+                        });
+                    }
+                    self.types.insert(*ty, (kind, maybe_layout_shape));
                     fields.super_visit(self)
                 } else {
                     control
@@ -108,8 +123,16 @@ impl Visitor for TyCollector<'_> {
                 let control = ty.super_visit(self);
                 match control {
                     ControlFlow::Continue(_) => {
+                        let kind = ty.kind();
                         let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
-                        self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                        if let Some(buf) = &mut self.trace_buffer {
+                            buf.push(TraceEvent::TypeCollected {
+                                item: String::new(), // filled by caller
+                                location: None,      // filled by caller
+                                ty_kind: ty_kind_tag(&kind).to_string(),
+                            });
+                        }
+                        self.types.insert(*ty, (kind, maybe_layout_shape));
                         control
                     }
                     _ => control,

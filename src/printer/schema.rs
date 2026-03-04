@@ -76,6 +76,10 @@ impl AllocMap {
         self.inner.insert(key, value);
     }
 
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
     pub fn into_entries(
         self,
     ) -> impl Iterator<
