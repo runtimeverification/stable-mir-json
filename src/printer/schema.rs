@@ -396,6 +396,10 @@ pub enum TypeMetadata {
     PrimitiveType(RigidTy),
     EnumType {
         name: String,
+        // adt_def serializes as a non-deterministic interned index (DefId), but
+        // downstream consumers need it to cross-reference AggregateKind::Adt in
+        // MIR bodies with the type metadata here. We can't stabilize it without
+        // also controlling AggregateKind serialization (which comes from stable_mir).
         adt_def: AdtDef,
         discriminants: Vec<u128>,
         fields: Vec<Vec<stable_mir::ty::Ty>>,

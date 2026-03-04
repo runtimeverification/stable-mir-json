@@ -16,6 +16,7 @@ use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
+use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::ty::IndexedVal;
@@ -155,6 +156,45 @@ fn collect_and_analyze_items(
     )
 }
 
+/// Allocations are sorted by a three-tier key for deterministic output:
+///
+/// 1. **Variant tag** (`alloc_sort_tag`): a `&'static str` with a numeric
+///    prefix that groups allocations by `GlobalAlloc` variant (Memory < Static
+///    < VTable < Function).
+///
+/// 2. **Content key** (`alloc_content_key`): the name or Display string that
+///    disambiguates entries within Static, VTable, and Function variants.
+///    Empty for Memory (handled entirely by tier 3).
+///
+/// 3. **Byte content** (`alloc_bytes`): direct `&[Option<u8>]` slice
+///    comparison that breaks ties between Memory allocations with identical
+///    length (e.g. two 5-byte string literals "hello" vs "world"). Empty
+///    for non-Memory variants (already resolved by tier 2).
+fn alloc_sort_tag(info: &AllocInfo) -> &'static str {
+    match info.global_alloc() {
+        GlobalAlloc::Memory(_) => "0_Memory",
+        GlobalAlloc::Static(_) => "1_Static",
+        GlobalAlloc::VTable(..) => "2_VTable",
+        GlobalAlloc::Function(_) => "3_Function",
+    }
+}
+
+fn alloc_content_key(info: &AllocInfo) -> String {
+    match info.global_alloc() {
+        GlobalAlloc::Memory(_) => String::new(),
+        GlobalAlloc::Static(def) => def.name(),
+        GlobalAlloc::VTable(ty, _) => format!("{ty}"),
+        GlobalAlloc::Function(inst) => inst.name(),
+    }
+}
+
+fn alloc_bytes(info: &AllocInfo) -> &[Option<u8>] {
+    match info.global_alloc() {
+        GlobalAlloc::Memory(alloc) => &alloc.bytes,
+        _ => &[],
+    }
+}
+
 /// Phase 3: Assemble the final SmirJson from collected and derived data.
 /// This is a pure data transformation with no inst.body() calls.
 fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInfo) -> SmirJson {
@@ -206,19 +246,43 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
 
     let mut spans = span_map.into_iter().collect::<Vec<_>>();
 
-    // sort output vectors to stabilise output (a bit)
-    allocs.sort_by_key(|a| a.alloc_id().to_index());
-    functions.sort_by(|a, b| a.0 .0.to_index().cmp(&b.0 .0.to_index()));
+    // sort output vectors by content-derived keys for deterministic output.
+    // Ty's Display impl (ty_pretty) should be injective for monomorphized types,
+    // but we use the interned index as a tiebreaker just in case two distinct
+    // types produce the same display string.
+    allocs.sort_by(|a, b| {
+        alloc_sort_tag(a)
+            .cmp(alloc_sort_tag(b))
+            .then_with(|| alloc_content_key(a).cmp(&alloc_content_key(b)))
+            .then_with(|| alloc_bytes(a).cmp(alloc_bytes(b)))
+    });
+    functions.sort_by(|a, b| {
+        format!("{}", a.0 .0)
+            .cmp(&format!("{}", b.0 .0))
+            .then_with(|| {
+                let a_kind = a.0 .1.as_ref().map(|k| format!("{k}"));
+                let b_kind = b.0 .1.as_ref().map(|k| format!("{k}"));
+                a_kind.cmp(&b_kind)
+            })
+            .then_with(|| a.0 .0.to_index().cmp(&b.0 .0.to_index()))
+    });
     items.sort();
-    types.sort_by(|a, b| a.0.to_index().cmp(&b.0.to_index()));
-    spans.sort();
+    types.sort_by(|a, b| {
+        format!("{}", a.0)
+            .cmp(&format!("{}", b.0))
+            .then_with(|| a.0.to_index().cmp(&b.0.to_index()))
+    });
+    spans.sort_by(|a, b| a.1.cmp(&b.1));
+
+    let mut uneval_consts: Vec<_> = unevaluated_consts.into_iter().collect();
+    uneval_consts.sort_by(|a, b| a.1.cmp(&b.1));
 
     SmirJson {
         name: local_crate.name,
         crate_id,
         allocs,
         functions,
-        uneval_consts: unevaluated_consts.into_iter().collect(),
+        uneval_consts,
         items,
         types,
         spans,
