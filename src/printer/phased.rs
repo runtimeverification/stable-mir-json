@@ -88,8 +88,14 @@ impl MirVisitor for UnevaluatedChecker {
         if let stable_mir::ty::ConstantKind::Unevaluated(_) = constant.kind() {
             panic!(
                 "Phased<Body, Raw>::validate: body contains ConstantKind::Unevaluated \
-                 at location {loc:?}; all unevaluated constants should have been \
-                 resolved by the fixpoint loop before phase 3"
+                 at location {loc:?}.\n\n\
+                 The fixpoint loop in collect_and_analyze_items should have resolved \
+                 all unevaluated constants before phase 3, but this one survived. \
+                 The input program likely triggers a code path we haven't encountered yet.\n\n\
+                 Action: please file an issue at \
+                 https://github.com/runtimeverification/stable-mir-json/issues \
+                 with the .rs file that triggered this panic so we can add it as a \
+                 test case and extend the fixpoint loop to handle it."
             );
         }
         self.super_mir_const(constant, loc);
