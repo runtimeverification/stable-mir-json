@@ -11,6 +11,7 @@ use crate::compat::stable_mir;
 use std::collections::{HashMap, HashSet};
 
 use super::items::MonoItemKind;
+use super::phased::{Mono, Raw};
 use serde::{Serialize, Serializer};
 use stable_mir::abi::LayoutShape;
 use stable_mir::mir::alloc::{AllocId, GlobalAlloc};
@@ -95,17 +96,17 @@ impl AllocMap {
     /// Items (which is exactly the bug that the declarative pipeline
     /// restructuring was designed to prevent).
     #[cfg(debug_assertions)]
-    pub fn verify_coherence(&self, items: &[Item]) {
+    pub fn verify_coherence(&self, items: &[Item<Mono>]) {
         // Collect alloc ids referenced in stored bodies
         let mut body_ids: HashSet<stable_mir::mir::alloc::AllocId> = HashSet::new();
         for item in items {
             let body = match &item.mono_item_kind {
                 MonoItemKind::MonoItemFn {
                     body: Some(body), ..
-                } => Some(body),
+                } => Some(body.inner()),
                 MonoItemKind::MonoItemStatic {
                     body: Some(body), ..
-                } => Some(body),
+                } => Some(body.inner()),
                 _ => None,
             };
             if let Some(body) = body {
@@ -279,16 +280,17 @@ pub(super) struct ForeignModule {
 /// The `MonoItem` lives alongside the `Item` in the phase 1+2 work queue
 /// and is dropped before assembly begins.
 #[derive(Serialize, Clone)]
-pub struct Item {
+#[serde(bound = "")]
+pub struct Item<S> {
     pub symbol_name: String,
-    pub mono_item_kind: MonoItemKind,
+    pub mono_item_kind: MonoItemKind<S>,
     details: Option<ItemDetails>,
 }
 
-impl Item {
+impl<S> Item<S> {
     pub(super) fn new(
         symbol_name: String,
-        mono_item_kind: MonoItemKind,
+        mono_item_kind: MonoItemKind<S>,
         details: Option<ItemDetails>,
     ) -> Self {
         Item {
@@ -304,32 +306,68 @@ impl Item {
         match &self.mono_item_kind {
             MonoItemKind::MonoItemFn {
                 body: Some(body), ..
-            } => Some((body, body.locals())),
+            } => Some((body.inner(), body.inner().locals())),
             MonoItemKind::MonoItemStatic {
                 body: Some(body), ..
-            } => Some((body, &[])),
+            } => Some((body.inner(), &[])),
             _ => None,
         }
     }
 }
 
-impl PartialEq for Item {
-    fn eq(&self, other: &Item) -> bool {
+impl Item<Raw> {
+    /// Validate all bodies in this item, promoting from `Raw` to `Mono` phase.
+    pub(super) fn validate(self) -> Item<Mono> {
+        Item {
+            symbol_name: self.symbol_name,
+            mono_item_kind: self.mono_item_kind.validate(),
+            details: self.details,
+        }
+    }
+}
+
+impl MonoItemKind<Raw> {
+    /// Validate the body (if present), promoting from `Raw` to `Mono` phase.
+    fn validate(self) -> MonoItemKind<Mono> {
+        match self {
+            MonoItemKind::MonoItemFn { name, id, body } => MonoItemKind::MonoItemFn {
+                name,
+                id,
+                body: body.map(|b| b.validate()),
+            },
+            MonoItemKind::MonoItemStatic {
+                name,
+                id,
+                allocation,
+                body,
+            } => MonoItemKind::MonoItemStatic {
+                name,
+                id,
+                allocation,
+                body: body.map(|b| b.validate()),
+            },
+            MonoItemKind::MonoItemGlobalAsm { asm } => MonoItemKind::MonoItemGlobalAsm { asm },
+        }
+    }
+}
+
+impl<S> PartialEq for Item<S> {
+    fn eq(&self, other: &Item<S>) -> bool {
         self.cmp(other) == std::cmp::Ordering::Equal
     }
 }
-impl Eq for Item {}
+impl<S> Eq for Item<S> {}
 
-impl PartialOrd for Item {
-    fn partial_cmp(&self, other: &Item) -> Option<std::cmp::Ordering> {
+impl<S> PartialOrd for Item<S> {
+    fn partial_cmp(&self, other: &Item<S>) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for Item {
-    fn cmp(&self, other: &Item) -> std::cmp::Ordering {
+impl<S> Ord for Item<S> {
+    fn cmp(&self, other: &Item<S>) -> std::cmp::Ordering {
         use MonoItemKind::*;
-        let sort_key = |i: &Item| {
+        let sort_key = |i: &Item<S>| {
             format!(
                 "{}!{}",
                 i.symbol_name,
@@ -462,7 +500,7 @@ pub struct SmirJson {
     pub allocs: Vec<AllocInfo>,
     pub functions: Vec<(LinkMapKey, FnSymType)>,
     pub uneval_consts: Vec<(ConstDef, String)>,
-    pub items: Vec<Item>,
+    pub items: Vec<Item<Mono>>,
     pub types: Vec<(stable_mir::ty::Ty, TypeMetadata)>,
     pub spans: Vec<(usize, SourceData)>,
     pub debug: Option<SmirJsonDebugInfo>,
@@ -486,7 +524,7 @@ pub struct SmirJsonDebugInfo {
 /// Contains only [`Item`] values (no `MonoItem`), so code that operates on a
 /// `CollectedCrate` structurally cannot call `inst.body()` or re-enter rustc.
 pub(super) struct CollectedCrate {
-    pub items: Vec<Item>,
+    pub items: Vec<Item<Mono>>,
     pub unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String>,
 }
 

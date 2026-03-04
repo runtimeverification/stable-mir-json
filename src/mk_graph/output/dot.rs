@@ -68,6 +68,7 @@ impl SmirJson {
             for item in self.items {
                 match item.mono_item_kind {
                     MonoItemKind::MonoItemFn { name, body, id: _ } => {
+                        let body = body.as_ref().map(|b| b.inner());
                         let mut c = graph.cluster();
                         c.set_label(&name_lines(&name));
                         c.set_style(Style::Filled);
@@ -81,7 +82,7 @@ impl SmirJson {
                         let mut local_node = c.node_auto();
                         let mut vector: Vec<String> = vec![];
                         vector.push(String::from("LOCALS"));
-                        for (index, decl) in body.clone().unwrap().local_decls() {
+                        for (index, decl) in body.cloned().unwrap().local_decls() {
                             let ty_with_layout = ctx.render_type_with_layout(decl.ty);
                             vector.push(format!("{index} = {}", ty_with_layout));
                         }
@@ -287,7 +288,7 @@ impl SmirJson {
                                 }
                             };
 
-                        if let Some(ref body) = body {
+                        if let Some(body) = body {
                             add_call_edges(&mut graph, 0, &body.blocks);
                         }
                     }

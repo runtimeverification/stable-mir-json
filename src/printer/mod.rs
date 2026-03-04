@@ -9,8 +9,9 @@
 //! | Module | Responsibility |
 //! |--------|----------------|
 //! | [`schema`] | Data model types ([`SmirJson`], [`Item`], [`AllocInfo`], etc.) and type aliases; [`Item`] deliberately excludes `MonoItem` for structural phase separation |
-//! | [`collect`] | Three-phase pipeline: collect items, analyze bodies, assemble final output; phase boundary is enforced structurally via the `(MonoItem, Item)` split |
-//! | [`items`] | Constructing `(MonoItem, Item)` pairs and extracting debug-level details |
+//! | [`collect`] | Three-phase pipeline: collect items, analyze bodies, assemble final output; phase boundary is enforced structurally via the `(MonoItem, Item)` split and [`phased::Phased`] body wrapper |
+//! | [`items`] | Constructing `(MonoItem, Item<Raw>)` pairs and extracting debug-level details |
+//! | [`phased`] | [`Phased<T, S>`](phased::Phased) typestate wrapper encoding the post-monomorphization body invariant |
 //! | [`mir_visitor`] | `BodyAnalyzer`: single-pass MIR body traversal collecting calls, allocs, types, spans |
 //! | [`ty_visitor`] | `TyCollector`: recursively collects reachable types with layout info (some special kinds are traversed but not stored) |
 //! | [`link_map`] | Function resolution map: type + instance kind to symbol name |
@@ -49,6 +50,7 @@ mod collect;
 mod items;
 mod link_map;
 mod mir_visitor;
+mod phased;
 mod schema;
 mod ty_visitor;
 mod types;
@@ -57,6 +59,7 @@ mod util;
 // Re-exports preserving the public API
 pub use collect::collect_smir;
 pub use items::MonoItemKind;
+pub use phased::Mono;
 pub use schema::{AllocInfo, FnSymType, Item, LinkMapKey, SmirJson, TypeMetadata};
 pub(crate) use util::hash;
 
