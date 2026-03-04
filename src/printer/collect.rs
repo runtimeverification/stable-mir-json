@@ -156,12 +156,42 @@ fn collect_and_analyze_items(
     )
 }
 
-fn alloc_sort_key(info: &AllocInfo) -> String {
+/// Allocations are sorted by a three-tier key for deterministic output:
+///
+/// 1. **Variant tag** (`alloc_sort_tag`): a `&'static str` with a numeric
+///    prefix that groups allocations by `GlobalAlloc` variant (Memory < Static
+///    < VTable < Function).
+///
+/// 2. **Content key** (`alloc_content_key`): the name or Display string that
+///    disambiguates entries within Static, VTable, and Function variants.
+///    Empty for Memory (handled entirely by tier 3).
+///
+/// 3. **Byte content** (`alloc_bytes`): direct `&[Option<u8>]` slice
+///    comparison that breaks ties between Memory allocations with identical
+///    length (e.g. two 5-byte string literals "hello" vs "world"). Empty
+///    for non-Memory variants (already resolved by tier 2).
+fn alloc_sort_tag(info: &AllocInfo) -> &'static str {
     match info.global_alloc() {
-        GlobalAlloc::Memory(alloc) => format!("0_Memory_{:020}", alloc.bytes.len()),
-        GlobalAlloc::Static(def) => format!("1_Static_{}", def.name()),
-        GlobalAlloc::VTable(ty, _) => format!("2_VTable_{}", ty),
-        GlobalAlloc::Function(inst) => format!("3_Function_{}", inst.name()),
+        GlobalAlloc::Memory(_) => "0_Memory",
+        GlobalAlloc::Static(_) => "1_Static",
+        GlobalAlloc::VTable(..) => "2_VTable",
+        GlobalAlloc::Function(_) => "3_Function",
+    }
+}
+
+fn alloc_content_key(info: &AllocInfo) -> String {
+    match info.global_alloc() {
+        GlobalAlloc::Memory(_) => String::new(),
+        GlobalAlloc::Static(def) => def.name(),
+        GlobalAlloc::VTable(ty, _) => format!("{ty}"),
+        GlobalAlloc::Function(inst) => inst.name(),
+    }
+}
+
+fn alloc_bytes(info: &AllocInfo) -> &[Option<u8>] {
+    match info.global_alloc() {
+        GlobalAlloc::Memory(alloc) => &alloc.bytes,
+        _ => &[],
     }
 }
 
@@ -220,7 +250,12 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
     // Ty's Display impl (ty_pretty) should be injective for monomorphized types,
     // but we use the interned index as a tiebreaker just in case two distinct
     // types produce the same display string.
-    allocs.sort_by_key(alloc_sort_key);
+    allocs.sort_by(|a, b| {
+        alloc_sort_tag(a)
+            .cmp(alloc_sort_tag(b))
+            .then_with(|| alloc_content_key(a).cmp(&alloc_content_key(b)))
+            .then_with(|| alloc_bytes(a).cmp(alloc_bytes(b)))
+    });
     functions.sort_by(|a, b| {
         format!("{}", a.0 .0)
             .cmp(&format!("{}", b.0 .0))
