@@ -8,7 +8,7 @@ use crate::printer::SmirJson;
 use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{is_unqualified, name_lines, short_name, terminator_targets};
+use crate::mk_graph::util::{is_unqualified, name_lines, short_name, terminator_targets, hash_body};
 
 /// A single call edge discovered during traversal.
 pub struct CallEdge {
@@ -96,7 +96,11 @@ fn render_function<'a>(
     name: &str,
     body: Option<&'a Body>,
 ) -> RenderedFunction<'a> {
-    let id = short_name(name);
+    let id = match body {
+        Some(b) => format!("fn_{}_{}", short_name(name), hash_body(b)),
+        None => format!("fn_{}_no_body", short_name(name)),
+    };
+
     let display_name = name_lines(name);
     let is_local = body.is_some();
 
