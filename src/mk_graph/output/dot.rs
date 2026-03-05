@@ -12,14 +12,15 @@ use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
+use crate::mk_graph::ItemFilter;
 
 impl SmirJson {
     /// Convert the MIR to DOT (Graphviz) format
-    pub fn to_dot_file(self) -> String {
+    pub fn to_dot_file(mut self) -> String {
         let mut bytes = Vec::new();
 
-        // Build context BEFORE consuming self
-        let ctx = GraphContext::from_smir(&self);
+        let mut ctx = GraphContext::from_smir(&self);
+        ItemFilter::apply_all(&mut self.items, &mut ctx);
 
         {
             let mut writer = DotWriter::from(&mut bytes);
