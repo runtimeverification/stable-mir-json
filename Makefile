@@ -43,6 +43,26 @@ integration-test:
 golden:
 	make integration-test DIFF=">"
 
+.PHONY: test-skip-lang-start
+test-skip-lang-start: TESTS ?= $(shell find $(TESTDIR) -type f -name "*.rs")
+test-skip-lang-start: SMIR  ?= cargo run -- --d2 "-Zno-codegen"
+test-skip-lang-start:
+	errors=""; \
+	report() { echo "FAIL: $$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
+	for rust in ${TESTS}; do \
+		dir=$$(dirname $${rust}); \
+		name=$$(basename $${rust} .rs); \
+		d2=$${dir}/$${name}.smir.d2; \
+		echo "$$rust"; \
+		SKIP_LANG_START=1 ${SMIR} --out-dir $${dir} $${rust} \
+			|| { report "$$rust" "Conversion failed"; continue; }; \
+		if grep -q 'lang_start' $${d2} 2>/dev/null; then \
+			report "$$rust" "Output still contains lang_start"; \
+		fi; \
+		rm -f $${d2}; \
+	done; \
+	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
+
 format: 
 	cargo fmt
 	bash -O globstar -c 'nixfmt **/*.nix'
