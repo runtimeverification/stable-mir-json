@@ -38,11 +38,12 @@ pub(crate) enum ItemFilter {
 impl ItemFilter {
     /// Return the set of filters currently enabled via environment variables.
     pub fn enabled() -> Vec<ItemFilter> {
-        let mut filters = Vec::new();
-        if std::env::var("SKIP_LANG_START").is_ok() {
-            filters.push(ItemFilter::LangStart);
-        }
-        filters
+        [std::env::var("SKIP_LANG_START")
+            .ok()
+            .map(|_| Self::LangStart)]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 
     /// Compute the set of symbol names this filter wants to exclude.
@@ -92,15 +93,12 @@ fn compute_lang_start_exclusions(items: &[Item], ctx: &GraphContext) -> HashSet<
             let callees: Vec<&str> = body
                 .blocks
                 .iter()
-                .filter_map(|block| {
-                    if let TerminatorKind::Call {
+                .filter_map(|block| match &block.terminator.kind {
+                    TerminatorKind::Call {
                         func: Operand::Constant(ConstOperand { const_, .. }),
                         ..
-                    } = &block.terminator.kind
-                    {
-                        return ctx.functions.get(&const_.ty()).map(|s| s.as_str());
-                    }
-                    None
+                    } => ctx.functions.get(&const_.ty()).map(|s| s.as_str()),
+                    _ => None,
                 })
                 .collect();
             call_graph.insert(&item.symbol_name, callees);
@@ -163,10 +161,7 @@ fn compute_lang_start_exclusions(items: &[Item], ctx: &GraphContext) -> HashSet<
 ///
 /// But not a user-defined `lang_start` e.g. `crate1::something::lang_start`.
 fn is_std_rt_lang_start(kind: &MonoItemKind) -> bool {
-    match kind {
-        MonoItemKind::MonoItemFn { name, .. } => name.contains("std::rt::lang_start"),
-        _ => false,
-    }
+    matches!(kind, MonoItemKind::MonoItemFn { name, .. } if name.contains("std::rt::lang_start"))
 }
 
 // =============================================================================
