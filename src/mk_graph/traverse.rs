@@ -10,6 +10,33 @@ use crate::MonoItemKind;
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{is_unqualified, name_lines, short_name, terminator_targets};
 
+/// A single call edge discovered during traversal.
+pub struct CallEdge {
+    pub block_idx: usize,
+    pub callee_id: String,
+    pub callee_name: String,
+    pub rendered_args: String,
+}
+
+/// A single basic block with pre-rendered content.
+pub struct RenderedBlock<'a> {
+    pub idx: usize,
+    pub stmts: Vec<String>,
+    pub terminator: String,
+    pub raw_terminator: &'a Terminator,
+    pub cfg_edges: Vec<(usize, Option<String>)>,
+}
+
+/// A fully rendered function ready for format-specific builders.
+pub struct RenderedFunction<'a> {
+    pub id: String,
+    pub display_name: String,
+    pub is_local: bool,
+    pub locals: Vec<(usize, String)>,
+    pub blocks: Vec<RenderedBlock<'a>>,
+    pub call_edges: Vec<CallEdge>,
+}
+
 /// Format agnostic graph sink.
 /// Implemented by all renderers.
 pub trait GraphBuilder {
