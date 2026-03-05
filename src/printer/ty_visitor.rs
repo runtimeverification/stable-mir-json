@@ -58,13 +58,19 @@ impl Visitor for TyCollector<'_> {
     type Break = ();
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty) -> ControlFlow<Self::Break> {
-        // Each type is collected (and traced) at most once. Because
-        // `collect_and_analyze_items` pulls from a HashMap, body walk order
-        // is effectively non-deterministic: whichever body is walked first
-        // "wins" the trace event for a given type. This means the trace
-        // report's stdlib-only annotation reflects which body *happened* to
-        // be walked first, not whether user code references the type.
         if self.types.contains_key(ty) || self.resolved.contains(ty) {
+            // The type is already collected; skip recursion (which also
+            // serves as a cycle breaker for self-referential types). We
+            // still emit a trace event so that *every* body that references
+            // a type gets credited, not just whichever body happened to be
+            // walked first.
+            if let Some(buf) = &mut self.trace_buffer {
+                buf.push(TraceEvent::TypeCollected {
+                    item: String::new(),
+                    location: None,
+                    ty_kind: ty_kind_tag(&ty.kind()).to_string(),
+                });
+            }
             return ControlFlow::Continue(());
         }
 
