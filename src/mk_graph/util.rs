@@ -4,8 +4,8 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use crate::compat::stable_mir;
 use stable_mir::mir::{
-    AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
-    Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction, Body,
+    AggregateKind, Body, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
+    Operand, Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
 };
 use stable_mir::ty::{IndexedVal, RigidTy};
 
