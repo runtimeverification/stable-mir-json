@@ -1,0 +1,171 @@
+Tracing assert_eq...
+Tracing binop...
+Tracing char-trivial...
+Tracing closure-args...
+Tracing closure-no-args...
+Tracing const-arithm-simple...
+Tracing div...
+Tracing double-ref-deref...
+Tracing enum...
+Tracing fibonacci...
+Tracing float...
+Tracing fn-ptr-in-arg...
+Tracing foreign-type...
+Tracing modulo...
+Tracing mutual_recursion...
+Tracing option-construction...
+Tracing param_types...
+Tracing primitive-type-bounds...
+Tracing recursion-simple-match...
+Tracing recursion-simple...
+Tracing ref-deref...
+Tracing reify-fn-pointer...
+Tracing shl_min...
+Tracing slice...
+Tracing static-vtable-nonbuiltin-deref...
+Tracing strange-ref-deref...
+Tracing struct...
+Tracing sum-to-n...
+Tracing tuple-eq...
+Tracing tuples-simple...
+Tracing unevaluated-const...
+Tracing weirdRefs...
+Trace coverage across 32 test(s):
+
+   Count  Event
+   -----  -----
+    2530  SpanResolved  (all programs)
+    1349  TypeCollected  (all programs)
+     363  FnDefAsValue  (all programs)
+     361  FunctionCallResolved  (all programs)
+     345  ItemDiscovered  (all programs)
+     345  BodyWalkStarted  (all programs)
+     345  BodyWalkFinished  (all programs)
+     328  AllocationCollected  (all programs)
+      67  DropGlueResolved  (all programs)
+      32  AssemblyStarted  (all programs)
+       1  ReifyFnPointerResolved  (reify-fn-pointer)
+
+Invariants holding (1):
+  ok UnevaluatedConstDiscovered
+
+All coverage events exercised, all invariants holding.
+
+============================================================
+Sub-category breakdown:
+============================================================
+
+  DropGlueResolved / sym_kind:
+        67  no_op  (all, stdlib only)
+    gaps (unreachable):
+      -- normal  (drop glue is always a no-op shim)
+      -- intrinsic  (drop glue is always a no-op shim)
+
+  FunctionCallResolved / sym_kind:
+       327  normal  (all)
+        34  intrinsic  (all, stdlib only)
+    gaps (unreachable):
+      -- no_op  (no-op shims only arise from drop glue, not call terminators)
+
+  ItemDiscovered / source:
+       345  mono_collect  (all, stdlib only)
+    gaps (unreachable):
+      -- unevaluated_const  (compiler eagerly evaluates all consts on current nightly)
+
+  ReifyFnPointerResolved / sym_kind:
+         1  normal  (reify-fn-pointer)
+    gaps (unreachable):
+      -- intrinsic  (intrinsics cannot be coerced to fn pointers)
+      -- no_op  (no-op shims cannot be coerced to fn pointers)
+
+  TypeCollected / ty_kind:
+       321  FnDef  (all)
+       277  Ref  (all)
+       212  Adt  (all)
+       111  RawPtr  (all)
+        76  Uint  (all)
+        69  Int  (all)
+        52  Tuple  (all)
+        44  Dynamic  (all)
+        37  FnPtr  (all)
+        34  Closure  (all)
+        32  Never  (all)
+        30  Str  (30/32)
+        25  Bool  (25/32)
+        14  Slice  (5/32)
+         7  Char  (7/32)
+         5  Array  (4/32)
+         2  Float  (float)
+         1  Foreign  (foreign-type, stdlib only)
+    gaps (unreachable):
+      -- Coroutine  (async/generators monomorphize to ADT state machines)
+      -- CoroutineWitness  (async/generators monomorphize to ADT state machines)
+      -- Pat  (unstable feature (pattern_types))
+
+Test programs (32/32 annotated):
+
+  assert_eq
+    covers: assert_eq macro expansion, string formatting machinery
+  binop
+    covers: binary operators (arithmetic, bitwise, comparison)
+  char-trivial
+    covers: char type, char literals, equality
+  closure-args
+    covers: closure with captured arguments, closure call
+  closure-no-args
+    covers: zero-argument closure, closure call
+  const-arithm-simple
+    covers: function calls, usize comparison, return values
+  div
+    covers: integer division
+  double-ref-deref
+    covers: double references, double dereference
+  enum
+    covers: enum declaration, variant construction
+  fibonacci
+    covers: recursion, match expression with wildcard pattern
+  float
+    covers: floating-point types (f32, f64), float arithmetic
+  fn-ptr-in-arg
+    covers: fn pointer as higher-order argument, Option::map, byte array conversion
+  foreign-type
+    covers: Foreign type kind (extern type used behind a pointer)
+  modulo
+    covers: modulo operator
+  mutual_recursion
+    covers: mutually recursive functions, if/else control flow
+  option-construction
+    covers: Option type, Some/None construction, unwrap
+  param_types
+    covers: generic structs, monomorphized type parameters, Result type
+  primitive-type-bounds
+    covers: unsigned integer boundary values, overflow arithmetic
+  recursion-simple
+    covers: recursion via if/else
+  recursion-simple-match
+    covers: recursion via match expression
+  ref-deref
+    covers: reference creation, dereference
+  reify-fn-pointer
+    covers: ReifyFnPointer cast (fn item coerced to fn pointer via type annotation)
+    unique: ReifyFnPointerResolved
+  shl_min
+    covers: left shift of signed integer minimum values (i8 through i128)
+  slice
+    covers: array slicing, slice comparison
+  static-vtable-nonbuiltin-deref
+    covers: static trait objects, dyn dispatch, vtable allocation
+  strange-ref-deref
+    covers: mutable reference reassignment, self-referential reborrow
+  struct
+    covers: struct declaration, field access, field arithmetic
+  sum-to-n
+    covers: while loop, mutable bindings, function composition
+  tuple-eq
+    covers: tuple construction, tuple equality
+  tuples-simple
+    covers: tuple construction, tuple field access
+  unevaluated-const
+    covers: const evaluation (associated consts in generic contexts, const generics)
+  weirdRefs
+    covers: mutable ref chains, struct with ref fields, field projections through derefs
