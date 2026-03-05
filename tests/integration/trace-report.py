@@ -175,10 +175,14 @@ for ev in sorted(sub_values):
                 detail = ", ".join(sorted(progs))
             else:
                 detail = f"{np}/{n}"
-            # Annotate if this value only appears via stdlib bodies.
+            # Annotate provenance: user code, stdlib, or both.
             user_progs = sub_user_programs.get(ev, {}).get(key, {}).get(val, set())
             if not user_progs:
                 detail += ", stdlib only"
+            elif len(user_progs) < np:
+                detail += ", user + stdlib"
+            else:
+                detail += ", user code"
             print(f"    {count:6}  {val}  ({detail})")
 
         if universe:
