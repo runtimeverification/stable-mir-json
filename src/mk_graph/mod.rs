@@ -24,13 +24,51 @@ pub use index::{AllocEntry, AllocIndex, AllocKind, TypeIndex};
 pub use util::GraphLabelString;
 
 // =============================================================================
-// Lang Start Filtering
+// Item Filtering
 // =============================================================================
 
-pub(crate) fn skip_lang_start() -> bool {
-    use std::sync::OnceLock;
-    static VAR: OnceLock<bool> = OnceLock::new();
-    *VAR.get_or_init(|| std::env::var("SKIP_LANG_START").is_ok())
+/// A predicate that identifies items to exclude from graph output.
+/// Each variant corresponds to an environment variable that enables it.
+pub(crate) enum ItemFilter {
+    /// Exclude `std::rt::lang_start` and items only reachable through it.
+    /// Enabled by `SKIP_LANG_START=1`.
+    LangStart,
+}
+
+impl ItemFilter {
+    /// Return the set of filters currently enabled via environment variables.
+    pub fn enabled() -> Vec<ItemFilter> {
+        let mut filters = Vec::new();
+        if std::env::var("SKIP_LANG_START").is_ok() {
+            filters.push(ItemFilter::LangStart);
+        }
+        filters
+    }
+
+    /// Compute the set of symbol names this filter wants to exclude.
+    pub fn compute_exclusions(&self, items: &[Item], ctx: &GraphContext) -> HashSet<String> {
+        match self {
+            ItemFilter::LangStart => compute_lang_start_exclusions(items, ctx),
+        }
+    }
+
+    /// Apply all enabled filters: collect exclusions, then prune both
+    /// `items` and `ctx.functions` in one pass.
+    ///
+    /// After this call, `ctx.resolve_call_target()` returns `None` for any
+    /// excluded function, so renderers don't need a separate exclusion set.
+    pub fn apply_all(items: &mut Vec<Item>, ctx: &mut GraphContext) {
+        let filters = Self::enabled();
+        if filters.is_empty() {
+            return;
+        }
+        let mut excluded = HashSet::new();
+        for filter in &filters {
+            excluded.extend(filter.compute_exclusions(items, ctx));
+        }
+        items.retain(|i| !excluded.contains(&i.symbol_name));
+        ctx.functions.retain(|_, name| !excluded.contains(name));
+    }
 }
 
 /// Compute the set of symbol names to exclude from graph rendering.
@@ -43,7 +81,7 @@ pub(crate) fn skip_lang_start() -> bool {
 /// 3. Find entry-point items (not called by any other item)
 /// 4. BFS from non-seed entry points, not entering seed nodes
 /// 5. Everything not reachable gets excluded
-pub(crate) fn compute_lang_start_exclusions(items: &[Item], ctx: &GraphContext) -> HashSet<String> {
+fn compute_lang_start_exclusions(items: &[Item], ctx: &GraphContext) -> HashSet<String> {
     // Build forward call graph: symbol_name -> list of callee names
     let mut call_graph: HashMap<&str, Vec<&str>> = HashMap::new();
     for item in items {
@@ -87,7 +125,6 @@ pub(crate) fn compute_lang_start_exclusions(items: &[Item], ctx: &GraphContext) 
         let name = item.symbol_name.as_str();
         let is_entry = !has_callers.contains(name);
         if is_entry && !seed_names.contains(name) {
-            // some items call other items
             reachable.insert(name);
             queue.push_back(name);
         }
@@ -108,7 +145,7 @@ pub(crate) fn compute_lang_start_exclusions(items: &[Item], ctx: &GraphContext) 
     let all_names: HashSet<&str> = items
         .iter()
         .map(|i| i.symbol_name.as_str())
-        .chain(ctx.functions.values().map(|s| s.as_str())) // chain external functions too
+        .chain(ctx.functions.values().map(|s| s.as_str()))
         .collect();
 
     all_names
