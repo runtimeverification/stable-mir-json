@@ -8,7 +8,9 @@ use crate::printer::SmirJson;
 use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{is_unqualified, name_lines, short_name, terminator_targets, hash_body};
+use crate::mk_graph::util::{
+    hash_body, is_unqualified, name_lines, short_name, terminator_targets,
+};
 
 /// Represents a call from a block to another function.
 ///
@@ -135,13 +137,11 @@ fn render_function<'a>(
     let mut locals = Vec::new();
 
     if let Some(body) = body {
-
         for (idx, decl) in body.local_decls() {
             locals.push((idx, ctx.render_type_with_layout(decl.ty)));
         }
 
         for (idx, block) in body.blocks.iter().enumerate() {
-
             let stmts = block
                 .statements
                 .iter()
@@ -164,11 +164,8 @@ fn render_function<'a>(
             });
 
             if let TerminatorKind::Call { func, args, .. } = &block.terminator.kind {
-
                 if let Some(callee) = ctx.resolve_call_target(func) {
-
                     if is_unqualified(&callee) {
-
                         let rendered_args = args
                             .iter()
                             .map(|a| ctx.render_operand(a))
