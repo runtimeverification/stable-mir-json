@@ -23,7 +23,7 @@ impl SmirJson {
         for item in self.items {
             match item.mono_item_kind {
                 MonoItemKind::MonoItemFn { name, body, .. } => {
-                    render_d2_function(&name, body.as_ref(), &ctx, &mut output);
+                    render_d2_function(&name, body.as_ref().map(|b| b.inner()), &ctx, &mut output);
                 }
                 MonoItemKind::MonoItemGlobalAsm { asm } => {
                     render_d2_asm(&asm, &mut output);

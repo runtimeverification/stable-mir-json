@@ -24,6 +24,7 @@ use stable_mir::CrateDef;
 
 use super::items::{get_foreign_module_details, mk_item};
 use super::mir_visitor::{maybe_add_to_link_map, BodyAnalyzer, UnevalConstInfo};
+use super::phased::Raw;
 use super::schema::{
     AllocInfo, AllocMap, CollectedCrate, DerivedInfo, Item, LinkMap, SmirJson, SmirJsonDebugInfo,
     SpanMap,
@@ -53,7 +54,7 @@ fn warn_missing_body(mono_item: &MonoItem) {
     }
 }
 
-fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item)> {
+fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item<Raw>)> {
     // get initial set of mono_items
     let items = mono_collect(tcx);
     items
@@ -73,7 +74,7 @@ fn enqueue_unevaluated_consts(
     tcx: TyCtxt<'_>,
     discovered: Vec<UnevalConstInfo>,
     known_names: &mut HashSet<String>,
-    pending: &mut HashMap<String, (MonoItem, Item)>,
+    pending: &mut HashMap<String, (MonoItem, Item<Raw>)>,
     unevaluated_consts: &mut HashMap<stable_mir::ty::ConstDef, String>,
 ) {
     for info in discovered {
@@ -98,7 +99,7 @@ fn enqueue_unevaluated_consts(
 /// this phase, then dropped; only the `Item` survives into `CollectedCrate`.
 fn collect_and_analyze_items(
     tcx: TyCtxt<'_>,
-    initial_items: HashMap<String, (MonoItem, Item)>,
+    initial_items: HashMap<String, (MonoItem, Item<Raw>)>,
 ) -> (CollectedCrate, DerivedInfo) {
     let mut calls_map: LinkMap = HashMap::new();
     let mut visited_allocs = AllocMap::new();
@@ -107,8 +108,8 @@ fn collect_and_analyze_items(
     let mut unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String> = HashMap::new();
 
     let mut known_names: HashSet<String> = initial_items.keys().cloned().collect();
-    let mut pending: HashMap<String, (MonoItem, Item)> = initial_items;
-    let mut all_items: Vec<Item> = Vec::new();
+    let mut pending: HashMap<String, (MonoItem, Item<Raw>)> = initial_items;
+    let mut all_items: Vec<Item<Raw>> = Vec::new();
 
     while let Some((_name, (mono_item, item))) = take_any(&mut pending) {
         maybe_add_to_link_map(tcx, &mono_item, &mut calls_map);
@@ -142,9 +143,13 @@ fn collect_and_analyze_items(
         all_items.push(item);
     }
 
+    // Phase 2 -> 3 boundary: validate that all bodies are free of
+    // ConstantKind::Unevaluated before handing them to phase 3.
+    let validated_items: Vec<_> = all_items.into_iter().map(|i| i.validate()).collect();
+
     (
         CollectedCrate {
-            items: all_items,
+            items: validated_items,
             unevaluated_consts,
         },
         DerivedInfo {

@@ -22,21 +22,23 @@ use stable_mir::{CrateDef, CrateItem};
 
 use crate::compat::bridge::mono_instance;
 
+use super::phased::{Phased, Raw};
 use super::schema::{BodyDetails, ForeignItem, ForeignModule, GenericData, Item, ItemDetails};
 
 #[derive(Serialize, Clone)]
-pub enum MonoItemKind {
+#[serde(bound = "")]
+pub enum MonoItemKind<S> {
     MonoItemFn {
         name: String,
         id: stable_mir::DefId,
-        body: Option<Body>,
+        body: Option<Phased<Body, S>>,
     },
     MonoItemStatic {
         name: String,
         id: stable_mir::DefId,
         allocation: Option<Allocation>,
         #[serde(skip)]
-        body: Option<Body>,
+        body: Option<Phased<Body, S>>,
     },
     MonoItemGlobalAsm {
         asm: String,
@@ -73,7 +75,7 @@ fn get_item_details(
     }
 }
 
-pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (MonoItem, Item) {
+pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (MonoItem, Item<Raw>) {
     match item {
         MonoItem::Fn(inst) => {
             let id = inst.def.def_id();
@@ -89,7 +91,7 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (Mon
                     MonoItemKind::MonoItemFn {
                         name: name.clone(),
                         id,
-                        body,
+                        body: body.map(Phased::new),
                     },
                     details,
                 ),
@@ -118,7 +120,7 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (Mon
                         name: static_def.name(),
                         id: static_def.def_id(),
                         allocation: alloc,
-                        body,
+                        body: body.map(Phased::new),
                     },
                     get_item_details(tcx, internal_id, None, None),
                 ),
