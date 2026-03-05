@@ -10,7 +10,10 @@ use crate::MonoItemKind;
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{is_unqualified, name_lines, short_name, terminator_targets, hash_body};
 
-/// A single call edge discovered during traversal.
+/// Represents a call from a block to another function.
+///
+/// The callee is resolved during traversal and arguments are already
+/// rendered as a string. Builders may choose how to visualize this edge.
 pub struct CallEdge {
     pub block_idx: usize,
     pub callee_id: String,
@@ -18,7 +21,14 @@ pub struct CallEdge {
     pub rendered_args: String,
 }
 
-/// A single basic block with pre-rendered content.
+/// A basic block with pre-rendered textual content and structural edges.
+///
+/// `stmts` and `terminator` are pre-rendered strings produced using
+/// `GraphContext`. Builders are free to format or escape them according
+/// to their output format.
+///
+/// `raw_terminator` is provided as an escape hatch for renderers that
+/// need to inspect the underlying MIR structure.
 pub struct RenderedBlock<'a> {
     pub idx: usize,
     pub stmts: Vec<String>,
@@ -27,7 +37,12 @@ pub struct RenderedBlock<'a> {
     pub cfg_edges: Vec<(usize, Option<String>)>,
 }
 
-/// A fully rendered function ready for format-specific builders.
+/// A fully analyzed MIR function ready for rendering.
+///
+/// The traversal layer resolves call targets, renders statements and
+/// terminators, and computes the control-flow edges. Builders receive
+/// this structure and are responsible only for formatting it into a
+/// specific graph representation.
 pub struct RenderedFunction<'a> {
     pub id: String,
     pub display_name: String,
@@ -37,8 +52,16 @@ pub struct RenderedFunction<'a> {
     pub call_edges: Vec<CallEdge>,
 }
 
-/// Format agnostic graph sink.
-/// Implemented by all renderers.
+/// Trait implemented by graph renderers.
+///
+/// The traversal layer walks the MIR graph and constructs a
+/// `RenderedFunction` representation. Implementations of this trait
+/// consume those structures and emit format-specific output such as
+/// D2, DOT, or other diagram formats.
+///
+/// The trait intentionally separates graph structure from formatting.
+/// Traversal decides *what* the graph contains while the builder
+/// decides *how* it is rendered.
 pub trait GraphBuilder {
     type Output;
 
@@ -59,8 +82,11 @@ pub trait GraphBuilder {
     fn finish(self) -> Self::Output;
 }
 
-/// Format-agnostic MIR graph traversal.
-/// Owns traversal order and graph semantics, delegates rendering to `GraphBuilder`.
+/// Traverse the SMIR representation and produce rendered graph data.
+///
+/// This function performs MIR traversal, resolves call targets, and
+/// constructs `RenderedFunction` structures which are then passed to
+/// the provided `GraphBuilder`.
 pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Output {
     let ctx = GraphContext::from_smir(smir);
 
