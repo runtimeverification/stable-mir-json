@@ -1,7 +1,7 @@
 //! D2 diagram format output for MIR graphs.
 
 use crate::compat::stable_mir;
-use stable_mir::mir::{Operand, Statement, Terminator, TerminatorKind};
+use stable_mir::mir::{TerminatorKind};
 
 use crate::printer::SmirJson;
 use crate::MonoItemKind;
@@ -12,27 +12,23 @@ use crate::mk_graph::util::{
 };
 
 use crate::mk_graph::traverse::render_graph;
-use crate::mk_graph::traverse::GraphBuilder;
+use crate::mk_graph::traverse::{GraphBuilder, RenderedFunction};
 
 // =============================================================================
 // D2 Builder
 // =============================================================================
 
-pub struct D2Builder<'a> {
-    ctx: &'a GraphContext,
+pub struct D2Builder {
     buf: String,
 }
 
-impl<'a> D2Builder<'a> {
-    pub fn new(ctx: &'a GraphContext) -> Self {
-        Self {
-            ctx,
-            buf: String::new(),
-        }
+impl D2Builder {
+    pub fn new() -> Self {
+        Self { buf: String::new() }
     }
 }
 
-impl GraphBuilder for D2Builder<'_> {
+impl GraphBuilder for D2Builder {
     type Output = String;
 
     fn begin_graph(&mut self, _name: &str) {
@@ -40,65 +36,83 @@ impl GraphBuilder for D2Builder<'_> {
     }
 
     fn alloc_legend(&mut self, lines: &[String]) {
+
         self.buf.push_str("ALLOCS: {\n");
         self.buf.push_str("  style.fill: \"#ffffcc\"\n");
         self.buf.push_str("  style.stroke: \"#999999\"\n");
-        let legend_text = lines
+
+        let text = lines
             .iter()
-            .map(|s| escape_d2(s))
+            .map(|l| escape_d2(l))
             .collect::<Vec<_>>()
             .join("\\n");
-        self.buf
-            .push_str(&format!("  label: \"{}\"\n", legend_text));
+
+        self.buf.push_str(&format!("  label: \"{}\"\n", text));
         self.buf.push_str("}\n\n");
     }
 
-    fn type_legend(&mut self, _: &[String]) {}
+    fn type_legend(&mut self, _lines: &[String]) {}
 
-    fn begin_function(&mut self, id: &str, label: &str, _is_local: bool) {
-        self.buf.push_str(&format!("{}: {{\n", id));
+    fn external_function(&mut self, id: &str, name: &str) {
+
         self.buf
-            .push_str(&format!("  label: \"{}\"\n", escape_d2(label)));
+            .push_str(&format!("{}: \"{}\"\n", id, escape_d2(name)));
+    }
+
+    fn render_function(&mut self, func: &RenderedFunction) {
+
+        self.buf.push_str(&format!("{}: {{\n", func.id));
+        self.buf
+            .push_str(&format!("  label: \"{}\"\n", escape_d2(&func.display_name)));
         self.buf.push_str("  style.fill: \"#e0e0ff\"\n");
-    }
 
-    fn block(&mut self, _fn_id: &str, idx: usize, stmts: &[Statement], terminator: &Terminator) {
-        let mut label = format!("bb{}:", idx);
-        for stmt in stmts {
-            let s = self.ctx.render_stmt(stmt);
-            label.push_str(&format!("\\n{}", escape_d2(&s)));
+        for block in &func.blocks {
+
+            let mut label = format!("bb{}:", block.idx);
+
+            for stmt in &block.stmts {
+                label.push_str(&format!("\\n{}", escape_d2(stmt)));
+            }
+
+            label.push_str(&format!("\\n---\\n{}", escape_d2(&block.terminator)));
+
+            self.buf
+                .push_str(&format!("  bb{}: \"{}\"\n", block.idx, label));
         }
-        let term_str = self.ctx.render_terminator(terminator);
-        label.push_str(&format!("\\n---\\n{}", escape_d2(&term_str)));
 
-        self.buf.push_str(&format!("  bb{}: \"{}\"\n", idx, label));
-    }
+        for block in &func.blocks {
+            for (target, _) in &block.cfg_edges {
+                self.buf
+                    .push_str(&format!("  bb{} -> bb{}\n", block.idx, target));
+            }
+        }
 
-    fn block_edge(&mut self, _fn_id: &str, from: usize, to: usize, _label: Option<&str>) {
-        self.buf.push_str(&format!("  bb{} -> bb{}\n", from, to));
-    }
-
-    fn call_edge(
-        &mut self,
-        fn_id: &str,
-        block: usize,
-        callee_id: &str,
-        callee_name: &str,
-        _args: &[Operand],
-    ) {
-        self.buf
-            .push_str(&format!("{}: \"{}\"\n", callee_id, escape_d2(callee_name)));
-        self.buf
-            .push_str(&format!("{}.style.fill: \"#ffe0e0\"\n", callee_id));
-        self.buf
-            .push_str(&format!("{}.bb{} -> {}: call\n", fn_id, block, callee_id));
-    }
-
-    fn end_function(&mut self, _id: &str) {
         self.buf.push_str("}\n\n");
+
+        for edge in &func.call_edges {
+
+            self.buf.push_str(&format!(
+                "{}: \"{}\"\n",
+                edge.callee_id,
+                escape_d2(&edge.callee_name)
+            ));
+
+            self.buf.push_str(&format!(
+                "{}.style.fill: \"#ffe0e0\"\n",
+                edge.callee_id
+            ));
+
+            self.buf.push_str(&format!(
+                "{}.bb{} -> {}: call\n",
+                func.id,
+                edge.block_idx,
+                edge.callee_id
+            ));
+        }
     }
 
     fn static_item(&mut self, id: &str, name: &str) {
+
         self.buf
             .push_str(&format!("{}: \"{}\" {{\n", id, escape_d2(name)));
         self.buf.push_str("  style.fill: \"#e0ffe0\"\n");
@@ -106,8 +120,10 @@ impl GraphBuilder for D2Builder<'_> {
     }
 
     fn asm_item(&mut self, id: &str, content: &str) {
-        let asm_text = escape_d2(&content.lines().collect::<String>());
-        self.buf.push_str(&format!("{}: \"{}\" {{\n", id, asm_text));
+
+        let text = escape_d2(&content.lines().collect::<String>());
+
+        self.buf.push_str(&format!("{}: \"{}\" {{\n", id, text));
         self.buf.push_str("  style.fill: \"#ffe0ff\"\n");
         self.buf.push_str("}\n\n");
     }
@@ -137,8 +153,7 @@ impl SmirJson<'_> {
 
     /// Convert the MIR to D2 using GraphBuilder traversal (experimental)
     pub fn to_d2_file_new(&self) -> String {
-        let ctx = GraphContext::from_smir(self);
-        render_graph(self, D2Builder::new(&ctx))
+        render_graph(self, D2Builder::new())
     }
 }
 

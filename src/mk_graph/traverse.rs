@@ -2,7 +2,7 @@
 //!
 //! This module owns the traversal order and graph semantics.
 extern crate stable_mir;
-use stable_mir::mir::{Operand, Statement, Terminator, TerminatorKind};
+use stable_mir::mir::{Body, Terminator, TerminatorKind};
 
 use crate::printer::SmirJson;
 use crate::MonoItemKind;
@@ -48,22 +48,9 @@ pub trait GraphBuilder {
 
     fn type_legend(&mut self, lines: &[String]);
 
-    fn begin_function(&mut self, id: &str, label: &str, is_local: bool);
+    fn external_function(&mut self, id: &str, name: &str);
 
-    fn block(&mut self, fn_id: &str, idx: usize, stmts: &[Statement], terminator: &Terminator);
-
-    fn block_edge(&mut self, fn_id: &str, from: usize, to: usize, label: Option<&str>);
-
-    fn call_edge(
-        &mut self,
-        fn_id: &str,
-        block: usize,
-        callee_id: &str,
-        callee_name: &str,
-        args: &[Operand],
-    );
-
-    fn end_function(&mut self, id: &str);
+    fn render_function(&mut self, func: &RenderedFunction);
 
     fn static_item(&mut self, id: &str, name: &str);
 
@@ -85,7 +72,8 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
     for item in &smir.items {
         match &item.mono_item_kind {
             MonoItemKind::MonoItemFn { name, body, .. } => {
-                render_function(&ctx, &mut builder, name, body.as_ref());
+                let func = render_function(&ctx, name, body.as_ref());
+                builder.render_function(&func);
             }
             MonoItemKind::MonoItemStatic { name, .. } => {
                 let id = short_name(name);
@@ -103,52 +91,78 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
 
 /// Emit graph events for a single function body.
 /// Traverses blocks, CFG edges, and call edges without renderer-specific logic.
-fn render_function<B: GraphBuilder>(
+fn render_function<'a>(
     ctx: &GraphContext,
-    builder: &mut B,
     name: &str,
-    body: Option<&stable_mir::mir::Body>,
-) {
-    let fn_id = short_name(name);
-    let label = name_lines(name);
-    let is_local = true;
+    body: Option<&'a Body>,
+) -> RenderedFunction<'a> {
+    let id = short_name(name);
+    let display_name = name_lines(name);
+    let is_local = body.is_some();
 
-    builder.begin_function(&fn_id, &label, is_local);
+    let mut blocks = Vec::new();
+    let mut call_edges = Vec::new();
+    let mut locals = Vec::new();
 
     if let Some(body) = body {
-        // blocks
-        for (idx, block) in body.blocks.iter().enumerate() {
-            builder.block(&fn_id, idx, &block.statements, &block.terminator);
+
+        for (idx, decl) in body.local_decls() {
+            locals.push((idx, ctx.render_type_with_layout(decl.ty)));
         }
 
-        // CFG edges
         for (idx, block) in body.blocks.iter().enumerate() {
-            for target in terminator_targets(&block.terminator) {
-                builder.block_edge(&fn_id, idx, target, None);
+
+            let stmts = block
+                .statements
+                .iter()
+                .map(|s| ctx.render_stmt(s))
+                .collect();
+
+            let terminator = ctx.render_terminator(&block.terminator);
+
+            let cfg_edges = terminator_targets(&block.terminator)
+                .into_iter()
+                .map(|t| (t, None))
+                .collect();
+
+            blocks.push(RenderedBlock {
+                idx,
+                stmts,
+                terminator,
+                raw_terminator: &block.terminator,
+                cfg_edges,
+            });
+
+            if let TerminatorKind::Call { func, args, .. } = &block.terminator.kind {
+
+                if let Some(callee) = ctx.resolve_call_target(func) {
+
+                    if is_unqualified(&callee) {
+
+                        let rendered_args = args
+                            .iter()
+                            .map(|a| ctx.render_operand(a))
+                            .collect::<Vec<_>>()
+                            .join(", ");
+
+                        call_edges.push(CallEdge {
+                            block_idx: idx,
+                            callee_id: short_name(&callee),
+                            callee_name: callee,
+                            rendered_args,
+                        });
+                    }
+                }
             }
         }
     }
 
-    builder.end_function(&fn_id);
-
-    // Call edges (outside container)
-    if let Some(body) = body {
-        for (idx, block) in body.blocks.iter().enumerate() {
-            let TerminatorKind::Call { func, args, .. } = &block.terminator.kind else {
-                continue;
-            };
-
-            let Some(callee_name) = ctx.resolve_call_target(func) else {
-                continue;
-            };
-
-            if !is_unqualified(&callee_name) {
-                continue;
-            }
-
-            let callee_id = short_name(&callee_name);
-
-            builder.call_edge(&fn_id, idx, &callee_id, &callee_name, args);
-        }
+    RenderedFunction {
+        id,
+        display_name,
+        is_local,
+        locals,
+        blocks,
+        call_edges,
     }
 }
