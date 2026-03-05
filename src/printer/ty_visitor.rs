@@ -139,7 +139,9 @@ impl TyCollector<'_> {
     /// The stashed tags are later replayed by [`replay_with_descendants`]
     /// on dedup hits.
     fn record_descendants(&mut self, ty: stable_mir::ty::Ty, snapshot: usize) {
-        let Some(buf) = &self.trace_buffer else { return };
+        let Some(buf) = &self.trace_buffer else {
+            return;
+        };
         let descs: Vec<String> = buf[snapshot..]
             .iter()
             .filter_map(|ev| match ev {
@@ -166,7 +168,9 @@ impl TyCollector<'_> {
     /// the dedup guard, we replay the `Foreign` tag so that body also gets
     /// credit for the nested type.
     fn replay_with_descendants(&mut self, ty: &stable_mir::ty::Ty) {
-        let Some(buf) = &mut self.trace_buffer else { return };
+        let Some(buf) = &mut self.trace_buffer else {
+            return;
+        };
 
         buf.push(TraceEvent::TypeCollected {
             item: String::new(),
@@ -176,7 +180,9 @@ impl TyCollector<'_> {
 
         // Clone to avoid borrow conflict: self.descendants is read while
         // self.trace_buffer is mutably borrowed above.
-        let Some(descs) = self.descendants.get(ty).cloned() else { return };
+        let Some(descs) = self.descendants.get(ty).cloned() else {
+            return;
+        };
         for ty_kind in descs {
             buf.push(TraceEvent::TypeCollected {
                 item: String::new(),
@@ -236,7 +242,7 @@ impl Visitor for TyCollector<'_> {
                 let kind = ty.kind();
                 let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
                 self.record_descendants(*ty, snap);
-                self.trace_type(&ty_kind_tag(&kind));
+                self.trace_type(ty_kind_tag(&kind));
                 self.types.insert(*ty, (kind, maybe_layout_shape));
                 control
             }
@@ -281,7 +287,7 @@ impl Visitor for TyCollector<'_> {
                 }
                 let kind = ty.kind();
                 let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
-                self.trace_type(&ty_kind_tag(&kind));
+                self.trace_type(ty_kind_tag(&kind));
                 self.types.insert(*ty, (kind, maybe_layout_shape));
                 let control = fields.super_visit(self);
                 self.record_descendants(*ty, snap);
@@ -295,7 +301,7 @@ impl Visitor for TyCollector<'_> {
                 }
                 let kind = ty.kind();
                 let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
-                self.trace_type(&ty_kind_tag(&kind));
+                self.trace_type(ty_kind_tag(&kind));
                 self.types.insert(*ty, (kind, maybe_layout_shape));
                 self.record_descendants(*ty, snap);
                 control

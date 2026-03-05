@@ -63,7 +63,10 @@ fn warn_missing_body(mono_item: &MonoItem) {
     }
 }
 
-fn collect_items(tcx: TyCtxt<'_>, tracer: &mut Option<Tracer>) -> HashMap<String, (MonoItem, Item)> {
+fn collect_items(
+    tcx: TyCtxt<'_>,
+    tracer: &mut Option<Tracer>,
+) -> HashMap<String, (MonoItem, Item)> {
     // get initial set of mono_items
     let items = mono_collect(tcx);
     items
