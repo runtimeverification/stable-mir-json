@@ -2,7 +2,7 @@
 //!
 //! This module owns the traversal order and graph semantics.
 extern crate stable_mir;
-use stable_mir::mir::{Body, Terminator, TerminatorKind};
+use stable_mir::mir::{Body, Statement, Terminator, TerminatorKind};
 
 use crate::printer::SmirJson;
 use crate::MonoItemKind;
@@ -29,11 +29,12 @@ pub struct CallEdge {
 /// `GraphContext`. Builders are free to format or escape them according
 /// to their output format.
 ///
-/// `raw_terminator` is provided as an escape hatch for renderers that
-/// need to inspect the underlying MIR structure.
+/// `raw_stmts` and `raw_terminator` are escape hatches for renderers
+/// that need to inspect the underlying MIR structure.
 pub struct RenderedBlock<'a> {
     pub idx: usize,
     pub stmts: Vec<String>,
+    pub raw_stmts: &'a [Statement],
     pub terminator: String,
     pub raw_terminator: &'a Terminator,
     pub cfg_edges: Vec<(usize, Option<String>)>,
@@ -48,7 +49,6 @@ pub struct RenderedBlock<'a> {
 pub struct RenderedFunction<'a> {
     pub id: String,
     pub display_name: String,
-    pub is_local: bool,
     pub locals: Vec<(usize, String)>,
     pub blocks: Vec<RenderedBlock<'a>>,
     pub call_edges: Vec<CallEdge>,
@@ -130,7 +130,6 @@ fn render_function<'a>(
     };
 
     let display_name = name_lines(name);
-    let is_local = body.is_some();
 
     let mut blocks = Vec::new();
     let mut call_edges = Vec::new();
@@ -158,6 +157,7 @@ fn render_function<'a>(
             blocks.push(RenderedBlock {
                 idx,
                 stmts,
+                raw_stmts: &block.statements,
                 terminator,
                 raw_terminator: &block.terminator,
                 cfg_edges,
@@ -187,7 +187,6 @@ fn render_function<'a>(
     RenderedFunction {
         id,
         display_name,
-        is_local,
         locals,
         blocks,
         call_edges,
