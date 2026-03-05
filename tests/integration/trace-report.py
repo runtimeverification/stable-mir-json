@@ -23,6 +23,10 @@ sub_programs = {}    # event -> field -> value -> set(programs)
 
 SUB_FIELDS = ["ty_kind", "sym_kind", "source"]
 
+# Track whether a sub-category value was seen via user code (not just stdlib).
+# Key structure mirrors sub_programs: event -> field -> value -> set(programs).
+sub_user_programs = {}
+
 files = sorted(glob.glob(trace_dir + "/*.smir.trace.json"))
 if not files:
     print("No trace files found. Is TRACE=1 working?")
@@ -30,6 +34,9 @@ if not files:
 
 for f in files:
     prog = os.path.basename(f).replace(".smir.trace.json", "")
+    # Trace events now use readable (demangled) item names, e.g. "main",
+    # "test_binop", "main::{closure#0}".  Stdlib items start with "std::",
+    # "core::", "alloc::", or "<" (trait impl shims).
     for e in json.load(open(f)):
         ev = e["event"]
         counts[ev] = counts.get(ev, 0) + 1
@@ -42,6 +49,19 @@ for f in files:
                 sub_programs.setdefault(ev, {}).setdefault(key, {})
                 sub_programs[ev][key].setdefault(e[key], set())
                 sub_programs[ev][key][e[key]].add(prog)
+                # Check if this event came from user code (not stdlib).
+                item = e.get("item", "")
+                is_stdlib = (
+                    not item
+                    or item.startswith("std::")
+                    or item.startswith("core::")
+                    or item.startswith("alloc::")
+                    or item.startswith("<")
+                )
+                if not is_stdlib:
+                    sub_user_programs.setdefault(ev, {}).setdefault(key, {})
+                    sub_user_programs[ev][key].setdefault(e[key], set())
+                    sub_user_programs[ev][key][e[key]].add(prog)
 
 n = len(files)
 
@@ -155,6 +175,10 @@ for ev in sorted(sub_values):
                 detail = ", ".join(sorted(progs))
             else:
                 detail = f"{np}/{n}"
+            # Annotate if this value only appears via stdlib bodies.
+            user_progs = sub_user_programs.get(ev, {}).get(key, {}).get(val, set())
+            if not user_progs:
+                detail += ", stdlib only"
             print(f"    {count:6}  {val}  ({detail})")
 
         if universe:

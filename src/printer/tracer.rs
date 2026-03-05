@@ -153,7 +153,15 @@ pub(super) enum TraceEvent {
 /// Accumulates trace events during the pipeline.
 pub(super) struct Tracer {
     pub events: Vec<TraceEvent>,
+    /// Readable (demangled) name of the item currently being walked.
     pub current_item: Option<String>,
+    /// Mangled symbol name of the item currently being walked.
+    // TODO(review): trace events currently use the readable name (`current_item`)
+    // so that downstream scripts (trace-report.py) can match items to their
+    // originating crate without a demangler. We keep the mangled name around in
+    // case downstream consumers need it. If reviewers prefer mangled-only or
+    // both-in-every-event, this is the place to change it.
+    pub current_item_symbol: Option<String>,
 }
 
 impl Tracer {
@@ -161,6 +169,7 @@ impl Tracer {
         Tracer {
             events: Vec::new(),
             current_item: None,
+            current_item_symbol: None,
         }
     }
 
@@ -168,7 +177,7 @@ impl Tracer {
         self.events.push(event);
     }
 
-    /// The current item name, or a fallback for events outside a body walk.
+    /// The current readable item name, or a fallback for events outside a body walk.
     pub fn item_name(&self) -> String {
         self.current_item
             .clone()

@@ -35,6 +35,15 @@ use super::util::take_any;
 
 use crate::compat::mono_collect::mono_item_name;
 
+/// Readable (demangled) name for a mono item, used by the tracer.
+fn readable_item_name(mono_item: &MonoItem) -> String {
+    match mono_item {
+        MonoItem::Fn(inst) => inst.name(),
+        MonoItem::Static(def) => def.name(),
+        MonoItem::GlobalAsm(data) => crate::printer::hash(data).to_string(),
+    }
+}
+
 /// Log a warning when a body was expected but missing.
 fn warn_missing_body(mono_item: &MonoItem) {
     match mono_item {
@@ -152,9 +161,11 @@ fn collect_and_analyze_items(
         // Emit BodyWalkStarted before creating the BodyAnalyzer (borrow scoping).
         if let Some(tracer) = tracer.as_mut() {
             let before = snapshot(&calls_map, &visited_allocs, &ty_visitor, &span_map);
-            tracer.current_item = Some(item.symbol_name.clone());
+            let readable = readable_item_name(&mono_item);
+            tracer.current_item = Some(readable.clone());
+            tracer.current_item_symbol = Some(item.symbol_name.clone());
             tracer.push(TraceEvent::BodyWalkStarted {
-                item: item.symbol_name.clone(),
+                item: readable,
                 before,
             });
         }
@@ -179,10 +190,11 @@ fn collect_and_analyze_items(
         if let Some(tracer) = tracer.as_mut() {
             let after = snapshot(&calls_map, &visited_allocs, &ty_visitor, &span_map);
             tracer.push(TraceEvent::BodyWalkFinished {
-                item: item.symbol_name.clone(),
+                item: tracer.item_name(),
                 after,
             });
             tracer.current_item = None;
+            tracer.current_item_symbol = None;
         }
 
         enqueue_unevaluated_consts(
