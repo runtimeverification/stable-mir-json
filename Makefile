@@ -54,11 +54,8 @@ test-skip-lang-start:
 		name=$$(basename $${rust} .rs); \
 		d2=$${dir}/$${name}.smir.d2; \
 		echo "$$rust"; \
-		SKIP_LANG_START=1 ${SMIR} --out-dir $${dir} $${rust} \
+		SKIP_LANG_START=1 ASSERT_FILTER=1 ${SMIR} --out-dir $${dir} $${rust} \
 			|| { report "$$rust" "Conversion failed"; continue; }; \
-		if grep -q 'lang_start' $${d2} 2>/dev/null; then \
-			report "$$rust" "Output still contains lang_start"; \
-		fi; \
 		rm -f $${d2}; \
 	done; \
 	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)

@@ -29,6 +29,7 @@ pub use util::GraphLabelString;
 
 /// A predicate that identifies items to exclude from graph output.
 /// Each variant corresponds to an environment variable that enables it.
+#[derive(Debug)]
 pub(crate) enum ItemFilter {
     /// Exclude `std::rt::lang_start` and items only reachable through it.
     /// Enabled by `SKIP_LANG_START=1`.
@@ -58,17 +59,60 @@ impl ItemFilter {
     ///
     /// After this call, `ctx.resolve_call_target()` returns `None` for any
     /// excluded function, so renderers don't need a separate exclusion set.
+    ///
+    /// When `ASSERT_FILTER=1` is set (intended for integration tests), this
+    /// asserts that each filter actually matched something and that no
+    /// matching items survive after filtering.
     pub fn apply_all(items: &mut Vec<Item>, ctx: &mut GraphContext) {
         let filters = Self::enabled();
         if filters.is_empty() {
             return;
         }
+        let assert_mode = std::env::var("ASSERT_FILTER").is_ok();
         let mut excluded = HashSet::new();
         for filter in &filters {
-            excluded.extend(filter.compute_exclusions(items, ctx));
+            let filter_excluded = filter.compute_exclusions(items, ctx);
+            // The precondition assert checks that the test input actually
+            // contains items this filter targets. For LangStart, this holds
+            // for any crate with `fn main` because rustc always emits
+            // `std::rt::lang_start` as the runtime entry wrapper. If a test
+            // program is a library crate (no main), lang_start won't be
+            // present and this assert will fire; in that case, either skip
+            // the lib crate in test-skip-lang-start or gate LangStart on
+            // the presence of a main function.
+            if assert_mode {
+                assert!(
+                    !filter_excluded.is_empty(),
+                    "ASSERT_FILTER: {:?} matched no items. \
+                     If the test input is a library crate (no fn main), \
+                     std::rt::lang_start won't be present; either exclude \
+                     lib crates from test-skip-lang-start or adjust the \
+                     filter precondition.",
+                    filter
+                );
+            }
+            excluded.extend(filter_excluded);
         }
         items.retain(|i| !excluded.contains(&i.symbol_name));
         ctx.functions.retain(|_, name| !excluded.contains(name));
+        if assert_mode {
+            for filter in &filters {
+                assert!(
+                    !filter.survives(items),
+                    "ASSERT_FILTER: {:?} items survived filtering",
+                    filter
+                );
+            }
+        }
+    }
+
+    /// Check whether any items matching this filter remain after filtering.
+    fn survives(&self, items: &[Item]) -> bool {
+        match self {
+            ItemFilter::LangStart => items
+                .iter()
+                .any(|i| is_std_rt_lang_start(&i.mono_item_kind)),
+        }
     }
 }
 
