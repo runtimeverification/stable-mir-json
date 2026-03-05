@@ -34,7 +34,7 @@ Trace coverage across 32 test(s):
 
    Count  Event
    -----  -----
-    4964  TypeCollected  (all programs)
+    4960  TypeCollected  (all programs)
     2530  SpanResolved  (all programs)
      363  FnDefAsValue  (all programs)
      361  FunctionCallResolved  (all programs)
@@ -62,7 +62,7 @@ Sub-category breakdown:
       -- intrinsic  (drop glue is always a no-op shim)
 
   FunctionCallResolved / sym_kind:
-       327  normal  (all)
+       327  normal  (all, user + stdlib)
         34  intrinsic  (all, stdlib only)
     gaps (unreachable):
       -- no_op  (no-op shims only arise from drop glue, not call terminators)
@@ -73,30 +73,30 @@ Sub-category breakdown:
       -- unevaluated_const  (compiler eagerly evaluates all consts on current nightly)
 
   ReifyFnPointerResolved / sym_kind:
-         1  normal  (reify-fn-pointer)
+         1  normal  (reify-fn-pointer, user code)
     gaps (unreachable):
       -- intrinsic  (intrinsics cannot be coerced to fn pointers)
       -- no_op  (no-op shims cannot be coerced to fn pointers)
 
   TypeCollected / ty_kind:
-       794  Tuple  (all)
-       784  Ref  (all)
-       718  Int  (all)
-       622  Uint  (all)
-       550  Adt  (all)
-       368  FnDef  (all)
-       264  FnPtr  (all)
-       221  Closure  (all)
-       189  RawPtr  (all)
-       176  Never  (all)
-       139  Bool  (25/32)
-        44  Dynamic  (all)
-        30  Str  (30/32)
-        20  Array  (4/32)
-        16  Float  (float)
-        15  Slice  (5/32)
-        13  Char  (7/32)
-         1  Foreign  (foreign-type)
+       794  Tuple  (all, user code)
+       784  Ref  (all, user + stdlib)
+       718  Int  (all, user + stdlib)
+       622  Uint  (all, user + stdlib)
+       550  Adt  (all, user + stdlib)
+       368  FnDef  (all, user + stdlib)
+       264  FnPtr  (all, user + stdlib)
+       217  Closure  (all, user + stdlib)
+       189  RawPtr  (all, user + stdlib)
+       176  Never  (all, user + stdlib)
+       139  Bool  (25/32, user code)
+        44  Dynamic  (all, user + stdlib)
+        30  Str  (30/32, user + stdlib)
+        20  Array  (4/32, user code)
+        16  Float  (float, user code)
+        15  Slice  (5/32, user + stdlib)
+        13  Char  (7/32, user + stdlib)
+         1  Foreign  (foreign-type, user code)
     gaps (unreachable):
       -- Coroutine  (async/generators monomorphize to ADT state machines)
       -- CoroutineWitness  (async/generators monomorphize to ADT state machines)

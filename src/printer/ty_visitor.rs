@@ -64,6 +64,15 @@ impl Visitor for TyCollector<'_> {
             // still emit a trace event so that *every* body that references
             // a type gets credited, not just whichever body happened to be
             // walked first.
+            //
+            // Note: skipping recursion means *nested* types (e.g. the
+            // Foreign pointee inside a RawPtr) are only traced from the
+            // first body that visits the outer type. Combined with
+            // non-deterministic body walk order (HashMap iteration in
+            // collect_and_analyze_items), this makes provenance attribution
+            // for nested types non-deterministic. The trace report's
+            // "stdlib only" / "user code" annotation for such types may
+            // vary between runs.
             if let Some(buf) = &mut self.trace_buffer {
                 buf.push(TraceEvent::TypeCollected {
                     item: String::new(),
