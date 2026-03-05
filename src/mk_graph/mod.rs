@@ -48,11 +48,7 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
 pub fn emit_d2file(tcx: TyCtxt<'_>) {
     let smir = collect_smir(tcx);
 
-    let smir_d2 = if std::env::var("SMIR_D2_NEW").is_ok() {
-        smir.to_d2_file_new()
-    } else {
-        smir.to_d2_file()
-    };
+    let smir_d2 = smir.to_d2_file();
 
     match mir_output_path(tcx, "smir.d2") {
         OutputDest::Stdout => {
