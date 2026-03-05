@@ -1,3 +1,4 @@
+//! @covers: recursion via if/else
 fn sum_to_n_rec(n:u32) -> u32 {
     if n == 0 {
         0

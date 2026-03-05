@@ -28,11 +28,21 @@ use super::schema::{
     AllocInfo, AllocMap, CollectedCrate, DerivedInfo, Item, LinkMap, SmirJson, SmirJsonDebugInfo,
     SpanMap,
 };
+use super::tracer::{CollectionSnapshot, TraceEvent, Tracer};
 use super::ty_visitor::TyCollector;
 use super::types::mk_type_metadata;
 use super::util::take_any;
 
 use crate::compat::mono_collect::mono_item_name;
+
+/// Readable (demangled) name for a mono item, used by the tracer.
+fn readable_item_name(mono_item: &MonoItem) -> String {
+    match mono_item {
+        MonoItem::Fn(inst) => inst.name(),
+        MonoItem::Static(def) => def.name(),
+        MonoItem::GlobalAsm(data) => crate::printer::hash(data).to_string(),
+    }
+}
 
 /// Log a warning when a body was expected but missing.
 fn warn_missing_body(mono_item: &MonoItem) {
@@ -53,13 +63,22 @@ fn warn_missing_body(mono_item: &MonoItem) {
     }
 }
 
-fn collect_items(tcx: TyCtxt<'_>) -> HashMap<String, (MonoItem, Item)> {
+fn collect_items(
+    tcx: TyCtxt<'_>,
+    tracer: &mut Option<Tracer>,
+) -> HashMap<String, (MonoItem, Item)> {
     // get initial set of mono_items
     let items = mono_collect(tcx);
     items
         .iter()
         .map(|item| {
             let name = mono_item_name(tcx, item);
+            if let Some(tracer) = tracer {
+                tracer.push(TraceEvent::ItemDiscovered {
+                    name: name.clone(),
+                    source: "mono_collect",
+                });
+            }
             let (mono_item, built_item) = mk_item(tcx, item.clone(), name.clone());
             (name, (mono_item, built_item))
         })
@@ -75,16 +94,37 @@ fn enqueue_unevaluated_consts(
     known_names: &mut HashSet<String>,
     pending: &mut HashMap<String, (MonoItem, Item)>,
     unevaluated_consts: &mut HashMap<stable_mir::ty::ConstDef, String>,
+    tracer: &mut Option<Tracer>,
 ) {
     for info in discovered {
         if known_names.contains(&info.item_name) || pending.contains_key(&info.item_name) {
             continue;
         }
         debug_log_println!("Adding unevaluated const body for: {}", info.item_name);
+        if let Some(tracer) = tracer {
+            tracer.push(TraceEvent::ItemDiscovered {
+                name: info.item_name.clone(),
+                source: "unevaluated_const",
+            });
+        }
         unevaluated_consts.insert(info.const_def, info.item_name.clone());
         let new_entry = mk_item(tcx, info.mono_item, info.item_name.clone());
         pending.insert(info.item_name.clone(), new_entry);
         known_names.insert(info.item_name);
+    }
+}
+
+fn snapshot(
+    calls_map: &LinkMap,
+    visited_allocs: &AllocMap,
+    ty_visitor: &TyCollector<'_>,
+    span_map: &SpanMap,
+) -> CollectionSnapshot {
+    CollectionSnapshot {
+        link_map_count: calls_map.len(),
+        alloc_count: visited_allocs.len(),
+        type_count: ty_visitor.types.len(),
+        span_count: span_map.len(),
     }
 }
 
@@ -99,10 +139,12 @@ fn enqueue_unevaluated_consts(
 fn collect_and_analyze_items(
     tcx: TyCtxt<'_>,
     initial_items: HashMap<String, (MonoItem, Item)>,
+    tracer: &mut Option<Tracer>,
 ) -> (CollectedCrate, DerivedInfo) {
+    let trace = tracer.is_some();
     let mut calls_map: LinkMap = HashMap::new();
     let mut visited_allocs = AllocMap::new();
-    let mut ty_visitor = TyCollector::new(tcx);
+    let mut ty_visitor = TyCollector::new(tcx, trace);
     let mut span_map: SpanMap = HashMap::new();
     let mut unevaluated_consts: HashMap<stable_mir::ty::ConstDef, String> = HashMap::new();
 
@@ -119,17 +161,44 @@ fn collect_and_analyze_items(
             continue;
         };
 
-        let mut new_unevaluated = Vec::new();
-        BodyAnalyzer {
-            tcx,
-            locals,
-            link_map: &mut calls_map,
-            visited_allocs: &mut visited_allocs,
-            ty_visitor: &mut ty_visitor,
-            spans: &mut span_map,
-            new_unevaluated: &mut new_unevaluated,
+        // Emit BodyWalkStarted before creating the BodyAnalyzer (borrow scoping).
+        if let Some(tracer) = tracer.as_mut() {
+            let before = snapshot(&calls_map, &visited_allocs, &ty_visitor, &span_map);
+            let readable = readable_item_name(&mono_item);
+            tracer.current_item = Some(readable.clone());
+            tracer.current_item_symbol = Some(item.symbol_name.clone());
+            tracer.push(TraceEvent::BodyWalkStarted {
+                item: readable,
+                before,
+            });
         }
-        .visit_body(body);
+
+        let mut new_unevaluated = Vec::new();
+        {
+            let analyzer_tracer = tracer.as_mut();
+            BodyAnalyzer {
+                tcx,
+                locals,
+                link_map: &mut calls_map,
+                visited_allocs: &mut visited_allocs,
+                ty_visitor: &mut ty_visitor,
+                spans: &mut span_map,
+                new_unevaluated: &mut new_unevaluated,
+                tracer: analyzer_tracer,
+            }
+            .visit_body(body);
+        }
+
+        // Emit BodyWalkFinished after the BodyAnalyzer is dropped.
+        if let Some(tracer) = tracer.as_mut() {
+            let after = snapshot(&calls_map, &visited_allocs, &ty_visitor, &span_map);
+            tracer.push(TraceEvent::BodyWalkFinished {
+                item: tracer.item_name(),
+                after,
+            });
+            tracer.current_item = None;
+            tracer.current_item_symbol = None;
+        }
 
         enqueue_unevaluated_consts(
             tcx,
@@ -137,6 +206,7 @@ fn collect_and_analyze_items(
             &mut known_names,
             &mut pending,
             &mut unevaluated_consts,
+            tracer,
         );
 
         all_items.push(item);
@@ -197,7 +267,12 @@ fn alloc_bytes(info: &AllocInfo) -> &[Option<u8>] {
 
 /// Phase 3: Assemble the final SmirJson from collected and derived data.
 /// This is a pure data transformation with no inst.body() calls.
-fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInfo) -> SmirJson {
+fn assemble_smir(
+    tcx: TyCtxt<'_>,
+    collected: CollectedCrate,
+    derived: DerivedInfo,
+    tracer: &mut Option<Tracer>,
+) -> SmirJson {
     let local_crate = stable_mir::local_crate();
     let CollectedCrate {
         mut items,
@@ -209,6 +284,16 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
         types: visited_tys,
         spans: span_map,
     } = derived;
+
+    if let Some(tracer) = tracer {
+        tracer.push(TraceEvent::AssemblyStarted {
+            total_items: items.len(),
+            total_functions: calls.len(),
+            total_allocs: visited_allocs.len(),
+            total_types: visited_tys.len(),
+            total_spans: span_map.len(),
+        });
+    }
 
     // Verify alloc coherence: no duplicate AllocIds, and every AllocId
     // referenced in a stored body was actually collected.
@@ -291,13 +376,26 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
     }
 }
 
-pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+/// Internal entry point that returns both the SmirJson and optional trace events.
+pub(super) fn collect_smir_traced(tcx: TyCtxt<'_>) -> (SmirJson, Option<Vec<TraceEvent>>) {
+    let mut tracer = if super::trace_enabled() {
+        Some(Tracer::new())
+    } else {
+        None
+    };
+
     // Phase 1+2: Collect all mono items from rustc and analyze their bodies
     // in a single pass. Each body is walked exactly once. Transitive item
     // discovery (unevaluated constants) is handled by a fixpoint loop.
-    let initial_items = collect_items(tcx);
-    let (collected, derived) = collect_and_analyze_items(tcx, initial_items);
+    let initial_items = collect_items(tcx, &mut tracer);
+    let (collected, derived) = collect_and_analyze_items(tcx, initial_items, &mut tracer);
 
     // Phase 3: Assemble the final output (pure data transformation)
-    assemble_smir(tcx, collected, derived)
+    let smir = assemble_smir(tcx, collected, derived, &mut tracer);
+    let trace_events = tracer.map(|t| t.events);
+    (smir, trace_events)
+}
+
+pub fn collect_smir(tcx: TyCtxt<'_>) -> SmirJson {
+    collect_smir_traced(tcx).0
 }

@@ -1,3 +1,4 @@
+//! @covers: mutable ref chains, struct with ref fields, field projections through derefs
 #[derive(Debug)]
 struct MyStruct {
     a_value: i8,

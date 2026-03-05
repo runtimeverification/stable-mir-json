@@ -43,7 +43,37 @@ integration-test:
 golden:
 	make integration-test DIFF=">"
 
-format: 
+.PHONY: trace-report
+trace-report: SMIR ?= cargo run -- "-Zno-codegen"
+trace-report:
+	bash tests/integration/trace-report.sh $(TESTDIR) $(SMIR) | tee tests/integration/trace-report.txt
+
+# Run the trace report twice and verify that provenance attribution is
+# stable across non-deterministic body walk order (HashMap iteration).
+# Raw event counts vary between runs (descendant replays compound
+# differently), so we strip leading counts and compare only the
+# structural output: ty_kind names, provenance labels, program lists,
+# gap classifications, and per-test annotations.
+.PHONY: trace-idempotency
+trace-idempotency: SMIR ?= cargo run -- "-Zno-codegen"
+trace-idempotency:
+	@tmpdir_a=$$(mktemp -d) && tmpdir_b=$$(mktemp -d) && \
+	trap 'rm -rf "$$tmpdir_a" "$$tmpdir_b"' EXIT && \
+	echo "Run 1..." && \
+	bash tests/integration/trace-report.sh $(TESTDIR) $(SMIR) \
+		| sed 's/^ *[0-9]*  //' > "$$tmpdir_a/report.txt" && \
+	echo "Run 2..." && \
+	bash tests/integration/trace-report.sh $(TESTDIR) $(SMIR) \
+		| sed 's/^ *[0-9]*  //' > "$$tmpdir_b/report.txt" && \
+	if diff -u "$$tmpdir_a/report.txt" "$$tmpdir_b/report.txt" > /dev/null 2>&1; then \
+		echo "Trace provenance is stable across runs."; \
+	else \
+		echo "Trace provenance DIVERGED between runs:"; \
+		diff -u "$$tmpdir_a/report.txt" "$$tmpdir_b/report.txt" || true; \
+		exit 1; \
+	fi
+
+format:
 	cargo fmt
 	bash -O globstar -c 'nixfmt **/*.nix'
 

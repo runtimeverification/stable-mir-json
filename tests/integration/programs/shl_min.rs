@@ -1,3 +1,4 @@
+//! @covers: left shift of signed integer minimum values (i8 through i128)
 fn main() {
     assert!(-128_i8 << 1 == 0);
     assert!(-32768_i16 << 1 == 0);

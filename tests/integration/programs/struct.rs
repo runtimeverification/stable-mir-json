@@ -1,3 +1,4 @@
+//! @covers: struct declaration, field access, field arithmetic
  struct St {
     a:u32,
     b:u32,

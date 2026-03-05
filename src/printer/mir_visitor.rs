@@ -26,6 +26,7 @@ use stable_mir::CrateDef;
 
 use super::link_map::{fn_inst_sym, update_link_map};
 use super::schema::{AllocMap, ItemSource, LinkMap, SpanMap, FPTR, ITEM, TERM};
+use super::tracer::{resolve_location, sym_kind_str, sym_name, TraceEvent, Tracer};
 use super::ty_visitor::TyCollector;
 use super::util::fn_inst_for_ty;
 
@@ -45,6 +46,8 @@ pub(super) struct BodyAnalyzer<'tcx, 'local> {
     /// Unevaluated constants discovered during this body walk.
     /// The outer fixpoint loop uses these to discover and create new Items.
     pub new_unevaluated: &'local mut Vec<UnevalConstInfo>,
+    /// When tracing is enabled, events are pushed here during body analysis.
+    pub tracer: Option<&'local mut Tracer>,
 }
 
 /// Information about an unevaluated constant discovered during body analysis.
@@ -304,36 +307,68 @@ fn collect_alloc(
 
 impl MirVisitor for BodyAnalyzer<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
-        self.spans.insert(
-            span.to_index(),
-            crate::compat::spans::resolve_span(self.tcx, span),
-        );
+        let is_new = !self.spans.contains_key(&span.to_index());
+        let resolved = crate::compat::spans::resolve_span(self.tcx, span);
+        if is_new {
+            if let Some(tracer) = &mut self.tracer {
+                tracer.push(TraceEvent::SpanResolved {
+                    item: tracer.item_name(),
+                    file: resolved.0.clone(),
+                    line: resolved.1,
+                });
+            }
+        }
+        self.spans.insert(span.to_index(), resolved);
     }
 
     fn visit_terminator(&mut self, term: &Terminator, loc: stable_mir::mir::visit::Location) {
         use stable_mir::mir::{ConstOperand, Operand::Constant};
         use TerminatorKind::*;
-        let fn_sym = match &term.kind {
+        let (fn_sym, is_drop, trace_ty_str) = match &term.kind {
             Call {
                 func: Constant(ConstOperand { const_: cnst, .. }),
                 args: _,
                 ..
             } => {
                 if *cnst.kind() != stable_mir::ty::ConstantKind::ZeroSized {
-                    None
+                    (None, false, String::new())
                 } else {
                     let inst = fn_inst_for_ty(cnst.ty(), true)
                         .expect("Direct calls to functions must resolve to an instance");
-                    fn_inst_sym(self.tcx, Some(cnst.ty()), Some(&inst))
+                    let sym = fn_inst_sym(self.tcx, Some(cnst.ty()), Some(&inst));
+                    let ty_str = format!("{:?}", cnst.ty().kind());
+                    (sym, false, ty_str)
                 }
             }
             Drop { place, .. } => {
                 let drop_ty = place.ty(self.locals).unwrap();
                 let inst = Instance::resolve_drop_in_place(drop_ty);
-                fn_inst_sym(self.tcx, None, Some(&inst))
+                let sym = fn_inst_sym(self.tcx, None, Some(&inst));
+                let ty_str = format!("{:?}", drop_ty.kind());
+                (sym, true, ty_str)
             }
-            _ => None,
+            _ => (None, false, String::new()),
         };
+        if let (Some(tracer), Some((_, _, ref sym))) = (&mut self.tracer, &fn_sym) {
+            let src_loc = resolve_location(self.tcx, &loc);
+            if is_drop {
+                tracer.push(TraceEvent::DropGlueResolved {
+                    item: tracer.item_name(),
+                    location: src_loc,
+                    drop_ty: trace_ty_str.clone(),
+                    sym_kind: sym_kind_str(sym),
+                    sym_name: sym_name(sym).to_string(),
+                });
+            } else {
+                tracer.push(TraceEvent::FunctionCallResolved {
+                    item: tracer.item_name(),
+                    location: src_loc,
+                    callee_ty: trace_ty_str.clone(),
+                    sym_kind: sym_kind_str(sym),
+                    sym_name: sym_name(sym).to_string(),
+                });
+            }
+        }
         update_link_map(self.link_map, fn_sym, ItemSource(TERM));
         self.super_terminator(term, loc);
     }
@@ -347,6 +382,15 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                 let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false)
                     .expect("ReifyFnPointer Cast operand type does not resolve to an instance");
                 let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));
+                if let (Some(tracer), Some((_, _, ref sym))) = (&mut self.tracer, &fn_sym) {
+                    tracer.push(TraceEvent::ReifyFnPointerResolved {
+                        item: tracer.item_name(),
+                        location: resolve_location(self.tcx, &loc),
+                        fn_ty: format!("{:?}", op.ty(self.locals).unwrap().kind()),
+                        sym_kind: sym_kind_str(sym),
+                        sym_name: sym_name(sym).to_string(),
+                    });
+                }
                 update_link_map(self.link_map, fn_sym, ItemSource(FPTR));
             }
             _ => {}
@@ -367,11 +411,21 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                     alloc,
                     constant.ty().kind()
                 );
+                let allocs_before = self.visited_allocs.len();
                 alloc
                     .provenance
                     .ptrs
                     .iter()
                     .for_each(|(offset, prov)| collect_alloc(self, constant.ty(), *offset, prov.0));
+                if let Some(tracer) = &mut self.tracer {
+                    tracer.push(TraceEvent::AllocationCollected {
+                        item: tracer.item_name(),
+                        location: resolve_location(self.tcx, &loc),
+                        alloc_ty: format!("{:?}", constant.ty().kind()),
+                        allocs_before,
+                        allocs_after: self.visited_allocs.len(),
+                    });
+                }
             }
             ConstantKind::Ty(ty_const) => {
                 if let TyConstKind::Value(..) = ty_const.kind() {
@@ -384,6 +438,13 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                 // Ensure such functions are included in the link map so they appear in the
                 // `functions` array of the SMIR JSON.
                 if constant.ty().kind().fn_def().is_some() {
+                    if let Some(tracer) = &mut self.tracer {
+                        tracer.push(TraceEvent::FnDefAsValue {
+                            item: tracer.item_name(),
+                            location: resolve_location(self.tcx, &loc),
+                            fn_ty: format!("{:?}", constant.ty().kind()),
+                        });
+                    }
                     if let Some(inst) = fn_inst_for_ty(constant.ty(), false)
                         .or_else(|| fn_inst_for_ty(constant.ty(), true))
                     {
@@ -404,6 +465,13 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
                     uconst.def.def_id(),
                     uconst.args.clone(),
                 );
+                if let Some(tracer) = &mut self.tracer {
+                    tracer.push(TraceEvent::UnevaluatedConstDiscovered {
+                        item: tracer.item_name(),
+                        location: resolve_location(self.tcx, &loc),
+                        const_name: item_name.clone(),
+                    });
+                }
                 self.new_unevaluated.push(UnevalConstInfo {
                     const_def: uconst.def,
                     item_name,
@@ -415,8 +483,27 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
         self.super_mir_const(constant, loc);
     }
 
-    fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
+    fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, location: stable_mir::mir::visit::Location) {
         ty.visit(self.ty_visitor);
+        // Drain type trace events from TyCollector into the main tracer,
+        // stamping each with the current item context and source location.
+        if let Some(tracer) = &mut self.tracer {
+            if let Some(buf) = &mut self.ty_visitor.trace_buffer {
+                let src_loc = resolve_location(self.tcx, &location);
+                for mut ev in buf.drain(..) {
+                    if let TraceEvent::TypeCollected {
+                        ref mut item,
+                        ref mut location,
+                        ..
+                    } = ev
+                    {
+                        *item = tracer.item_name();
+                        *location = Some(src_loc.clone());
+                    }
+                    tracer.push(ev);
+                }
+            }
+        }
         self.super_ty(ty);
     }
 }

@@ -1,3 +1,4 @@
+//! @covers: floating-point types (f32, f64), float arithmetic
 fn main() {
     let a:f32 = 3.5;
     let b:f32 = 1.2;

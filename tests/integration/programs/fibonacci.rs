@@ -1,3 +1,4 @@
+//! @covers: recursion, match expression with wildcard pattern
 fn fibonacci(n:u32) -> u32 {
     match n {
         0 => 0,

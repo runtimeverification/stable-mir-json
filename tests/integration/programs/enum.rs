@@ -1,3 +1,4 @@
+//! @covers: enum declaration, variant construction
 #![allow(unused)]
 #![allow(dead_code)]
 enum Letter {

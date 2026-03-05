@@ -1,3 +1,4 @@
+//! @covers: tuple construction, tuple equality
 fn main() {
     let tup:(i32, i32) = (42, 99);
     

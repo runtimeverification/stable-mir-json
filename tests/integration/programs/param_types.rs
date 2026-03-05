@@ -1,3 +1,4 @@
+//! @covers: generic structs, monomorphized type parameters, Result type
 // scratch/param_types.rs
 
 struct WithParam<T> {
