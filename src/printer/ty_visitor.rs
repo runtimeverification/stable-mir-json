@@ -70,8 +70,16 @@ impl Visitor for TyCollector<'_> {
                 let control = self.visit_instance(instance);
                 // Mirror other branches: record closure Ty only when traversal succeeds.
                 if matches!(control, ControlFlow::Continue(_)) {
+                    let kind = ty.kind();
                     let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
-                    self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
+                    if let Some(buf) = &mut self.trace_buffer {
+                        buf.push(TraceEvent::TypeCollected {
+                            item: String::new(),
+                            location: None,
+                            ty_kind: ty_kind_tag(&kind).to_string(),
+                        });
+                    }
+                    self.types.insert(*ty, (kind, maybe_layout_shape));
                 }
                 control
             }
@@ -82,11 +90,25 @@ impl Visitor for TyCollector<'_> {
             }
             TyKind::RigidTy(RigidTy::FnDef(def, ref args)) => {
                 self.resolved.insert(*ty);
+                if let Some(buf) = &mut self.trace_buffer {
+                    buf.push(TraceEvent::TypeCollected {
+                        item: String::new(),
+                        location: None,
+                        ty_kind: "FnDef".to_string(),
+                    });
+                }
                 let instance = Instance::resolve(def, args).unwrap();
                 self.visit_instance(instance)
             }
             TyKind::RigidTy(RigidTy::FnPtr(binder_stable)) => {
                 self.resolved.insert(*ty);
+                if let Some(buf) = &mut self.trace_buffer {
+                    buf.push(TraceEvent::TypeCollected {
+                        item: String::new(),
+                        location: None,
+                        ty_kind: "FnPtr".to_string(),
+                    });
+                }
                 let fn_abi = crate::compat::types::fn_ptr_abi(self.tcx, binder_stable);
                 let mut inputs_outputs: Vec<stable_mir::ty::Ty> =
                     fn_abi.args.iter().map(|arg_abi| arg_abi.ty).collect();
