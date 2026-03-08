@@ -159,3 +159,43 @@ d2:
 ## Remove generated graph output directories
 clean-graphs:
 	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
+
+### stdlib smir.json
+
+STDLIB_OUTDIR=tests/stdlib-artifacts
+STDLIB_TARGET=$(shell rustc --print target-triple 2>/dev/null || rustc -vV | grep host | awk '{print $$2}')
+
+.PHONY: stdlib-smir
+## Generate smir.json for stdlib via -Zbuild-std
+stdlib-smir: build
+	@# Install the RUSTC wrapper
+	cargo run --bin cargo_stable_mir_json -- $$PWD
+	@# Create a throwaway crate to drive -Zbuild-std
+	$(eval STDLIB_TMPDIR := $(shell mktemp -d))
+	@echo '[package]'                      >  $(STDLIB_TMPDIR)/Cargo.toml
+	@echo 'name = "stdlib-smir"'           >> $(STDLIB_TMPDIR)/Cargo.toml
+	@echo 'version = "0.0.0"'             >> $(STDLIB_TMPDIR)/Cargo.toml
+	@echo 'edition = "2021"'              >> $(STDLIB_TMPDIR)/Cargo.toml
+	@echo '[[bin]]'                        >> $(STDLIB_TMPDIR)/Cargo.toml
+	@echo 'name = "stdlib-smir"'           >> $(STDLIB_TMPDIR)/Cargo.toml
+	@echo 'path = "main.rs"'              >> $(STDLIB_TMPDIR)/Cargo.toml
+	@echo 'fn main() {}'                   >  $(STDLIB_TMPDIR)/main.rs
+	@# Build stdlib through our driver
+	cd $(STDLIB_TMPDIR) && RUSTC=$$HOME/.stable-mir-json/debug.sh \
+		cargo build -Zbuild-std --target $(STDLIB_TARGET)
+	@# Collect artifacts, stripping hash suffixes from filenames
+	@rm -rf $(STDLIB_OUTDIR)
+	@mkdir -p $(STDLIB_OUTDIR)
+	@for f in $(STDLIB_TMPDIR)/target/$(STDLIB_TARGET)/debug/deps/*.smir.json; do \
+		name=$$(basename "$$f" | sed 's/-[0-9a-f]*\.smir\.json/.smir.json/'); \
+		case "$$name" in stdlib_smir*) continue ;; esac; \
+		cp "$$f" $(STDLIB_OUTDIR)/$$name; \
+	done
+	@rm -rf $(STDLIB_TMPDIR)
+	@echo "stdlib smir.json artifacts written to $(STDLIB_OUTDIR)/"
+	@ls -lhS $(STDLIB_OUTDIR)/
+
+.PHONY: clean-stdlib-smir
+## Remove stdlib smir.json artifacts
+clean-stdlib-smir:
+	@rm -rf $(STDLIB_OUTDIR)
