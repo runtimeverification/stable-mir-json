@@ -188,51 +188,40 @@ fn add_run_script(smir_json_dir: &Path, ld_library_path: &Path, profile: Profile
     Ok(())
 }
 
-fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
-    #[cfg(target_os = "macos")]
-    {
-        // macOS: Check DYLD_LIBRARY_PATH or use default path
-        if let Some(paths) = env::var_os("DYLD_LIBRARY_PATH") {
-            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-            match paths.to_str() {
-                Some(ld_library_path) => {
-                    writeln!(ld_library_file, "{}", ld_library_path)?;
-                    Ok(ld_library_path.into())
-                }
-                None => bail!("Couldn't cast DYLD_LIBRARY_PATH to str"),
-            }
-        } else {
-            // Use default macOS library path including Rust toolchain
-            let rustup_home = env::var("HOME").unwrap_or_else(|_| "/Users".to_string());
-            let rust_toolchain_path = format!(
-                "{}/.rustup/toolchains/nightly-2024-11-29-aarch64-apple-darwin/lib",
-                rustup_home
-            );
-            let default_path = format!("{}:/usr/local/lib:/usr/lib", rust_toolchain_path);
-            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-            writeln!(ld_library_file, "{}", default_path)?;
-            Ok(default_path.into())
-        }
+/// Resolve the rustc toolchain lib path dynamically via `rustc --print sysroot`.
+fn rustc_lib_path() -> Result<PathBuf> {
+    let output = std::process::Command::new("rustc")
+        .args(["--print", "sysroot"])
+        .output()?;
+    if !output.status.success() {
+        bail!("rustc --print sysroot failed");
     }
+    let sysroot = String::from_utf8(output.stdout)?.trim().to_string();
+    Ok(PathBuf::from(sysroot).join("lib"))
+}
 
-    #[cfg(not(target_os = "macos"))]
-    {
-        // Linux and other systems: Check LD_LIBRARY_PATH
-        if let Some(paths) = env::var_os("LD_LIBRARY_PATH") {
-            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-            match paths.to_str() {
-                Some(ld_library_path) => {
-                    writeln!(ld_library_file, "{}", ld_library_path)?;
-                    Ok(ld_library_path.into())
-                }
-                None => bail!("Couldn't cast LD_LIBRARY_PATH to str"),
-            }
+fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
+    // Prefer the environment variable if set; otherwise derive the path
+    // from the active rustc toolchain so the wrapper script stays in sync
+    // with whatever nightly rust-toolchain.toml selects.
+    let lib_path = {
+        #[cfg(target_os = "macos")]
+        let env_var = "DYLD_LIBRARY_PATH";
+        #[cfg(not(target_os = "macos"))]
+        let env_var = "LD_LIBRARY_PATH";
+
+        if let Some(paths) = env::var_os(env_var) {
+            paths
+                .to_str()
+                .ok_or_else(|| anyhow::anyhow!("Couldn't cast {} to str", env_var))?
+                .to_string()
         } else {
-            // Use default Linux library path
-            let default_path = "/usr/local/lib:/usr/lib";
-            let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-            writeln!(ld_library_file, "{}", default_path)?;
-            Ok(default_path.into())
+            let toolchain_lib = rustc_lib_path()?;
+            format!("{}:/usr/local/lib:/usr/lib", toolchain_lib.display())
         }
-    }
+    };
+
+    let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
+    writeln!(ld_library_file, "{}", lib_path)?;
+    Ok(lib_path.into())
 }
