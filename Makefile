@@ -8,8 +8,8 @@ TOOLCHAIN_NAME=
 help:
 	@echo "Available targets:"
 	@awk 'BEGIN {FS = ":.*"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} \
-		/^\s*###/ {printf "\n\033[1m%s\033[0m\n", substr($$0, 5); next} \
-		/^\s*##/ {description=substr($$0, 4)} \
+		/^###/ {printf "\n\033[1m%s\033[0m\n", substr($$0, 5); next} \
+		/^##/ {description=substr($$0, 4)} \
 		/^[a-zA-Z0-9_-]+:/ { \
 			if (description) { \
 				printf "  \033[36m%-18s\033[0m %s\n", $$1, description; \
