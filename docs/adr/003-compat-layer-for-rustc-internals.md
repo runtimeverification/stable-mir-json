@@ -43,6 +43,19 @@ These affect `printer/` and `mk_graph/` regardless of the compat layer. Any cons
 
 **The mk_graph gap (now fixed).** The `mk_graph/` files originally declared their own `extern crate stable_mir`, bypassing the abstraction entirely. This was introduced in commit `e9395d9` (PR #111) before the compat layer existed; it wasn't an oversight so much as a timing issue. The 13-month toolchain bump exposed the cost: when `stable_mir` was renamed to `rustc_public`, all 5 mk_graph files needed updating, while `printer/` needed zero import path changes because it already went through compat. This branch closes the gap by routing all mk_graph imports through `use crate::compat::stable_mir`.
 
+## Version management: single source of truth
+
+`rust-toolchain.toml`'s `channel` field (e.g., `nightly-2024-11-29`) is the single source of truth for the rustc version. Everything else is derived from it at the point of use:
+
+| Derived value | How |
+|---------------|-----|
+| Compiler binary + rustc-dev libs | rustup resolves `channel` |
+| stdlib source for `-Zbuild-std` | `rust-src` component bundled with the toolchain |
+| Library path for wrapper scripts | `rustc --print sysroot` |
+| rustc commit for UI test checkout | `rustc -vV \| grep commit-hash` |
+
+The ADR originally introduced a `[metadata] rustc-commit` field in `rust-toolchain.toml` as a manual cache of the backing commit. This created a synchronization hazard: bumping the nightly channel without updating `rustc-commit` would cause UI tests to silently run against the wrong compiler source. The field has been removed; `ensure_rustc_commit.sh` now derives the commit dynamically from `rustc -vV`, and CI does the same. Changing the channel is the only step needed to retarget the entire toolchain.
+
 ## Validation
 
 We stress-tested the abstraction against two toolchain bumps on ephemeral branches (branched off `spike/hex-rustc`, since deleted) to see if it actually holds up in practice:

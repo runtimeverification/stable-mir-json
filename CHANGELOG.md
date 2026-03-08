@@ -12,8 +12,7 @@ retroactive best-effort summary; earlier changes were not formally tracked.
 ### Added
 - `src/compat/` module isolating all rustc internal API usage behind a stable boundary; printer/ now has zero `extern crate rustc_*` declarations and zero direct `tcx.query()` calls
 - `OpaqueInstanceKind` owned type replacing `middle::ty::InstanceKind<'tcx>`, eliminating the `'tcx` lifetime parameter from `SmirJson`, `LinkMapKey`, `FnSymInfo`, `LinkMap`, `DerivedInfo`, and `SmirJsonDebugInfo`
-- `metadata.rustc-commit` field in `rust-toolchain.toml` as single source of truth for the rustc commit used by UI tests
-- `ensure_rustc_commit.sh` helper that reads the expected commit from `rust-toolchain.toml` (via `yq`) and ensures the rust checkout (regular or bare+worktree) is at that commit; CI installs `yq` on PATH to support this
+- `ensure_rustc_commit.sh` helper that derives the rustc commit from `rustc -vV` and ensures the rust checkout (regular or bare+worktree) is at that commit
 - ADR-003 documenting compat layer design decisions and validation results from two toolchain bump stress tests (6-month and 13-month jumps)
 
 ### Changed
