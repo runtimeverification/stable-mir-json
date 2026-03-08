@@ -164,12 +164,12 @@ clean-graphs:
 
 STDLIB_OUTDIR=tests/stdlib-artifacts
 STDLIB_TARGET=$(shell rustc --print target-triple 2>/dev/null || rustc -vV | grep host | awk '{print $$2}')
+SYSROOT=$(shell rustc --print sysroot)
+SMIR_BIN=$(CURDIR)/target/debug/stable_mir_json
 
 .PHONY: stdlib-smir
 ## Generate smir.json for stdlib via -Zbuild-std
 stdlib-smir: build
-	@# Install the RUSTC wrapper
-	cargo run --bin cargo_stable_mir_json -- $$PWD
 	@# Create a throwaway crate to drive -Zbuild-std
 	$(eval STDLIB_TMPDIR := $(shell mktemp -d))
 	@echo '[package]'                      >  $(STDLIB_TMPDIR)/Cargo.toml
@@ -180,8 +180,12 @@ stdlib-smir: build
 	@echo 'name = "stdlib-smir"'           >> $(STDLIB_TMPDIR)/Cargo.toml
 	@echo 'path = "main.rs"'              >> $(STDLIB_TMPDIR)/Cargo.toml
 	@echo 'fn main() {}'                   >  $(STDLIB_TMPDIR)/main.rs
-	@# Build stdlib through our driver
-	cd $(STDLIB_TMPDIR) && RUSTC=$$HOME/.stable-mir-json/debug.sh \
+	@# Build stdlib through our driver; set library path the same way
+	@# cargo does when it runs our binary via `cargo run`
+	cd $(STDLIB_TMPDIR) && \
+		DYLD_LIBRARY_PATH=$(SYSROOT)/lib \
+		LD_LIBRARY_PATH=$(SYSROOT)/lib \
+		RUSTC=$(SMIR_BIN) \
 		cargo build -Zbuild-std --target $(STDLIB_TARGET)
 	@# Collect artifacts, stripping hash suffixes from filenames
 	@rm -rf $(STDLIB_OUTDIR)
