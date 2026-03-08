@@ -1,11 +1,31 @@
 RELEASE_FLAG=
-TOOLCHAIN_NAME=''
+TOOLCHAIN_NAME=
 
-default: build
+.DEFAULT_GOAL := build
 
+.PHONY: help
+## Show this help message
+help:
+	@echo "Available targets:"
+	@awk 'BEGIN {FS = ":.*"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} \
+		/^\s*###/ {printf "\n\033[1m%s\033[0m\n", substr($$0, 5); next} \
+		/^\s*##/ {description=substr($$0, 4)} \
+		/^[a-zA-Z0-9_-]+:/ { \
+			if (description) { \
+				printf "  \033[36m%-18s\033[0m %s\n", $$1, description; \
+				description = ""; \
+			} \
+		}' $(MAKEFILE_LIST)
+
+### Build
+
+.PHONY: build
+## Build the project (use RELEASE_FLAG=--release for release)
 build:
-	cargo build ${RELEASE_FLAG}
+	cargo build $(RELEASE_FLAG)
 
+.PHONY: clean
+## Clean build artifacts, toolchain overrides, and graphs
 clean: rustup-clear-toolchain clean-graphs
 	cargo clean
 
@@ -13,7 +33,9 @@ clean: rustup-clear-toolchain clean-graphs
 rustup-clear-toolchain:
 	rustup override unset
 	rustup override unset --nonexistent
-	rustup toolchain uninstall "${TOOLCHAIN_NAME}"
+	rustup toolchain uninstall "$(TOOLCHAIN_NAME)"
+
+### Test
 
 TESTDIR=tests/integration/programs
 
@@ -24,34 +46,29 @@ integration-test: SMIR      ?= cargo run -- "-Zno-codegen"
 integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
 # override this to re-make golden files
 integration-test: DIFF      ?= | diff -
+## Run integration tests against expected outputs
 integration-test:
 	errors=""; \
 	report() { echo "$$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
-	for rust in ${TESTS}; do \
+	for rust in $(TESTS); do \
 		target=$${rust%.rs}.smir.json; \
 		dir=$$(dirname $${rust}); \
 		echo "$$rust"; \
-		${SMIR} --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
+		$(SMIR) --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
 		[ -f $${target} ] \
-			&& ${NORMALIZE} $${target} ${DIFF} $${target}.expected \
+			&& $(NORMALIZE) $${target} $(DIFF) $${target}.expected \
 			&& rm $${target} \
 			|| report "$$rust" "Unexpected json output"; \
 		done; \
 	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
 
-
+.PHONY: golden
+## Regenerate expected test outputs (golden files)
 golden:
-	make integration-test DIFF=">"
+	$(MAKE) integration-test DIFF=">"
 
-format: 
-	cargo fmt
-	bash -O globstar -c 'nixfmt **/*.nix'
-
-style-check: format
-	cargo clippy -- -Dwarnings
-
-.PHONY: remake-ui-tests test-ui
-
+.PHONY: remake-ui-tests
+## Regenerate UI test fixtures (requires RUST_DIR_ROOT)
 remake-ui-tests:
 	# Check if RUST_DIR_ROOT is set
 	if [ -z "$$RUST_DIR_ROOT" ]; then \
@@ -61,20 +78,33 @@ remake-ui-tests:
 	# This will run without saving source files. Run the script manually to do this.
 	bash tests/ui/remake_ui_tests.sh "$$RUST_DIR_ROOT"
 
+.PHONY: test-ui
+## Run UI tests (requires RUST_DIR_ROOT, VERBOSE=1 for details)
 test-ui: VERBOSE?=0
 test-ui:
 	bash tests/ui/run_ui_tests.sh $(if $(filter 1,$(VERBOSE)),--verbose) "$$RUST_DIR_ROOT"
 
-.PHONY: dot svg png d2 clean-graphs check-graphviz
+### Code quality
+
+.PHONY: format
+## Format Rust and Nix source files
+format:
+	cargo fmt
+	bash -O globstar -c 'nixfmt **/*.nix'
+
+.PHONY: style-check
+## Run format + clippy lint checks
+style-check: format
+	cargo clippy -- -Dwarnings
+
+### Graph generation
 
 OUTDIR_DOT=output-dot
 OUTDIR_SVG=output-svg
 OUTDIR_PNG=output-png
 OUTDIR_D2=output-d2
 
-clean-graphs:
-	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
-
+.PHONY: check-graphviz
 check-graphviz:
 	@command -v dot >/dev/null 2>&1 || { \
 		echo "Error: Graphviz is not installed or 'dot' is not in PATH."; \
@@ -83,6 +113,8 @@ check-graphviz:
 		exit 1; \
 	}
 
+.PHONY: dot
+## Generate DOT files from test programs
 dot:
 	@mkdir -p $(OUTDIR_DOT)
 	@for rs in $(TESTDIR)/*.rs; do \
@@ -92,6 +124,8 @@ dot:
 		mv $$name.smir.dot $(OUTDIR_DOT)/ 2>/dev/null || true; \
 	done
 
+.PHONY: svg
+## Generate SVG files from DOT (requires graphviz)
 svg: check-graphviz dot
 	@mkdir -p $(OUTDIR_SVG)
 	@for dotfile in $(OUTDIR_DOT)/*.dot; do \
@@ -100,6 +134,8 @@ svg: check-graphviz dot
 		dot -Tsvg $$dotfile -o $(OUTDIR_SVG)/$$name.svg; \
 	done
 
+.PHONY: png
+## Generate PNG files from DOT (requires graphviz)
 png: check-graphviz dot
 	@mkdir -p $(OUTDIR_PNG)
 	@for dotfile in $(OUTDIR_DOT)/*.dot; do \
@@ -108,6 +144,8 @@ png: check-graphviz dot
 		dot -Tpng $$dotfile -o $(OUTDIR_PNG)/$$name.png; \
 	done
 
+.PHONY: d2
+## Generate D2 diagram files from test programs
 d2:
 	@mkdir -p $(OUTDIR_D2)
 	@for rs in $(TESTDIR)/*.rs; do \
@@ -116,3 +154,8 @@ d2:
 		cargo run --release -- --d2 -Zno-codegen $$rs 2>/dev/null; \
 		mv $$name.smir.d2 $(OUTDIR_D2)/ 2>/dev/null || true; \
 	done
+
+.PHONY: clean-graphs
+## Remove generated graph output directories
+clean-graphs:
+	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
