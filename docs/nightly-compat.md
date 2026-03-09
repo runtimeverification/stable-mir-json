@@ -70,15 +70,16 @@ canonical. If they ever diverge, trust `build.rs`.
 | 2025-01-28 | `smir_has_raw_ptr_kind` | `Rvalue::AddressOf` first field: `Mutability` to `RawPtrKind` | `mk_graph/util.rs`, `mk_graph/context.rs` (mutually exclusive arms) |
 | 2025-07-04 | `smir_no_indexed_val` | `IndexedVal` trait became `pub(crate)` | `compat/indexed_val.rs` (adapter module); all `mk_graph/` and `printer/` call sites use the shim |
 | 2025-07-07 | `smir_rustc_internal_moved` | `rustc_internal::{internal,stable,run}` moved from `rustc_smir` to `stable_mir` | `compat/mod.rs` (cfg-gated re-export), `driver.rs` (cfg-gated import) |
+| 2025-07-10 | `smir_has_global_alloc_typeid` | `GlobalAlloc::TypeId { ty }` variant added | `mk_graph/index.rs`, `printer/collect.rs`, `printer/mir_visitor.rs` (conditional match arms) |
 
 ### Supported range
 
 ```
   oldest tested                   pinned (CI)   newest tested
        v                              v              v
-  2024-11-29  ------------------  2025-07-05  --  2025-07-08
+  2024-11-29  ------------------  2025-07-05  --  2025-07-14
        |                                              |
-       +-- all 6 breakpoints covered ----------------+
+       +-- all 7 breakpoints covered ----------------+
 ```
 
 The pinned nightly (the one CI actually runs) is whatever `rust-toolchain.toml`
