@@ -129,16 +129,20 @@ build-info:
 
 ### Code quality
 
-.PHONY: format
+.PHONY: fmt format
 ## Format Rust and Nix source files
-format:
+fmt format:
 	cargo fmt
 	bash -O globstar -c 'nixfmt **/*.nix'
 
+.PHONY: clippy
+## Run clippy lint checks (deny warnings)
+clippy:
+	cargo clippy -- -Dwarnings
+
 .PHONY: style-check
 ## Run format + clippy lint checks
-style-check: format
-	cargo clippy -- -Dwarnings
+style-check: format clippy
 
 ### Graph generation
 

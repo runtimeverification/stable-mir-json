@@ -330,6 +330,9 @@ Worth being honest about what this buys us and what it costs.
 |------|---------|
 | See which cfg flags are active | `make build-info` |
 | Build against a different nightly | `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD cargo build` |
+| Run clippy lint checks | `make clippy` |
+| Format code (Rust + Nix) | `make fmt` |
+| Format + clippy combined | `make style-check` |
 | Run integration tests | `make integration-test` |
 | Run tests against a specific nightly | `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD make integration-test` |
 | Regenerate golden files (active nightly) | `make golden` |
