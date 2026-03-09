@@ -39,6 +39,32 @@ rustup-clear-toolchain:
 
 TESTDIR=tests/integration/programs
 
+# Detect the active nightly for golden-file lookup.
+# The nightly name (e.g. nightly-2025-03-01) is derived from rustc's
+# commit-date, which is one day before the nightly date.  We add one day
+# to align with the toolchain channel name that users actually see.
+NIGHTLY_COMMIT_DATE := $(shell rustc -vV 2>/dev/null | awk '/^commit-date:/{print $$2}')
+# Portable +1 day: macOS date(1) uses -v+1d, GNU date uses -d "+1 day".
+NIGHTLY_DATE := $(shell \
+	if [ -n "$(NIGHTLY_COMMIT_DATE)" ]; then \
+		date -j -v+1d -f "%Y-%m-%d" "$(NIGHTLY_COMMIT_DATE)" "+%Y-%m-%d" 2>/dev/null \
+		|| date -d "$(NIGHTLY_COMMIT_DATE) +1 day" "+%Y-%m-%d" 2>/dev/null \
+		|| echo "$(NIGHTLY_COMMIT_DATE)"; \
+	fi)
+ACTIVE_NIGHTLY := nightly-$(NIGHTLY_DATE)
+
+# Golden file directory: per-nightly expected outputs.
+# Falls back to the pinned nightly (from rust-toolchain.toml) if no
+# directory exists for the active nightly.
+PINNED_NIGHTLY := $(shell awk -F'"' '/^channel/{print $$2}' rust-toolchain.toml)
+GOLDEN_BASE    := tests/integration/expected
+GOLDEN_DIR     := $(shell \
+	if [ -d "$(GOLDEN_BASE)/$(ACTIVE_NIGHTLY)" ]; then \
+		echo "$(GOLDEN_BASE)/$(ACTIVE_NIGHTLY)"; \
+	else \
+		echo "$(GOLDEN_BASE)/$(PINNED_NIGHTLY)"; \
+	fi)
+
 .PHONY: integration-test
 integration-test: TESTS     ?= $(shell find $(TESTDIR) -type f -name "*.rs")
 integration-test: SMIR      ?= cargo run -- "-Zno-codegen"
@@ -48,24 +74,28 @@ integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
 integration-test: DIFF      ?= | diff -
 ## Run integration tests against expected outputs
 integration-test:
+	@echo "Using golden files from: $(GOLDEN_DIR)"
 	errors=""; \
 	report() { echo "$$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
 	for rust in $(TESTS); do \
 		target=$${rust%.rs}.smir.json; \
+		name=$$(basename $${rust%.rs}); \
 		dir=$$(dirname $${rust}); \
+		expected="$(GOLDEN_DIR)/$${name}.smir.json.expected"; \
 		echo "$$rust"; \
 		$(SMIR) --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
 		[ -f $${target} ] \
-			&& $(NORMALIZE) $${target} $(DIFF) $${target}.expected \
+			&& $(NORMALIZE) $${target} $(DIFF) $${expected} \
 			&& rm $${target} \
 			|| report "$$rust" "Unexpected json output"; \
 		done; \
 	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
 
 .PHONY: golden
-## Regenerate expected test outputs (golden files)
+## Regenerate expected test outputs (golden files) for the active nightly
 golden:
-	$(MAKE) integration-test DIFF=">"
+	@mkdir -p "$(GOLDEN_BASE)/$(ACTIVE_NIGHTLY)"
+	$(MAKE) integration-test DIFF=">" GOLDEN_DIR="$(GOLDEN_BASE)/$(ACTIVE_NIGHTLY)"
 
 .PHONY: remake-ui-tests
 ## Regenerate UI test fixtures (requires RUST_DIR_ROOT)
