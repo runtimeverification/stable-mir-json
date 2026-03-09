@@ -258,6 +258,13 @@ fn collect_alloc(
                     .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
             }
         }
+        // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+        #[cfg(smir_has_global_alloc_typeid)]
+        GlobalAlloc::TypeId { .. } => {
+            val_collector
+                .visited_allocs
+                .insert(val, (ty, global_alloc.clone()));
+        }
         GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) | GlobalAlloc::Function(_) => {
             // Does the outer type need provenance recovery to find the real
             // pointee? Static/VTable pointers are usable directly when

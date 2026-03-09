@@ -55,6 +55,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_rustc_internal_moved",
         description: "rustc_internal::{internal,stable,run} moved from rustc_smir to stable_mir",
     },
+    Breakpoint {
+        date: "2025-07-10",
+        cfg: "smir_has_global_alloc_typeid",
+        description: "GlobalAlloc::TypeId { ty } variant added",
+    },
 ];
 
 fn main() {

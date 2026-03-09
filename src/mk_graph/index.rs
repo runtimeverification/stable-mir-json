@@ -218,6 +218,12 @@ impl AllocEntry {
                     format!("fn {name}"),
                 )
             }
+            // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+            #[cfg(smir_has_global_alloc_typeid)]
+            GlobalAlloc::TypeId { ty: tid_ty } => {
+                let desc = format!("{tid_ty}");
+                (AllocKind::Static { name: desc.clone() }, format!("typeid<{desc}>"))
+            }
         };
 
         Self {

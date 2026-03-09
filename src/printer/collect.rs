@@ -186,6 +186,9 @@ fn alloc_sort_tag(info: &AllocInfo) -> &'static str {
         GlobalAlloc::Static(_) => "1_Static",
         GlobalAlloc::VTable(..) => "2_VTable",
         GlobalAlloc::Function(_) => "3_Function",
+        // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+        #[cfg(smir_has_global_alloc_typeid)]
+        GlobalAlloc::TypeId { .. } => "4_TypeId",
     }
 }
 
@@ -195,6 +198,9 @@ fn alloc_content_key(info: &AllocInfo) -> String {
         GlobalAlloc::Static(def) => def.name(),
         GlobalAlloc::VTable(ty, _) => format!("{ty}"),
         GlobalAlloc::Function(inst) => inst.name(),
+        // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+        #[cfg(smir_has_global_alloc_typeid)]
+        GlobalAlloc::TypeId { ty } => format!("{ty}"),
     }
 }
 
