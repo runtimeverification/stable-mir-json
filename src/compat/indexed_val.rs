@@ -16,6 +16,7 @@
 //! All affected types (`Ty`, `Span`, `AllocId`, `VariantIdx`, etc.) are
 //! single-field newtypes around `usize` with `#[derive(Serialize)]`.
 
+#[cfg(not(smir_no_indexed_val))]
 use super::stable_mir;
 
 // ---- Old nightlies: IndexedVal is public, just delegate ----
