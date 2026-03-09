@@ -222,7 +222,10 @@ impl AllocEntry {
             #[cfg(smir_has_global_alloc_typeid)]
             GlobalAlloc::TypeId { ty: tid_ty } => {
                 let desc = format!("{tid_ty}");
-                (AllocKind::Static { name: desc.clone() }, format!("typeid<{desc}>"))
+                (
+                    AllocKind::Static { name: desc.clone() },
+                    format!("typeid<{desc}>"),
+                )
             }
         };
 
