@@ -94,6 +94,42 @@ set). `make golden` writes into the detected nightly's directory, so adding
 golden files for a new nightly is just
 `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD make golden`.
 
+### The `rustc_public` epoch boundary
+
+Nightly 2025-07-15 (commit-date 2025-07-14) lands a wholesale crate rename and
+API restructuring that is too large for the cfg-gating strategy described above.
+This is not another breakpoint; it's an epoch boundary.
+
+**What changed:**
+
+- `stable_mir` was renamed to `rustc_public`
+- `rustc_smir` was renamed to `rustc_public_bridge`
+- Tuple variants across `Rvalue`, `TerminatorKind`, `StatementKind`,
+  `AggregateKind`, and `TyKind` were converted to struct variants
+
+Attempting to build against nightly-2025-07-15 produces 96 errors, starting
+with `can't find crate for stable_mir`. The crate rename alone could be handled
+with `extern crate rustc_public as stable_mir`, but the tuple-to-struct variant
+migration touches virtually every `match` expression in `printer/` and
+`mk_graph/`. Every match arm would need a dual form (tuple on old nightlies,
+struct on new), which would roughly double the size of the affected code with
+cfg gates. That crosses the line from "manageable conditional compilation" to
+"unmaintainable."
+
+**The decision:** treat 2025-07-14 as a hard upper bound for this branch. The
+current codebase (with all 7 breakpoints) covers nightlies from 2024-11-29
+through 2025-07-14; that's nearly 8 months of backward compatibility from a
+single source. Migration to the `rustc_public` API is future work on a separate
+branch.
+
+**Migration path (future work):**
+
+1. `extern crate rustc_public as stable_mir;` aliases to preserve import paths
+2. Migrate all tuple-variant match arms to struct variants
+3. Fresh breakpoint table starting from the `rustc_public` epoch
+4. The pre-epoch branch remains available for anyone who needs to target older
+   nightlies
+
 ## Shim patterns
 
 Three patterns keep recurring. Recognizing which one applies to a new upstream
