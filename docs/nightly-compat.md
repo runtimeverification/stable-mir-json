@@ -69,21 +69,22 @@ canonical. If they ever diverge, trust `build.rs`.
 | 2025-01-27 | `smir_has_named_mono_item_partitions` | `MonoItemPartitions` tuple became named-field struct | `compat/mono_collect.rs` (mutually exclusive blocks) |
 | 2025-01-28 | `smir_has_raw_ptr_kind` | `Rvalue::AddressOf` first field: `Mutability` to `RawPtrKind` | `mk_graph/util.rs`, `mk_graph/context.rs` (mutually exclusive arms) |
 | 2025-07-04 | `smir_no_indexed_val` | `IndexedVal` trait became `pub(crate)` | `compat/indexed_val.rs` (adapter module); all `mk_graph/` and `printer/` call sites use the shim |
+| 2025-07-07 | `smir_rustc_internal_moved` | `rustc_internal::{internal,stable,run}` moved from `rustc_smir` to `stable_mir` | `compat/mod.rs` (cfg-gated re-export), `driver.rs` (cfg-gated import) |
 
 ### Supported range
 
 ```
-  oldest tested                            pinned (CI)
-       v                                       v
-  2024-11-29  --------------------------  2025-07-05
-       |                                       |
-       +-- all 5 breakpoints covered ----------+
+  oldest tested                   pinned (CI)   newest tested
+       v                              v              v
+  2024-11-29  ------------------  2025-07-05  --  2025-07-08
+       |                                              |
+       +-- all 6 breakpoints covered ----------------+
 ```
 
 The pinned nightly (the one CI actually runs) is whatever `rust-toolchain.toml`
-says. Everything between the oldest tested nightly and the pinned one should
-compile; anything past the pinned nightly is uncharted territory and may have
-uncatalogued breakpoints.
+says. Everything between the oldest tested nightly and the newest tested one
+should compile; anything past the newest tested nightly is uncharted territory
+and may have uncatalogued breakpoints.
 
 Integration test golden files are stored per-nightly under
 `tests/integration/expected/<nightly>/`. The Makefile auto-detects the active
