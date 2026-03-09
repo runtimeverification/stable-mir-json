@@ -56,7 +56,7 @@ impl GraphLabelString for AggregateKind {
         use AggregateKind::*;
         match &self {
             Array(_ty) => "Array".to_string(),
-            Tuple {} => "Tuple".to_string(),
+            Tuple => "Tuple".to_string(),
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()),
             Closure(_, _) => "Closure".to_string(),
             Coroutine(_, _, _) => "Coroutine".to_string(),
@@ -256,7 +256,7 @@ pub fn terminator_targets(term: &Terminator) -> Vec<usize> {
             result.push(targets.otherwise());
             result
         }
-        Resume {} | Abort {} | Return {} | Unreachable {} => vec![],
+        Resume | Abort | Return | Unreachable => vec![],
         Drop { target, unwind, .. } => {
             let mut result = vec![*target];
             if let UnwindAction::Cleanup(t) = unwind {

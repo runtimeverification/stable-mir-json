@@ -1194,14 +1194,14 @@
                                   }
                                 }
                               },
-                              "span": 163,
+                              "span": 159,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 164
+                    "span": 160
                   },
                   {
                     "kind": {
@@ -1231,14 +1231,14 @@
                                   }
                                 }
                               },
-                              "span": 165,
+                              "span": 161,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 166
+                    "span": 162
                   }
                 ],
                 "terminator": {
@@ -1268,7 +1268,7 @@
                             "id": 41,
                             "kind": "ZeroSized"
                           },
-                          "span": 161,
+                          "span": 157,
                           "user_ty": null
                         }
                       },
@@ -1276,36 +1276,36 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 162
+                  "span": 158
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 167
+                  "span": 163
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 168
-              },
-              {
-                "mutability": "Not",
-                "span": 162
-              },
-              {
-                "mutability": "Mut",
                 "span": 164
               },
               {
+                "mutability": "Not",
+                "span": 158
+              },
+              {
                 "mutability": "Mut",
-                "span": 166
+                "span": 160
+              },
+              {
+                "mutability": "Mut",
+                "span": 162
               }
             ],
-            "span": 171,
+            "span": 167,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1314,7 +1314,7 @@
                 "name": "x",
                 "source_info": {
                   "scope": 1,
-                  "span": 169
+                  "span": 165
                 },
                 "value": {
                   "Const": {
@@ -1336,7 +1336,7 @@
                         }
                       }
                     },
-                    "span": 163,
+                    "span": 159,
                     "user_ty": null
                   }
                 }
@@ -1347,7 +1347,7 @@
                 "name": "y",
                 "source_info": {
                   "scope": 2,
-                  "span": 170
+                  "span": 166
                 },
                 "value": {
                   "Const": {
@@ -1369,7 +1369,7 @@
                         }
                       }
                     },
-                    "span": 165,
+                    "span": 161,
                     "user_ty": null
                   }
                 }
@@ -1393,21 +1393,21 @@
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 44
+                  "span": 40
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 44
+                "span": 40
               },
               {
                 "mutability": "Not",
-                "span": 44
+                "span": 40
               }
             ],
-            "span": 44,
+            "span": 40,
             "spread_arg": null,
             "var_debug_info": []
           },
@@ -1442,7 +1442,7 @@
                               "id": 4,
                               "kind": "ZeroSized"
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -1457,7 +1457,7 @@
                             "id": 3,
                             "kind": "ZeroSized"
                           },
-                          "span": 31,
+                          "span": 27,
                           "user_ty": null
                         }
                       },
@@ -1465,7 +1465,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 33
+                  "span": 29
                 }
               },
               {
@@ -1480,7 +1480,7 @@
                               "id": 4,
                               "kind": "ZeroSized"
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -1495,7 +1495,7 @@
                             "id": 5,
                             "kind": "ZeroSized"
                           },
-                          "span": 34,
+                          "span": 30,
                           "user_ty": null
                         }
                       },
@@ -1503,32 +1503,32 @@
                       "unwind": "Unreachable"
                     }
                   },
-                  "span": 35
+                  "span": 31
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 36
+                  "span": 32
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 37
+                "span": 33
               },
               {
                 "mutability": "Not",
-                "span": 38
+                "span": 34
               },
               {
                 "mutability": "Not",
-                "span": 39
+                "span": 35
               }
             ],
-            "span": 42,
+            "span": 38,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1537,7 +1537,7 @@
                 "name": "f",
                 "source_info": {
                   "scope": 0,
-                  "span": 38
+                  "span": 34
                 },
                 "value": {
                   "Place": {
@@ -1552,7 +1552,7 @@
                 "name": "result",
                 "source_info": {
                   "scope": 1,
-                  "span": 40
+                  "span": 36
                 },
                 "value": {
                   "Place": {
@@ -1567,7 +1567,7 @@
                 "name": "dummy",
                 "source_info": {
                   "scope": 2,
-                  "span": 41
+                  "span": 37
                 },
                 "value": {
                   "Const": {
@@ -1575,7 +1575,7 @@
                       "id": 4,
                       "kind": "ZeroSized"
                     },
-                    "span": 32,
+                    "span": 28,
                     "user_ty": null
                   }
                 }
@@ -1622,55 +1622,35 @@
                                   }
                                 }
                               },
-                              "span": 46,
+                              "span": 42,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 46
+                    "span": 42
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 45
+                  "span": 41
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 47
+                "span": 43
               },
               {
                 "mutability": "Not",
-                "span": 48
+                "span": 44
               }
             ],
-            "span": 49,
+            "span": 45,
             "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 48
-                },
-                "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 4,
-                      "kind": "ZeroSized"
-                    },
-                    "span": 32,
-                    "user_ty": null
-                  }
-                }
-              }
-            ]
+            "var_debug_info": []
           },
           "id": 5,
           "name": "<() as std::process::Termination>::report"
@@ -1691,19 +1671,19 @@
                     "kind": {
                       "StorageLive": 2
                     },
-                    "span": 16
+                    "span": 15
                   },
                   {
                     "kind": {
                       "StorageLive": 3
                     },
-                    "span": 15
+                    "span": 14
                   },
                   {
                     "kind": {
                       "StorageLive": 4
                     },
-                    "span": 17
+                    "span": 16
                   },
                   {
                     "kind": {
@@ -1730,7 +1710,7 @@
                         }
                       ]
                     },
-                    "span": 17
+                    "span": 16
                   }
                 ],
                 "terminator": {
@@ -1754,7 +1734,7 @@
                             "id": 1,
                             "kind": "ZeroSized"
                           },
-                          "span": 14,
+                          "span": 13,
                           "user_ty": null
                         }
                       },
@@ -1762,7 +1742,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 15
+                  "span": 14
                 }
               },
               {
@@ -1771,7 +1751,7 @@
                     "kind": {
                       "StorageDead": 4
                     },
-                    "span": 19
+                    "span": 18
                   }
                 ],
                 "terminator": {
@@ -1795,7 +1775,7 @@
                             "id": 2,
                             "kind": "ZeroSized"
                           },
-                          "span": 18,
+                          "span": 17,
                           "user_ty": null
                         }
                       },
@@ -1803,7 +1783,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 16
+                  "span": 15
                 }
               },
               {
@@ -1812,55 +1792,19 @@
                     "kind": {
                       "StorageDead": 3
                     },
-                    "span": 21
+                    "span": 20
                   },
                   {
                     "kind": {
                       "StorageLive": 5
                     },
-                    "span": 22
+                    "span": 21
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
                           "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 2,
-                              "projection": [
-                                {
-                                  "Field": [
-                                    0,
-                                    15
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 22
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 23
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 6,
                           "projection": []
                         },
                         {
@@ -1871,7 +1815,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    15
+                                    14
                                   ]
                                 },
                                 {
@@ -1886,7 +1830,7 @@
                         }
                       ]
                     },
-                    "span": 23
+                    "span": 21
                   },
                   {
                     "kind": {
@@ -1900,46 +1844,40 @@
                             "IntToInt",
                             {
                               "Move": {
-                                "local": 6,
+                                "local": 5,
                                 "projection": []
                               }
                             },
-                            16
+                            15
                           ]
                         }
                       ]
                     },
-                    "span": 24
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 25
+                    "span": 22
                   },
                   {
                     "kind": {
                       "StorageDead": 5
                     },
-                    "span": 26
+                    "span": 23
                   },
                   {
                     "kind": {
                       "StorageDead": 2
                     },
-                    "span": 27
+                    "span": 24
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 20
+                  "span": 19
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 28
+                "span": 25
               },
               {
                 "mutability": "Mut",
@@ -1947,23 +1885,19 @@
               },
               {
                 "mutability": "Mut",
-                "span": 16
-              },
-              {
-                "mutability": "Mut",
                 "span": 15
               },
               {
                 "mutability": "Mut",
-                "span": 17
+                "span": 14
               },
               {
                 "mutability": "Mut",
-                "span": 22
+                "span": 16
               },
               {
                 "mutability": "Mut",
-                "span": 23
+                "span": 21
               }
             ],
             "span": 3,
@@ -1975,7 +1909,7 @@
                 "name": "main",
                 "source_info": {
                   "scope": 0,
-                  "span": 9
+                  "span": 8
                 },
                 "value": {
                   "Place": {
@@ -1998,26 +1932,11 @@
                 "name": "self",
                 "source_info": {
                   "scope": 1,
-                  "span": 29
+                  "span": 26
                 },
                 "value": {
                   "Place": {
                     "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 2,
-                  "span": 30
-                },
-                "value": {
-                  "Place": {
-                    "local": 5,
                     "projection": []
                   }
                 }
@@ -2057,32 +1976,32 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 43
+                  "span": 39
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 43
+                  "span": 39
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               }
             ],
-            "span": 43,
+            "span": 39,
             "spread_arg": 2,
             "var_debug_info": []
           },
@@ -2130,7 +2049,7 @@
                             "id": 6,
                             "kind": "ZeroSized"
                           },
-                          "span": 43,
+                          "span": 39,
                           "user_ty": null
                         }
                       },
@@ -2138,32 +2057,32 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 43
+                  "span": 39
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 43
+                  "span": 39
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               }
             ],
-            "span": 43,
+            "span": 39,
             "spread_arg": 2,
             "var_debug_info": []
           },
@@ -2207,7 +2126,7 @@
                         }
                       ]
                     },
-                    "span": 43
+                    "span": 39
                   }
                 ],
                 "terminator": {
@@ -2237,7 +2156,7 @@
                             "id": 7,
                             "kind": "ZeroSized"
                           },
-                          "span": 43,
+                          "span": 39,
                           "user_ty": null
                         }
                       },
@@ -2247,7 +2166,7 @@
                       }
                     }
                   },
-                  "span": 43
+                  "span": 39
                 }
               },
               {
@@ -2263,14 +2182,14 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 43
+                  "span": 39
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 43
+                  "span": 39
                 }
               },
               {
@@ -2286,36 +2205,36 @@
                       "unwind": "Terminate"
                     }
                   },
-                  "span": 43
+                  "span": 39
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Resume",
-                  "span": 43
+                  "span": 39
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               },
               {
                 "mutability": "Not",
-                "span": 43
+                "span": 39
               }
             ],
-            "span": 43,
+            "span": 39,
             "spread_arg": 2,
             "var_debug_info": []
           },
@@ -2360,7 +2279,7 @@
                         }
                       ]
                     },
-                    "span": 50
+                    "span": 46
                   }
                 ],
                 "terminator": {
@@ -2373,7 +2292,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -2401,7 +2320,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 50
+                  "span": 46
                 }
               },
               {
@@ -2421,7 +2340,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -2430,7 +2349,7 @@
                         }
                       ]
                     },
-                    "span": 50
+                    "span": 46
                   }
                 ],
                 "terminator": {
@@ -2453,7 +2372,7 @@
                       }
                     }
                   },
-                  "span": 51
+                  "span": 47
                 }
               },
               {
@@ -2484,7 +2403,7 @@
                         }
                       ]
                     },
-                    "span": 52
+                    "span": 48
                   }
                 ],
                 "terminator": {
@@ -2497,7 +2416,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -2525,7 +2444,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 52
+                  "span": 48
                 }
               },
               {
@@ -2571,7 +2490,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -2586,7 +2505,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 53,
+                          "span": 49,
                           "user_ty": null
                         }
                       },
@@ -2594,7 +2513,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 53
+                  "span": 49
                 }
               },
               {
@@ -2614,7 +2533,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -2623,7 +2542,7 @@
                         }
                       ]
                     },
-                    "span": 52
+                    "span": 48
                   }
                 ],
                 "terminator": {
@@ -2646,7 +2565,7 @@
                       }
                     }
                   },
-                  "span": 54
+                  "span": 50
                 }
               },
               {
@@ -2677,7 +2596,7 @@
                         }
                       ]
                     },
-                    "span": 55
+                    "span": 51
                   }
                 ],
                 "terminator": {
@@ -2690,7 +2609,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -2718,7 +2637,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 55
+                  "span": 51
                 }
               },
               {
@@ -2764,7 +2683,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -2779,7 +2698,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 56,
+                          "span": 52,
                           "user_ty": null
                         }
                       },
@@ -2787,7 +2706,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 56
+                  "span": 52
                 }
               },
               {
@@ -2807,7 +2726,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -2816,7 +2735,7 @@
                         }
                       ]
                     },
-                    "span": 55
+                    "span": 51
                   },
                   {
                     "kind": {
@@ -2844,7 +2763,7 @@
                         }
                       ]
                     },
-                    "span": 57
+                    "span": 53
                   }
                 ],
                 "terminator": {
@@ -2857,7 +2776,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -2885,7 +2804,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 57
+                  "span": 53
                 }
               },
               {
@@ -2905,7 +2824,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -2914,7 +2833,7 @@
                         }
                       ]
                     },
-                    "span": 57
+                    "span": 53
                   },
                   {
                     "kind": {
@@ -2942,7 +2861,7 @@
                         }
                       ]
                     },
-                    "span": 58
+                    "span": 54
                   }
                 ],
                 "terminator": {
@@ -2965,7 +2884,7 @@
                       }
                     }
                   },
-                  "span": 58
+                  "span": 54
                 }
               },
               {
@@ -2996,7 +2915,7 @@
                         }
                       ]
                     },
-                    "span": 59
+                    "span": 55
                   }
                 ],
                 "terminator": {
@@ -3009,7 +2928,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -3037,7 +2956,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 59
+                  "span": 55
                 }
               },
               {
@@ -3083,7 +3002,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -3098,7 +3017,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 60,
+                          "span": 56,
                           "user_ty": null
                         }
                       },
@@ -3106,7 +3025,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 60
+                  "span": 56
                 }
               },
               {
@@ -3126,7 +3045,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -3135,7 +3054,7 @@
                         }
                       ]
                     },
-                    "span": 59
+                    "span": 55
                   }
                 ],
                 "terminator": {
@@ -3158,7 +3077,7 @@
                       }
                     }
                   },
-                  "span": 61
+                  "span": 57
                 }
               },
               {
@@ -3189,7 +3108,7 @@
                         }
                       ]
                     },
-                    "span": 62
+                    "span": 58
                   }
                 ],
                 "terminator": {
@@ -3202,7 +3121,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -3230,7 +3149,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 62
+                  "span": 58
                 }
               },
               {
@@ -3276,7 +3195,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -3291,7 +3210,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 63,
+                          "span": 59,
                           "user_ty": null
                         }
                       },
@@ -3299,7 +3218,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 63
+                  "span": 59
                 }
               },
               {
@@ -3319,7 +3238,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -3328,7 +3247,7 @@
                         }
                       ]
                     },
-                    "span": 62
+                    "span": 58
                   }
                 ],
                 "terminator": {
@@ -3351,7 +3270,7 @@
                       }
                     }
                   },
-                  "span": 64
+                  "span": 60
                 }
               },
               {
@@ -3382,7 +3301,7 @@
                         }
                       ]
                     },
-                    "span": 65
+                    "span": 61
                   }
                 ],
                 "terminator": {
@@ -3395,7 +3314,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -3423,7 +3342,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 65
+                  "span": 61
                 }
               },
               {
@@ -3469,7 +3388,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -3484,7 +3403,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 66,
+                          "span": 62,
                           "user_ty": null
                         }
                       },
@@ -3492,7 +3411,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 66
+                  "span": 62
                 }
               },
               {
@@ -3512,7 +3431,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -3521,7 +3440,7 @@
                         }
                       ]
                     },
-                    "span": 65
+                    "span": 61
                   },
                   {
                     "kind": {
@@ -3549,7 +3468,7 @@
                         }
                       ]
                     },
-                    "span": 67
+                    "span": 63
                   }
                 ],
                 "terminator": {
@@ -3562,7 +3481,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -3590,7 +3509,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 67
+                  "span": 63
                 }
               },
               {
@@ -3610,7 +3529,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -3619,7 +3538,7 @@
                         }
                       ]
                     },
-                    "span": 67
+                    "span": 63
                   },
                   {
                     "kind": {
@@ -3647,7 +3566,7 @@
                         }
                       ]
                     },
-                    "span": 68
+                    "span": 64
                   }
                 ],
                 "terminator": {
@@ -3670,7 +3589,7 @@
                       }
                     }
                   },
-                  "span": 68
+                  "span": 64
                 }
               },
               {
@@ -3701,7 +3620,7 @@
                         }
                       ]
                     },
-                    "span": 69
+                    "span": 65
                   }
                 ],
                 "terminator": {
@@ -3714,7 +3633,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -3742,7 +3661,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 69
+                  "span": 65
                 }
               },
               {
@@ -3788,7 +3707,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -3803,7 +3722,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 70,
+                          "span": 66,
                           "user_ty": null
                         }
                       },
@@ -3811,7 +3730,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 70
+                  "span": 66
                 }
               },
               {
@@ -3831,7 +3750,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -3840,7 +3759,7 @@
                         }
                       ]
                     },
-                    "span": 69
+                    "span": 65
                   }
                 ],
                 "terminator": {
@@ -3863,7 +3782,7 @@
                       }
                     }
                   },
-                  "span": 71
+                  "span": 67
                 }
               },
               {
@@ -3904,7 +3823,7 @@
                                     }
                                   }
                                 },
-                                "span": 72,
+                                "span": 68,
                                 "user_ty": null
                               }
                             }
@@ -3912,7 +3831,7 @@
                         }
                       ]
                     },
-                    "span": 72
+                    "span": 68
                   }
                 ],
                 "terminator": {
@@ -3937,7 +3856,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 72
+                  "span": 68
                 }
               },
               {
@@ -3983,7 +3902,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -3998,7 +3917,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 73,
+                          "span": 69,
                           "user_ty": null
                         }
                       },
@@ -4006,7 +3925,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 73
+                  "span": 69
                 }
               },
               {
@@ -4031,7 +3950,7 @@
                         }
                       ]
                     },
-                    "span": 72
+                    "span": 68
                   },
                   {
                     "kind": {
@@ -4059,7 +3978,7 @@
                         }
                       ]
                     },
-                    "span": 74
+                    "span": 70
                   }
                 ],
                 "terminator": {
@@ -4072,7 +3991,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -4100,7 +4019,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 74
+                  "span": 70
                 }
               },
               {
@@ -4120,7 +4039,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -4129,7 +4048,7 @@
                         }
                       ]
                     },
-                    "span": 74
+                    "span": 70
                   }
                 ],
                 "terminator": {
@@ -4152,7 +4071,7 @@
                       }
                     }
                   },
-                  "span": 75
+                  "span": 71
                 }
               },
               {
@@ -4162,6 +4081,295 @@
                       "Assign": [
                         {
                           "local": 37,
+                          "projection": []
+                        },
+                        {
+                          "BinaryOp": [
+                            "Eq",
+                            {
+                              "Copy": {
+                                "local": 1,
+                                "projection": []
+                              }
+                            },
+                            {
+                              "Constant": {
+                                "const_": {
+                                  "id": 16,
+                                  "kind": {
+                                    "Allocated": {
+                                      "align": 4,
+                                      "bytes": [
+                                        0,
+                                        0,
+                                        0,
+                                        128
+                                      ],
+                                      "mutability": "Mut",
+                                      "provenance": {
+                                        "ptrs": []
+                                      }
+                                    }
+                                  }
+                                },
+                                "span": 72,
+                                "user_ty": null
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 72
+                  }
+                ],
+                "terminator": {
+                  "kind": {
+                    "Assert": {
+                      "cond": {
+                        "Move": {
+                          "local": 37,
+                          "projection": []
+                        }
+                      },
+                      "expected": false,
+                      "msg": {
+                        "OverflowNeg": {
+                          "Copy": {
+                            "local": 1,
+                            "projection": []
+                          }
+                        }
+                      },
+                      "target": 28,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 72
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Constant": {
+                            "const_": {
+                              "id": 18,
+                              "kind": {
+                                "Allocated": {
+                                  "align": 8,
+                                  "bytes": [
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    32,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "mutability": "Mut",
+                                  "provenance": {
+                                    "ptrs": [
+                                      [
+                                        0,
+                                        7
+                                      ]
+                                    ]
+                                  }
+                                }
+                              }
+                            },
+                            "span": 28,
+                            "user_ty": null
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 34,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "id": 9,
+                            "kind": "ZeroSized"
+                          },
+                          "span": 73,
+                          "user_ty": null
+                        }
+                      },
+                      "target": null,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 73
+                }
+              },
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 36,
+                          "projection": []
+                        },
+                        {
+                          "UnaryOp": [
+                            "Neg",
+                            {
+                              "Copy": {
+                                "local": 1,
+                                "projection": []
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 72
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 38,
+                          "projection": []
+                        },
+                        {
+                          "CheckedBinaryOp": [
+                            "Mul",
+                            {
+                              "Copy": {
+                                "local": 36,
+                                "projection": []
+                              }
+                            },
+                            {
+                              "Copy": {
+                                "local": 2,
+                                "projection": []
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 74
+                  }
+                ],
+                "terminator": {
+                  "kind": {
+                    "Assert": {
+                      "cond": {
+                        "Move": {
+                          "local": 38,
+                          "projection": [
+                            {
+                              "Field": [
+                                1,
+                                23
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "expected": false,
+                      "msg": {
+                        "Overflow": [
+                          "Mul",
+                          {
+                            "Move": {
+                              "local": 36,
+                              "projection": []
+                            }
+                          },
+                          {
+                            "Copy": {
+                              "local": 2,
+                              "projection": []
+                            }
+                          }
+                        ]
+                      },
+                      "target": 29,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 74
+                }
+              },
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 35,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Move": {
+                              "local": 38,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    0,
+                                    15
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 74
+                  }
+                ],
+                "terminator": {
+                  "kind": {
+                    "SwitchInt": {
+                      "discr": {
+                        "Move": {
+                          "local": 35,
+                          "projection": []
+                        }
+                      },
+                      "targets": {
+                        "branches": [
+                          [
+                            4294966876,
+                            30
+                          ]
+                        ],
+                        "otherwise": 31
+                      }
+                    }
+                  },
+                  "span": 75
+                }
+              },
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 42,
                           "projection": []
                         },
                         {
@@ -4209,295 +4417,6 @@
                     "Assert": {
                       "cond": {
                         "Move": {
-                          "local": 37,
-                          "projection": []
-                        }
-                      },
-                      "expected": false,
-                      "msg": {
-                        "OverflowNeg": {
-                          "Copy": {
-                            "local": 1,
-                            "projection": []
-                          }
-                        }
-                      },
-                      "target": 28,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 76
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Constant": {
-                            "const_": {
-                              "id": 18,
-                              "kind": {
-                                "Allocated": {
-                                  "align": 8,
-                                  "bytes": [
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    32,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0
-                                  ],
-                                  "mutability": "Mut",
-                                  "provenance": {
-                                    "ptrs": [
-                                      [
-                                        0,
-                                        7
-                                      ]
-                                    ]
-                                  }
-                                }
-                              }
-                            },
-                            "span": 32,
-                            "user_ty": null
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 34,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 9,
-                            "kind": "ZeroSized"
-                          },
-                          "span": 77,
-                          "user_ty": null
-                        }
-                      },
-                      "target": null,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 77
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 36,
-                          "projection": []
-                        },
-                        {
-                          "UnaryOp": [
-                            "Neg",
-                            {
-                              "Copy": {
-                                "local": 1,
-                                "projection": []
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 76
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 38,
-                          "projection": []
-                        },
-                        {
-                          "CheckedBinaryOp": [
-                            "Mul",
-                            {
-                              "Copy": {
-                                "local": 36,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Copy": {
-                                "local": 2,
-                                "projection": []
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 78
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Assert": {
-                      "cond": {
-                        "Move": {
-                          "local": 38,
-                          "projection": [
-                            {
-                              "Field": [
-                                1,
-                                25
-                              ]
-                            }
-                          ]
-                        }
-                      },
-                      "expected": false,
-                      "msg": {
-                        "Overflow": [
-                          "Mul",
-                          {
-                            "Move": {
-                              "local": 36,
-                              "projection": []
-                            }
-                          },
-                          {
-                            "Copy": {
-                              "local": 2,
-                              "projection": []
-                            }
-                          }
-                        ]
-                      },
-                      "target": 29,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 78
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 35,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Move": {
-                              "local": 38,
-                              "projection": [
-                                {
-                                  "Field": [
-                                    0,
-                                    16
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 78
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Move": {
-                          "local": 35,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            4294966876,
-                            30
-                          ]
-                        ],
-                        "otherwise": 31
-                      }
-                    }
-                  },
-                  "span": 79
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 42,
-                          "projection": []
-                        },
-                        {
-                          "BinaryOp": [
-                            "Eq",
-                            {
-                              "Copy": {
-                                "local": 1,
-                                "projection": []
-                              }
-                            },
-                            {
-                              "Constant": {
-                                "const_": {
-                                  "id": 16,
-                                  "kind": {
-                                    "Allocated": {
-                                      "align": 4,
-                                      "bytes": [
-                                        0,
-                                        0,
-                                        0,
-                                        128
-                                      ],
-                                      "mutability": "Mut",
-                                      "provenance": {
-                                        "ptrs": []
-                                      }
-                                    }
-                                  }
-                                },
-                                "span": 80,
-                                "user_ty": null
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 80
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Assert": {
-                      "cond": {
-                        "Move": {
                           "local": 42,
                           "projection": []
                         }
@@ -4515,7 +4434,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 80
+                  "span": 76
                 }
               },
               {
@@ -4561,7 +4480,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -4576,7 +4495,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 81,
+                          "span": 77,
                           "user_ty": null
                         }
                       },
@@ -4584,7 +4503,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 81
+                  "span": 77
                 }
               },
               {
@@ -4609,7 +4528,7 @@
                         }
                       ]
                     },
-                    "span": 80
+                    "span": 76
                   },
                   {
                     "kind": {
@@ -4647,7 +4566,7 @@
                                     }
                                   }
                                 },
-                                "span": 82,
+                                "span": 78,
                                 "user_ty": null
                               }
                             }
@@ -4655,7 +4574,7 @@
                         }
                       ]
                     },
-                    "span": 82
+                    "span": 78
                   }
                 ],
                 "terminator": {
@@ -4680,7 +4599,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 82
+                  "span": 78
                 }
               },
               {
@@ -4705,7 +4624,7 @@
                         }
                       ]
                     },
-                    "span": 82
+                    "span": 78
                   },
                   {
                     "kind": {
@@ -4733,7 +4652,7 @@
                         }
                       ]
                     },
-                    "span": 83
+                    "span": 79
                   }
                 ],
                 "terminator": {
@@ -4746,7 +4665,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -4774,7 +4693,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 83
+                  "span": 79
                 }
               },
               {
@@ -4794,7 +4713,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -4803,7 +4722,7 @@
                         }
                       ]
                     },
-                    "span": 83
+                    "span": 79
                   }
                 ],
                 "terminator": {
@@ -4826,7 +4745,7 @@
                       }
                     }
                   },
-                  "span": 84
+                  "span": 80
                 }
               },
               {
@@ -4861,7 +4780,7 @@
                                     }
                                   }
                                 },
-                                "span": 86,
+                                "span": 82,
                                 "user_ty": null
                               }
                             },
@@ -4885,7 +4804,7 @@
                                     }
                                   }
                                 },
-                                "span": 87,
+                                "span": 83,
                                 "user_ty": null
                               }
                             }
@@ -4893,7 +4812,7 @@
                         }
                       ]
                     },
-                    "span": 88
+                    "span": 84
                   }
                 ],
                 "terminator": {
@@ -4916,7 +4835,7 @@
                       }
                     }
                   },
-                  "span": 85
+                  "span": 81
                 }
               },
               {
@@ -4962,7 +4881,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -4977,7 +4896,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 89,
+                          "span": 85,
                           "user_ty": null
                         }
                       },
@@ -4985,7 +4904,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 89
+                  "span": 85
                 }
               },
               {
@@ -5020,7 +4939,7 @@
                                     }
                                   }
                                 },
-                                "span": 91,
+                                "span": 87,
                                 "user_ty": null
                               }
                             },
@@ -5044,7 +4963,7 @@
                                     }
                                   }
                                 },
-                                "span": 92,
+                                "span": 88,
                                 "user_ty": null
                               }
                             }
@@ -5052,7 +4971,7 @@
                         }
                       ]
                     },
-                    "span": 93
+                    "span": 89
                   }
                 ],
                 "terminator": {
@@ -5075,7 +4994,7 @@
                       }
                     }
                   },
-                  "span": 90
+                  "span": 86
                 }
               },
               {
@@ -5121,7 +5040,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -5136,7 +5055,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 94,
+                          "span": 90,
                           "user_ty": null
                         }
                       },
@@ -5144,7 +5063,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 94
+                  "span": 90
                 }
               },
               {
@@ -5179,7 +5098,7 @@
                                     }
                                   }
                                 },
-                                "span": 96,
+                                "span": 92,
                                 "user_ty": null
                               }
                             },
@@ -5203,7 +5122,7 @@
                                     }
                                   }
                                 },
-                                "span": 97,
+                                "span": 93,
                                 "user_ty": null
                               }
                             }
@@ -5211,7 +5130,7 @@
                         }
                       ]
                     },
-                    "span": 98
+                    "span": 94
                   }
                 ],
                 "terminator": {
@@ -5234,7 +5153,7 @@
                       }
                     }
                   },
-                  "span": 95
+                  "span": 91
                 }
               },
               {
@@ -5280,7 +5199,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -5295,7 +5214,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 99,
+                          "span": 95,
                           "user_ty": null
                         }
                       },
@@ -5303,7 +5222,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 99
+                  "span": 95
                 }
               },
               {
@@ -5338,7 +5257,7 @@
                                     }
                                   }
                                 },
-                                "span": 101,
+                                "span": 97,
                                 "user_ty": null
                               }
                             },
@@ -5362,7 +5281,7 @@
                                     }
                                   }
                                 },
-                                "span": 102,
+                                "span": 98,
                                 "user_ty": null
                               }
                             }
@@ -5370,7 +5289,7 @@
                         }
                       ]
                     },
-                    "span": 103
+                    "span": 99
                   }
                 ],
                 "terminator": {
@@ -5393,7 +5312,7 @@
                       }
                     }
                   },
-                  "span": 100
+                  "span": 96
                 }
               },
               {
@@ -5439,7 +5358,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -5454,7 +5373,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 104,
+                          "span": 100,
                           "user_ty": null
                         }
                       },
@@ -5462,7 +5381,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 104
+                  "span": 100
                 }
               },
               {
@@ -5497,7 +5416,7 @@
                                     }
                                   }
                                 },
-                                "span": 106,
+                                "span": 102,
                                 "user_ty": null
                               }
                             },
@@ -5521,7 +5440,7 @@
                                     }
                                   }
                                 },
-                                "span": 107,
+                                "span": 103,
                                 "user_ty": null
                               }
                             }
@@ -5529,7 +5448,7 @@
                         }
                       ]
                     },
-                    "span": 108
+                    "span": 104
                   }
                 ],
                 "terminator": {
@@ -5552,7 +5471,7 @@
                       }
                     }
                   },
-                  "span": 105
+                  "span": 101
                 }
               },
               {
@@ -5598,7 +5517,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -5613,7 +5532,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 109,
+                          "span": 105,
                           "user_ty": null
                         }
                       },
@@ -5621,7 +5540,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 109
+                  "span": 105
                 }
               },
               {
@@ -5656,7 +5575,7 @@
                                     }
                                   }
                                 },
-                                "span": 111,
+                                "span": 107,
                                 "user_ty": null
                               }
                             },
@@ -5680,7 +5599,7 @@
                                     }
                                   }
                                 },
-                                "span": 112,
+                                "span": 108,
                                 "user_ty": null
                               }
                             }
@@ -5688,7 +5607,7 @@
                         }
                       ]
                     },
-                    "span": 113
+                    "span": 109
                   }
                 ],
                 "terminator": {
@@ -5711,7 +5630,7 @@
                       }
                     }
                   },
-                  "span": 110
+                  "span": 106
                 }
               },
               {
@@ -5757,7 +5676,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -5772,7 +5691,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 114,
+                          "span": 110,
                           "user_ty": null
                         }
                       },
@@ -5780,7 +5699,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 114
+                  "span": 110
                 }
               },
               {
@@ -5815,16 +5734,16 @@
                                     }
                                   }
                                 },
-                                "span": 116,
+                                "span": 112,
                                 "user_ty": null
                               }
                             },
-                            28
+                            26
                           ]
                         }
                       ]
                     },
-                    "span": 117
+                    "span": 113
                   },
                   {
                     "kind": {
@@ -5862,7 +5781,7 @@
                                     }
                                   }
                                 },
-                                "span": 117,
+                                "span": 113,
                                 "user_ty": null
                               }
                             }
@@ -5870,7 +5789,7 @@
                         }
                       ]
                     },
-                    "span": 117
+                    "span": 113
                   }
                 ],
                 "terminator": {
@@ -5906,7 +5825,7 @@
                                   }
                                 }
                               },
-                              "span": 115,
+                              "span": 111,
                               "user_ty": null
                             }
                           },
@@ -5930,7 +5849,7 @@
                                   }
                                 }
                               },
-                              "span": 116,
+                              "span": 112,
                               "user_ty": null
                             }
                           }
@@ -5940,7 +5859,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 117
+                  "span": 113
                 }
               },
               {
@@ -5986,7 +5905,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -6001,7 +5920,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 118,
+                          "span": 114,
                           "user_ty": null
                         }
                       },
@@ -6009,7 +5928,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 118
+                  "span": 114
                 }
               },
               {
@@ -6044,7 +5963,7 @@
                                     }
                                   }
                                 },
-                                "span": 115,
+                                "span": 111,
                                 "user_ty": null
                               }
                             },
@@ -6068,7 +5987,7 @@
                                     }
                                   }
                                 },
-                                "span": 116,
+                                "span": 112,
                                 "user_ty": null
                               }
                             }
@@ -6076,7 +5995,7 @@
                         }
                       ]
                     },
-                    "span": 117
+                    "span": 113
                   }
                 ],
                 "terminator": {
@@ -6099,7 +6018,7 @@
                       }
                     }
                   },
-                  "span": 119
+                  "span": 115
                 }
               },
               {
@@ -6134,16 +6053,16 @@
                                     }
                                   }
                                 },
-                                "span": 121,
+                                "span": 117,
                                 "user_ty": null
                               }
                             },
-                            28
+                            26
                           ]
                         }
                       ]
                     },
-                    "span": 122
+                    "span": 118
                   },
                   {
                     "kind": {
@@ -6181,7 +6100,7 @@
                                     }
                                   }
                                 },
-                                "span": 122,
+                                "span": 118,
                                 "user_ty": null
                               }
                             }
@@ -6189,7 +6108,7 @@
                         }
                       ]
                     },
-                    "span": 122
+                    "span": 118
                   }
                 ],
                 "terminator": {
@@ -6225,7 +6144,7 @@
                                   }
                                 }
                               },
-                              "span": 120,
+                              "span": 116,
                               "user_ty": null
                             }
                           },
@@ -6249,7 +6168,7 @@
                                   }
                                 }
                               },
-                              "span": 121,
+                              "span": 117,
                               "user_ty": null
                             }
                           }
@@ -6259,7 +6178,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 122
+                  "span": 118
                 }
               },
               {
@@ -6305,7 +6224,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -6320,7 +6239,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 123,
+                          "span": 119,
                           "user_ty": null
                         }
                       },
@@ -6328,7 +6247,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 123
+                  "span": 119
                 }
               },
               {
@@ -6363,7 +6282,7 @@
                                     }
                                   }
                                 },
-                                "span": 120,
+                                "span": 116,
                                 "user_ty": null
                               }
                             },
@@ -6387,7 +6306,7 @@
                                     }
                                   }
                                 },
-                                "span": 121,
+                                "span": 117,
                                 "user_ty": null
                               }
                             }
@@ -6395,7 +6314,7 @@
                         }
                       ]
                     },
-                    "span": 122
+                    "span": 118
                   }
                 ],
                 "terminator": {
@@ -6418,7 +6337,7 @@
                       }
                     }
                   },
-                  "span": 124
+                  "span": 120
                 }
               },
               {
@@ -6453,16 +6372,16 @@
                                     }
                                   }
                                 },
-                                "span": 126,
+                                "span": 122,
                                 "user_ty": null
                               }
                             },
-                            28
+                            26
                           ]
                         }
                       ]
                     },
-                    "span": 127
+                    "span": 123
                   },
                   {
                     "kind": {
@@ -6500,7 +6419,7 @@
                                     }
                                   }
                                 },
-                                "span": 127,
+                                "span": 123,
                                 "user_ty": null
                               }
                             }
@@ -6508,7 +6427,7 @@
                         }
                       ]
                     },
-                    "span": 127
+                    "span": 123
                   }
                 ],
                 "terminator": {
@@ -6544,7 +6463,7 @@
                                   }
                                 }
                               },
-                              "span": 125,
+                              "span": 121,
                               "user_ty": null
                             }
                           },
@@ -6568,7 +6487,7 @@
                                   }
                                 }
                               },
-                              "span": 126,
+                              "span": 122,
                               "user_ty": null
                             }
                           }
@@ -6578,7 +6497,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 127
+                  "span": 123
                 }
               },
               {
@@ -6624,7 +6543,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -6639,7 +6558,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 128,
+                          "span": 124,
                           "user_ty": null
                         }
                       },
@@ -6647,7 +6566,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 128
+                  "span": 124
                 }
               },
               {
@@ -6682,7 +6601,7 @@
                                     }
                                   }
                                 },
-                                "span": 125,
+                                "span": 121,
                                 "user_ty": null
                               }
                             },
@@ -6706,7 +6625,7 @@
                                     }
                                   }
                                 },
-                                "span": 126,
+                                "span": 122,
                                 "user_ty": null
                               }
                             }
@@ -6714,7 +6633,7 @@
                         }
                       ]
                     },
-                    "span": 127
+                    "span": 123
                   }
                 ],
                 "terminator": {
@@ -6737,7 +6656,7 @@
                       }
                     }
                   },
-                  "span": 129
+                  "span": 125
                 }
               },
               {
@@ -6772,16 +6691,16 @@
                                     }
                                   }
                                 },
-                                "span": 131,
+                                "span": 127,
                                 "user_ty": null
                               }
                             },
-                            28
+                            26
                           ]
                         }
                       ]
                     },
-                    "span": 132
+                    "span": 128
                   },
                   {
                     "kind": {
@@ -6819,7 +6738,7 @@
                                     }
                                   }
                                 },
-                                "span": 132,
+                                "span": 128,
                                 "user_ty": null
                               }
                             }
@@ -6827,7 +6746,7 @@
                         }
                       ]
                     },
-                    "span": 132
+                    "span": 128
                   }
                 ],
                 "terminator": {
@@ -6863,7 +6782,7 @@
                                   }
                                 }
                               },
-                              "span": 130,
+                              "span": 126,
                               "user_ty": null
                             }
                           },
@@ -6887,7 +6806,7 @@
                                   }
                                 }
                               },
-                              "span": 131,
+                              "span": 127,
                               "user_ty": null
                             }
                           }
@@ -6897,7 +6816,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 132
+                  "span": 128
                 }
               },
               {
@@ -6943,7 +6862,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -6958,7 +6877,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 133,
+                          "span": 129,
                           "user_ty": null
                         }
                       },
@@ -6966,7 +6885,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 133
+                  "span": 129
                 }
               },
               {
@@ -7001,7 +6920,7 @@
                                     }
                                   }
                                 },
-                                "span": 130,
+                                "span": 126,
                                 "user_ty": null
                               }
                             },
@@ -7025,7 +6944,7 @@
                                     }
                                   }
                                 },
-                                "span": 131,
+                                "span": 127,
                                 "user_ty": null
                               }
                             }
@@ -7033,7 +6952,7 @@
                         }
                       ]
                     },
-                    "span": 132
+                    "span": 128
                   }
                 ],
                 "terminator": {
@@ -7056,7 +6975,7 @@
                       }
                     }
                   },
-                  "span": 134
+                  "span": 130
                 }
               },
               {
@@ -7087,7 +7006,7 @@
                         }
                       ]
                     },
-                    "span": 135
+                    "span": 131
                   }
                 ],
                 "terminator": {
@@ -7100,7 +7019,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -7128,7 +7047,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 135
+                  "span": 131
                 }
               },
               {
@@ -7174,7 +7093,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -7189,7 +7108,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 136,
+                          "span": 132,
                           "user_ty": null
                         }
                       },
@@ -7197,7 +7116,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 136
+                  "span": 132
                 }
               },
               {
@@ -7217,7 +7136,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -7226,7 +7145,7 @@
                         }
                       ]
                     },
-                    "span": 135
+                    "span": 131
                   },
                   {
                     "kind": {
@@ -7254,7 +7173,7 @@
                         }
                       ]
                     },
-                    "span": 137
+                    "span": 133
                   }
                 ],
                 "terminator": {
@@ -7277,7 +7196,7 @@
                       }
                     }
                   },
-                  "span": 137
+                  "span": 133
                 }
               },
               {
@@ -7308,7 +7227,7 @@
                         }
                       ]
                     },
-                    "span": 138
+                    "span": 134
                   }
                 ],
                 "terminator": {
@@ -7321,7 +7240,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -7349,7 +7268,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 138
+                  "span": 134
                 }
               },
               {
@@ -7395,7 +7314,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -7410,7 +7329,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 139,
+                          "span": 135,
                           "user_ty": null
                         }
                       },
@@ -7418,7 +7337,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 139
+                  "span": 135
                 }
               },
               {
@@ -7438,7 +7357,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -7447,7 +7366,7 @@
                         }
                       ]
                     },
-                    "span": 138
+                    "span": 134
                   },
                   {
                     "kind": {
@@ -7475,7 +7394,7 @@
                         }
                       ]
                     },
-                    "span": 140
+                    "span": 136
                   }
                 ],
                 "terminator": {
@@ -7498,7 +7417,7 @@
                       }
                     }
                   },
-                  "span": 140
+                  "span": 136
                 }
               },
               {
@@ -7529,7 +7448,7 @@
                         }
                       ]
                     },
-                    "span": 141
+                    "span": 137
                   }
                 ],
                 "terminator": {
@@ -7542,7 +7461,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -7570,7 +7489,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 141
+                  "span": 137
                 }
               },
               {
@@ -7616,7 +7535,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -7631,7 +7550,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 142,
+                          "span": 138,
                           "user_ty": null
                         }
                       },
@@ -7639,7 +7558,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 142
+                  "span": 138
                 }
               },
               {
@@ -7659,7 +7578,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -7668,7 +7587,7 @@
                         }
                       ]
                     },
-                    "span": 141
+                    "span": 137
                   },
                   {
                     "kind": {
@@ -7696,7 +7615,7 @@
                         }
                       ]
                     },
-                    "span": 143
+                    "span": 139
                   }
                 ],
                 "terminator": {
@@ -7709,7 +7628,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -7737,7 +7656,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 143
+                  "span": 139
                 }
               },
               {
@@ -7757,7 +7676,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -7766,7 +7685,7 @@
                         }
                       ]
                     },
-                    "span": 143
+                    "span": 139
                   },
                   {
                     "kind": {
@@ -7794,7 +7713,7 @@
                         }
                       ]
                     },
-                    "span": 144
+                    "span": 140
                   }
                 ],
                 "terminator": {
@@ -7817,7 +7736,7 @@
                       }
                     }
                   },
-                  "span": 144
+                  "span": 140
                 }
               },
               {
@@ -7848,7 +7767,7 @@
                         }
                       ]
                     },
-                    "span": 145
+                    "span": 141
                   }
                 ],
                 "terminator": {
@@ -7861,7 +7780,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -7889,7 +7808,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 145
+                  "span": 141
                 }
               },
               {
@@ -7935,7 +7854,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -7950,7 +7869,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 146,
+                          "span": 142,
                           "user_ty": null
                         }
                       },
@@ -7958,7 +7877,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 146
+                  "span": 142
                 }
               },
               {
@@ -7978,7 +7897,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -7987,7 +7906,7 @@
                         }
                       ]
                     },
-                    "span": 145
+                    "span": 141
                   },
                   {
                     "kind": {
@@ -8015,7 +7934,7 @@
                         }
                       ]
                     },
-                    "span": 147
+                    "span": 143
                   }
                 ],
                 "terminator": {
@@ -8038,7 +7957,7 @@
                       }
                     }
                   },
-                  "span": 147
+                  "span": 143
                 }
               },
               {
@@ -8069,7 +7988,7 @@
                         }
                       ]
                     },
-                    "span": 148
+                    "span": 144
                   }
                 ],
                 "terminator": {
@@ -8082,7 +8001,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -8110,7 +8029,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 148
+                  "span": 144
                 }
               },
               {
@@ -8156,7 +8075,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -8171,7 +8090,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 149,
+                          "span": 145,
                           "user_ty": null
                         }
                       },
@@ -8179,7 +8098,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 149
+                  "span": 145
                 }
               },
               {
@@ -8199,7 +8118,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -8208,7 +8127,7 @@
                         }
                       ]
                     },
-                    "span": 148
+                    "span": 144
                   },
                   {
                     "kind": {
@@ -8236,7 +8155,7 @@
                         }
                       ]
                     },
-                    "span": 150
+                    "span": 146
                   }
                 ],
                 "terminator": {
@@ -8259,7 +8178,7 @@
                       }
                     }
                   },
-                  "span": 150
+                  "span": 146
                 }
               },
               {
@@ -8290,7 +8209,7 @@
                         }
                       ]
                     },
-                    "span": 151
+                    "span": 147
                   }
                 ],
                 "terminator": {
@@ -8303,7 +8222,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -8331,7 +8250,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 151
+                  "span": 147
                 }
               },
               {
@@ -8377,7 +8296,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -8392,7 +8311,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 152,
+                          "span": 148,
                           "user_ty": null
                         }
                       },
@@ -8400,7 +8319,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 152
+                  "span": 148
                 }
               },
               {
@@ -8420,7 +8339,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -8429,7 +8348,7 @@
                         }
                       ]
                     },
-                    "span": 151
+                    "span": 147
                   },
                   {
                     "kind": {
@@ -8457,7 +8376,7 @@
                         }
                       ]
                     },
-                    "span": 153
+                    "span": 149
                   }
                 ],
                 "terminator": {
@@ -8470,7 +8389,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                23
                               ]
                             }
                           ]
@@ -8498,7 +8417,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 153
+                  "span": 149
                 }
               },
               {
@@ -8518,7 +8437,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    15
                                   ]
                                 }
                               ]
@@ -8527,7 +8446,7 @@
                         }
                       ]
                     },
-                    "span": 153
+                    "span": 149
                   },
                   {
                     "kind": {
@@ -8555,7 +8474,7 @@
                         }
                       ]
                     },
-                    "span": 154
+                    "span": 150
                   }
                 ],
                 "terminator": {
@@ -8578,14 +8497,14 @@
                       }
                     }
                   },
-                  "span": 154
+                  "span": 150
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 155
+                  "span": 151
                 }
               },
               {
@@ -8631,7 +8550,7 @@
                                 }
                               }
                             },
-                            "span": 32,
+                            "span": 28,
                             "user_ty": null
                           }
                         }
@@ -8646,7 +8565,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 156,
+                          "span": 152,
                           "user_ty": null
                         }
                       },
@@ -8654,30 +8573,58 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 156
+                  "span": 152
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 157
+                "span": 153
               },
               {
                 "mutability": "Not",
-                "span": 158
+                "span": 154
               },
               {
                 "mutability": "Not",
-                "span": 159
+                "span": 155
               },
               {
                 "mutability": "Mut",
-                "span": 50
+                "span": 46
               },
               {
                 "mutability": "Mut",
-                "span": 50
+                "span": 46
+              },
+              {
+                "mutability": "Mut",
+                "span": 49
+              },
+              {
+                "mutability": "Mut",
+                "span": 48
+              },
+              {
+                "mutability": "Mut",
+                "span": 48
+              },
+              {
+                "mutability": "Mut",
+                "span": 52
+              },
+              {
+                "mutability": "Mut",
+                "span": 54
+              },
+              {
+                "mutability": "Mut",
+                "span": 51
+              },
+              {
+                "mutability": "Mut",
+                "span": 51
               },
               {
                 "mutability": "Mut",
@@ -8685,11 +8632,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 52
-              },
-              {
-                "mutability": "Mut",
-                "span": 52
+                "span": 53
               },
               {
                 "mutability": "Mut",
@@ -8697,35 +8640,39 @@
               },
               {
                 "mutability": "Mut",
+                "span": 55
+              },
+              {
+                "mutability": "Mut",
+                "span": 55
+              },
+              {
+                "mutability": "Mut",
+                "span": 59
+              },
+              {
+                "mutability": "Mut",
                 "span": 58
               },
               {
                 "mutability": "Mut",
-                "span": 55
+                "span": 58
               },
               {
                 "mutability": "Mut",
-                "span": 55
+                "span": 62
               },
               {
                 "mutability": "Mut",
-                "span": 57
+                "span": 64
               },
               {
                 "mutability": "Mut",
-                "span": 57
+                "span": 61
               },
               {
                 "mutability": "Mut",
-                "span": 60
-              },
-              {
-                "mutability": "Mut",
-                "span": 59
-              },
-              {
-                "mutability": "Mut",
-                "span": 59
+                "span": 61
               },
               {
                 "mutability": "Mut",
@@ -8733,11 +8680,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 62
-              },
-              {
-                "mutability": "Mut",
-                "span": 62
+                "span": 63
               },
               {
                 "mutability": "Mut",
@@ -8745,10 +8688,6 @@
               },
               {
                 "mutability": "Mut",
-                "span": 68
-              },
-              {
-                "mutability": "Mut",
                 "span": 65
               },
               {
@@ -8757,11 +8696,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 67
-              },
-              {
-                "mutability": "Mut",
-                "span": 67
+                "span": 69
               },
               {
                 "mutability": "Mut",
@@ -8769,11 +8704,15 @@
               },
               {
                 "mutability": "Mut",
-                "span": 69
+                "span": 68
               },
               {
                 "mutability": "Mut",
-                "span": 69
+                "span": 68
+              },
+              {
+                "mutability": "Mut",
+                "span": 70
               },
               {
                 "mutability": "Mut",
@@ -8801,7 +8740,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 78
+                "span": 79
               },
               {
                 "mutability": "Mut",
@@ -8817,31 +8756,23 @@
               },
               {
                 "mutability": "Mut",
-                "span": 81
+                "span": 78
               },
               {
                 "mutability": "Mut",
-                "span": 83
+                "span": 79
               },
               {
                 "mutability": "Mut",
-                "span": 80
+                "span": 85
               },
               {
                 "mutability": "Mut",
-                "span": 80
+                "span": 84
               },
               {
                 "mutability": "Mut",
-                "span": 82
-              },
-              {
-                "mutability": "Mut",
-                "span": 82
-              },
-              {
-                "mutability": "Mut",
-                "span": 83
+                "span": 90
               },
               {
                 "mutability": "Mut",
@@ -8849,7 +8780,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 88
+                "span": 95
               },
               {
                 "mutability": "Mut",
@@ -8857,7 +8788,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 93
+                "span": 100
               },
               {
                 "mutability": "Mut",
@@ -8865,7 +8796,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 98
+                "span": 105
               },
               {
                 "mutability": "Mut",
@@ -8873,15 +8804,11 @@
               },
               {
                 "mutability": "Mut",
-                "span": 103
+                "span": 110
               },
               {
                 "mutability": "Mut",
                 "span": 109
-              },
-              {
-                "mutability": "Mut",
-                "span": 108
               },
               {
                 "mutability": "Mut",
@@ -8893,19 +8820,31 @@
               },
               {
                 "mutability": "Mut",
+                "span": 113
+              },
+              {
+                "mutability": "Mut",
+                "span": 113
+              },
+              {
+                "mutability": "Mut",
+                "span": 119
+              },
+              {
+                "mutability": "Mut",
                 "span": 118
               },
               {
                 "mutability": "Mut",
-                "span": 117
+                "span": 118
               },
               {
                 "mutability": "Mut",
-                "span": 117
+                "span": 118
               },
               {
                 "mutability": "Mut",
-                "span": 117
+                "span": 124
               },
               {
                 "mutability": "Mut",
@@ -8913,15 +8852,15 @@
               },
               {
                 "mutability": "Mut",
-                "span": 122
+                "span": 123
               },
               {
                 "mutability": "Mut",
-                "span": 122
+                "span": 123
               },
               {
                 "mutability": "Mut",
-                "span": 122
+                "span": 129
               },
               {
                 "mutability": "Mut",
@@ -8929,15 +8868,15 @@
               },
               {
                 "mutability": "Mut",
-                "span": 127
+                "span": 128
               },
               {
                 "mutability": "Mut",
-                "span": 127
+                "span": 128
               },
               {
                 "mutability": "Mut",
-                "span": 127
+                "span": 132
               },
               {
                 "mutability": "Mut",
@@ -8945,15 +8884,15 @@
               },
               {
                 "mutability": "Mut",
-                "span": 132
+                "span": 131
               },
               {
                 "mutability": "Mut",
-                "span": 132
+                "span": 131
               },
               {
                 "mutability": "Mut",
-                "span": 132
+                "span": 135
               },
               {
                 "mutability": "Mut",
@@ -8961,19 +8900,15 @@
               },
               {
                 "mutability": "Mut",
-                "span": 137
+                "span": 134
               },
               {
                 "mutability": "Mut",
-                "span": 135
+                "span": 134
               },
               {
                 "mutability": "Mut",
-                "span": 135
-              },
-              {
-                "mutability": "Mut",
-                "span": 139
+                "span": 138
               },
               {
                 "mutability": "Mut",
@@ -8981,11 +8916,19 @@
               },
               {
                 "mutability": "Mut",
-                "span": 138
+                "span": 139
               },
               {
                 "mutability": "Mut",
-                "span": 138
+                "span": 137
+              },
+              {
+                "mutability": "Mut",
+                "span": 137
+              },
+              {
+                "mutability": "Mut",
+                "span": 139
               },
               {
                 "mutability": "Mut",
@@ -8993,10 +8936,6 @@
               },
               {
                 "mutability": "Mut",
-                "span": 144
-              },
-              {
-                "mutability": "Mut",
                 "span": 143
               },
               {
@@ -9009,7 +8948,7 @@
               },
               {
                 "mutability": "Mut",
-                "span": 143
+                "span": 145
               },
               {
                 "mutability": "Mut",
@@ -9017,19 +8956,15 @@
               },
               {
                 "mutability": "Mut",
-                "span": 147
+                "span": 144
               },
               {
                 "mutability": "Mut",
-                "span": 145
+                "span": 144
               },
               {
                 "mutability": "Mut",
-                "span": 145
-              },
-              {
-                "mutability": "Mut",
-                "span": 149
+                "span": 148
               },
               {
                 "mutability": "Mut",
@@ -9037,42 +8972,26 @@
               },
               {
                 "mutability": "Mut",
-                "span": 148
+                "span": 149
               },
               {
                 "mutability": "Mut",
-                "span": 148
+                "span": 147
+              },
+              {
+                "mutability": "Mut",
+                "span": 147
+              },
+              {
+                "mutability": "Mut",
+                "span": 149
               },
               {
                 "mutability": "Mut",
                 "span": 152
-              },
-              {
-                "mutability": "Mut",
-                "span": 154
-              },
-              {
-                "mutability": "Mut",
-                "span": 153
-              },
-              {
-                "mutability": "Mut",
-                "span": 151
-              },
-              {
-                "mutability": "Mut",
-                "span": 151
-              },
-              {
-                "mutability": "Mut",
-                "span": 153
-              },
-              {
-                "mutability": "Mut",
-                "span": 156
               }
             ],
-            "span": 160,
+            "span": 156,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -9081,7 +9000,7 @@
                 "name": "x",
                 "source_info": {
                   "scope": 0,
-                  "span": 158
+                  "span": 154
                 },
                 "value": {
                   "Place": {
@@ -9096,7 +9015,7 @@
                 "name": "y",
                 "source_info": {
                   "scope": 0,
-                  "span": 159
+                  "span": 155
                 },
                 "value": {
                   "Place": {
@@ -9126,17 +9045,11 @@
                     "kind": {
                       "StorageLive": 5
                     },
-                    "span": 1
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
                     "span": 2
                   },
                   {
                     "kind": {
-                      "StorageLive": 8
+                      "StorageLive": 7
                     },
                     "span": 3
                   },
@@ -9144,7 +9057,7 @@
                     "kind": {
                       "Assign": [
                         {
-                          "local": 8,
+                          "local": 7,
                           "projection": []
                         },
                         {
@@ -9186,7 +9099,7 @@
                     "kind": {
                       "Assign": [
                         {
-                          "local": 7,
+                          "local": 6,
                           "projection": []
                         },
                         {
@@ -9196,7 +9109,7 @@
                             },
                             "Shared",
                             {
-                              "local": 8,
+                              "local": 7,
                               "projection": []
                             }
                           ]
@@ -9209,7 +9122,7 @@
                     "kind": {
                       "Assign": [
                         {
-                          "local": 6,
+                          "local": 5,
                           "projection": []
                         },
                         {
@@ -9219,7 +9132,7 @@
                             },
                             {
                               "Copy": {
-                                "local": 7,
+                                "local": 6,
                                 "projection": []
                               }
                             },
@@ -9237,7 +9150,7 @@
                       "args": [
                         {
                           "Move": {
-                            "local": 6,
+                            "local": 5,
                             "projection": []
                           }
                         },
@@ -9261,7 +9174,7 @@
                         }
                       ],
                       "destination": {
-                        "local": 5,
+                        "local": 0,
                         "projection": []
                       },
                       "func": {
@@ -9285,50 +9198,15 @@
                 "statements": [
                   {
                     "kind": {
-                      "StorageDead": 6
+                      "StorageDead": 5
                     },
                     "span": 5
                   },
                   {
                     "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 5,
-                              "projection": [
-                                {
-                                  "Downcast": 0
-                                },
-                                {
-                                  "Field": [
-                                    0,
-                                    6
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
+                      "StorageDead": 7
                     },
                     "span": 6
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 8
-                    },
-                    "span": 7
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 5
-                    },
-                    "span": 7
                   }
                 ],
                 "terminator": {
@@ -9340,6 +9218,10 @@
             "locals": [
               {
                 "mutability": "Mut",
+                "span": 7
+              },
+              {
+                "mutability": "Not",
                 "span": 8
               },
               {
@@ -9355,14 +9237,6 @@
                 "span": 11
               },
               {
-                "mutability": "Not",
-                "span": 12
-              },
-              {
-                "mutability": "Mut",
-                "span": 1
-              },
-              {
                 "mutability": "Mut",
                 "span": 2
               },
@@ -9375,7 +9249,7 @@
                 "span": 3
               }
             ],
-            "span": 13,
+            "span": 12,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -9384,7 +9258,7 @@
                 "name": "main",
                 "source_info": {
                   "scope": 0,
-                  "span": 9
+                  "span": 8
                 },
                 "value": {
                   "Place": {
@@ -9399,7 +9273,7 @@
                 "name": "argc",
                 "source_info": {
                   "scope": 0,
-                  "span": 10
+                  "span": 9
                 },
                 "value": {
                   "Place": {
@@ -9414,7 +9288,7 @@
                 "name": "argv",
                 "source_info": {
                   "scope": 0,
-                  "span": 11
+                  "span": 10
                 },
                 "value": {
                   "Place": {
@@ -9429,26 +9303,11 @@
                 "name": "sigpipe",
                 "source_info": {
                   "scope": 0,
-                  "span": 12
+                  "span": 11
                 },
                 "value": {
                   "Place": {
                     "local": 4,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": null,
-                "composite": null,
-                "name": "v",
-                "source_info": {
-                  "scope": 1,
-                  "span": 6
-                },
-                "value": {
-                  "Place": {
-                    "local": 0,
                     "projection": []
                   }
                 }
@@ -9498,54 +9357,6 @@
       {
         "PrimitiveType": {
           "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            0,
-            1
-          ],
-          "fields": "elided",
-          "layout": {
-            "abi": {
-              "Scalar": {
-                "Initialized": {
-                  "valid_range": {
-                    "end": 18446744073709551615,
-                    "start": 0
-                  },
-                  "value": {
-                    "Int": {
-                      "length": "I64",
-                      "signed": true
-                    }
-                  }
-                }
-              }
-            },
-            "abi_align": 8,
-            "fields": {
-              "Arbitrary": {
-                "offsets": [
-                  {
-                    "num_bits": 0
-                  }
-                ]
-              }
-            },
-            "size": {
-              "num_bits": 64
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "name": "std::result::Result<isize, !>"
         }
       }
     ],
@@ -9894,39 +9705,6 @@
             }
           },
           "mutability": "Mut",
-          "pointee_type": "elided"
-        }
-      }
-    ],
-    [
-      {
-        "RefType": {
-          "layout": {
-            "abi": {
-              "Scalar": {
-                "Initialized": {
-                  "valid_range": {
-                    "end": 18446744073709551615,
-                    "start": 1
-                  },
-                  "value": {
-                    "Pointer": 0
-                  }
-                }
-              }
-            },
-            "abi_align": 8,
-            "fields": "Primitive",
-            "size": {
-              "num_bits": 64
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "mutability": "Not",
           "pointee_type": "elided"
         }
       }

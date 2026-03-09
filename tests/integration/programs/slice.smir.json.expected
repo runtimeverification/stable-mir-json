@@ -176,7 +176,7 @@
                         {
                           "Aggregate": [
                             {
-                              "Array": 27
+                              "Array": 26
                             },
                             [
                               {
@@ -199,7 +199,7 @@
                                       }
                                     }
                                   },
-                                  "span": 163,
+                                  "span": 158,
                                   "user_ty": null
                                 }
                               },
@@ -223,7 +223,7 @@
                                       }
                                     }
                                   },
-                                  "span": 164,
+                                  "span": 159,
                                   "user_ty": null
                                 }
                               },
@@ -247,7 +247,7 @@
                                       }
                                     }
                                   },
-                                  "span": 165,
+                                  "span": 160,
                                   "user_ty": null
                                 }
                               },
@@ -271,7 +271,7 @@
                                       }
                                     }
                                   },
-                                  "span": 166,
+                                  "span": 161,
                                   "user_ty": null
                                 }
                               }
@@ -280,7 +280,7 @@
                         }
                       ]
                     },
-                    "span": 167
+                    "span": 162
                   },
                   {
                     "kind": {
@@ -303,7 +303,7 @@
                         }
                       ]
                     },
-                    "span": 168
+                    "span": 163
                   },
                   {
                     "kind": {
@@ -352,7 +352,7 @@
                                       }
                                     }
                                   },
-                                  "span": 169,
+                                  "span": 164,
                                   "user_ty": null
                                 }
                               },
@@ -380,7 +380,7 @@
                                       }
                                     }
                                   },
-                                  "span": 170,
+                                  "span": 165,
                                   "user_ty": null
                                 }
                               }
@@ -389,7 +389,7 @@
                         }
                       ]
                     },
-                    "span": 171
+                    "span": 166
                   }
                 ],
                 "terminator": {
@@ -419,7 +419,7 @@
                             "id": 21,
                             "kind": "ZeroSized"
                           },
-                          "span": 162,
+                          "span": 157,
                           "user_ty": null
                         }
                       },
@@ -427,7 +427,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 162
+                  "span": 157
                 }
               },
               {
@@ -449,7 +449,7 @@
                         }
                       ]
                     },
-                    "span": 173
+                    "span": 168
                   },
                   {
                     "kind": {
@@ -472,7 +472,7 @@
                         }
                       ]
                     },
-                    "span": 174
+                    "span": 169
                   },
                   {
                     "kind": {
@@ -511,14 +511,14 @@
                                   }
                                 }
                               },
-                              "span": 175,
+                              "span": 170,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 175
+                    "span": 170
                   }
                 ],
                 "terminator": {
@@ -548,7 +548,7 @@
                             "id": 28,
                             "kind": "ZeroSized"
                           },
-                          "span": 172,
+                          "span": 167,
                           "user_ty": null
                         }
                       },
@@ -556,7 +556,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 172
+                  "span": 167
                 }
               },
               {
@@ -581,14 +581,14 @@
                       }
                     }
                   },
-                  "span": 172
+                  "span": 167
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 176
+                  "span": 171
                 }
               },
               {
@@ -634,7 +634,7 @@
                                 }
                               }
                             },
-                            "span": 74,
+                            "span": 69,
                             "user_ty": null
                           }
                         }
@@ -649,7 +649,7 @@
                             "id": 30,
                             "kind": "ZeroSized"
                           },
-                          "span": 177,
+                          "span": 172,
                           "user_ty": null
                         }
                       },
@@ -657,53 +657,53 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 177
+                  "span": 172
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 178
+                "span": 173
               },
               {
                 "mutability": "Not",
-                "span": 179
+                "span": 174
               },
               {
                 "mutability": "Not",
-                "span": 180
+                "span": 175
               },
               {
                 "mutability": "Not",
-                "span": 162
+                "span": 157
               },
               {
                 "mutability": "Mut",
-                "span": 168
+                "span": 163
               },
               {
                 "mutability": "Mut",
-                "span": 171
+                "span": 166
+              },
+              {
+                "mutability": "Mut",
+                "span": 167
+              },
+              {
+                "mutability": "Mut",
+                "span": 169
+              },
+              {
+                "mutability": "Mut",
+                "span": 170
               },
               {
                 "mutability": "Mut",
                 "span": 172
-              },
-              {
-                "mutability": "Mut",
-                "span": 174
-              },
-              {
-                "mutability": "Mut",
-                "span": 175
-              },
-              {
-                "mutability": "Mut",
-                "span": 177
               }
             ],
-            "span": 181,
+            "span": 176,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -712,7 +712,7 @@
                 "name": "a",
                 "source_info": {
                   "scope": 1,
-                  "span": 179
+                  "span": 174
                 },
                 "value": {
                   "Place": {
@@ -727,7 +727,7 @@
                 "name": "b",
                 "source_info": {
                   "scope": 2,
-                  "span": 180
+                  "span": 175
                 },
                 "value": {
                   "Place": {
@@ -755,21 +755,21 @@
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 86
+                  "span": 81
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 86
+                "span": 81
               },
               {
                 "mutability": "Not",
-                "span": 86
+                "span": 81
               }
             ],
-            "span": 86,
+            "span": 81,
             "spread_arg": null,
             "var_debug_info": []
           },
@@ -804,7 +804,7 @@
                               "id": 6,
                               "kind": "ZeroSized"
                             },
-                            "span": 74,
+                            "span": 69,
                             "user_ty": null
                           }
                         }
@@ -819,7 +819,7 @@
                             "id": 5,
                             "kind": "ZeroSized"
                           },
-                          "span": 73,
+                          "span": 68,
                           "user_ty": null
                         }
                       },
@@ -827,7 +827,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 75
+                  "span": 70
                 }
               },
               {
@@ -842,7 +842,7 @@
                               "id": 6,
                               "kind": "ZeroSized"
                             },
-                            "span": 74,
+                            "span": 69,
                             "user_ty": null
                           }
                         }
@@ -857,7 +857,7 @@
                             "id": 7,
                             "kind": "ZeroSized"
                           },
-                          "span": 76,
+                          "span": 71,
                           "user_ty": null
                         }
                       },
@@ -865,32 +865,32 @@
                       "unwind": "Unreachable"
                     }
                   },
-                  "span": 77
+                  "span": 72
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 78
+                  "span": 73
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 79
+                "span": 74
               },
               {
                 "mutability": "Not",
-                "span": 80
+                "span": 75
               },
               {
                 "mutability": "Not",
-                "span": 81
+                "span": 76
               }
             ],
-            "span": 84,
+            "span": 79,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -899,7 +899,7 @@
                 "name": "f",
                 "source_info": {
                   "scope": 0,
-                  "span": 80
+                  "span": 75
                 },
                 "value": {
                   "Place": {
@@ -914,7 +914,7 @@
                 "name": "result",
                 "source_info": {
                   "scope": 1,
-                  "span": 82
+                  "span": 77
                 },
                 "value": {
                   "Place": {
@@ -929,7 +929,7 @@
                 "name": "dummy",
                 "source_info": {
                   "scope": 2,
-                  "span": 83
+                  "span": 78
                 },
                 "value": {
                   "Const": {
@@ -937,7 +937,7 @@
                       "id": 6,
                       "kind": "ZeroSized"
                     },
-                    "span": 74,
+                    "span": 69,
                     "user_ty": null
                   }
                 }
@@ -984,55 +984,35 @@
                                   }
                                 }
                               },
-                              "span": 149,
+                              "span": 144,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 149
+                    "span": 144
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 148
+                  "span": 143
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 150
+                "span": 145
               },
               {
                 "mutability": "Not",
-                "span": 151
+                "span": 146
               }
             ],
-            "span": 152,
+            "span": 147,
             "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 151
-                },
-                "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 6,
-                      "kind": "ZeroSized"
-                    },
-                    "span": 74,
-                    "user_ty": null
-                  }
-                }
-              }
-            ]
+            "var_debug_info": []
           },
           "id": 12,
           "name": "<() as std::process::Termination>::report"
@@ -1053,19 +1033,19 @@
                     "kind": {
                       "StorageLive": 2
                     },
-                    "span": 58
+                    "span": 56
                   },
                   {
                     "kind": {
                       "StorageLive": 3
                     },
-                    "span": 57
+                    "span": 55
                   },
                   {
                     "kind": {
                       "StorageLive": 4
                     },
-                    "span": 59
+                    "span": 57
                   },
                   {
                     "kind": {
@@ -1092,7 +1072,7 @@
                         }
                       ]
                     },
-                    "span": 59
+                    "span": 57
                   }
                 ],
                 "terminator": {
@@ -1116,7 +1096,7 @@
                             "id": 3,
                             "kind": "ZeroSized"
                           },
-                          "span": 56,
+                          "span": 54,
                           "user_ty": null
                         }
                       },
@@ -1124,7 +1104,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 57
+                  "span": 55
                 }
               },
               {
@@ -1133,7 +1113,7 @@
                     "kind": {
                       "StorageDead": 4
                     },
-                    "span": 61
+                    "span": 59
                   }
                 ],
                 "terminator": {
@@ -1157,7 +1137,7 @@
                             "id": 4,
                             "kind": "ZeroSized"
                           },
-                          "span": 60,
+                          "span": 58,
                           "user_ty": null
                         }
                       },
@@ -1165,7 +1145,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 58
+                  "span": 56
                 }
               },
               {
@@ -1174,55 +1154,19 @@
                     "kind": {
                       "StorageDead": 3
                     },
-                    "span": 63
+                    "span": 61
                   },
                   {
                     "kind": {
                       "StorageLive": 5
                     },
-                    "span": 64
+                    "span": 62
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
                           "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 2,
-                              "projection": [
-                                {
-                                  "Field": [
-                                    0,
-                                    26
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 64
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 65
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 6,
                           "projection": []
                         },
                         {
@@ -1233,7 +1177,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    26
+                                    25
                                   ]
                                 },
                                 {
@@ -1248,7 +1192,7 @@
                         }
                       ]
                     },
-                    "span": 65
+                    "span": 62
                   },
                   {
                     "kind": {
@@ -1262,54 +1206,52 @@
                             "IntToInt",
                             {
                               "Move": {
-                                "local": 6,
+                                "local": 5,
                                 "projection": []
                               }
                             },
-                            27
+                            26
                           ]
                         }
                       ]
                     },
-                    "span": 66
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 67
+                    "span": 63
                   },
                   {
                     "kind": {
                       "StorageDead": 5
                     },
-                    "span": 68
+                    "span": 64
                   },
                   {
                     "kind": {
                       "StorageDead": 2
                     },
-                    "span": 69
+                    "span": 65
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 62
+                  "span": 60
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 70
+                "span": 66
               },
               {
                 "mutability": "Mut",
-                "span": 45
+                "span": 44
               },
               {
                 "mutability": "Mut",
-                "span": 58
+                "span": 56
+              },
+              {
+                "mutability": "Mut",
+                "span": 55
               },
               {
                 "mutability": "Mut",
@@ -1317,18 +1259,10 @@
               },
               {
                 "mutability": "Mut",
-                "span": 59
-              },
-              {
-                "mutability": "Mut",
-                "span": 64
-              },
-              {
-                "mutability": "Mut",
-                "span": 65
+                "span": 62
               }
             ],
-            "span": 45,
+            "span": 44,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1337,7 +1271,7 @@
                 "name": "main",
                 "source_info": {
                   "scope": 0,
-                  "span": 51
+                  "span": 49
                 },
                 "value": {
                   "Place": {
@@ -1360,26 +1294,11 @@
                 "name": "self",
                 "source_info": {
                   "scope": 1,
-                  "span": 71
+                  "span": 67
                 },
                 "value": {
                   "Place": {
                     "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 2,
-                  "span": 72
-                },
-                "value": {
-                  "Place": {
-                    "local": 5,
                     "projection": []
                   }
                 }
@@ -1419,32 +1338,32 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 85
+                  "span": 80
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 85
+                  "span": 80
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               }
             ],
-            "span": 85,
+            "span": 80,
             "spread_arg": 2,
             "var_debug_info": []
           },
@@ -1492,7 +1411,7 @@
                             "id": 8,
                             "kind": "ZeroSized"
                           },
-                          "span": 85,
+                          "span": 80,
                           "user_ty": null
                         }
                       },
@@ -1500,32 +1419,32 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 85
+                  "span": 80
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 85
+                  "span": 80
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               }
             ],
-            "span": 85,
+            "span": 80,
             "spread_arg": 2,
             "var_debug_info": []
           },
@@ -1571,7 +1490,7 @@
                             "id": 18,
                             "kind": "ZeroSized"
                           },
-                          "span": 141,
+                          "span": 136,
                           "user_ty": null
                         }
                       },
@@ -1579,32 +1498,32 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 142
+                  "span": 137
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 143
+                  "span": 138
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 144
+                "span": 139
               },
               {
                 "mutability": "Not",
-                "span": 145
+                "span": 140
               },
               {
                 "mutability": "Not",
-                "span": 146
+                "span": 141
               }
             ],
-            "span": 147,
+            "span": 142,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1613,7 +1532,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 0,
-                  "span": 145
+                  "span": 140
                 },
                 "value": {
                   "Place": {
@@ -1628,7 +1547,7 @@
                 "name": "index",
                 "source_info": {
                   "scope": 0,
-                  "span": 146
+                  "span": 141
                 },
                 "value": {
                   "Place": {
@@ -1677,7 +1596,7 @@
                         }
                       ]
                     },
-                    "span": 89
+                    "span": 84
                   }
                 ],
                 "terminator": {
@@ -1707,7 +1626,7 @@
                             "id": 10,
                             "kind": "ZeroSized"
                           },
-                          "span": 87,
+                          "span": 82,
                           "user_ty": null
                         }
                       },
@@ -1715,36 +1634,36 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 88
+                  "span": 83
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 90
+                  "span": 85
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 91
+                "span": 86
               },
               {
                 "mutability": "Not",
-                "span": 92
+                "span": 87
               },
               {
                 "mutability": "Not",
-                "span": 93
+                "span": 88
               },
               {
                 "mutability": "Not",
-                "span": 89
+                "span": 84
               }
             ],
-            "span": 94,
+            "span": 89,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1753,7 +1672,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 0,
-                  "span": 92
+                  "span": 87
                 },
                 "value": {
                   "Place": {
@@ -1768,7 +1687,7 @@
                 "name": "index",
                 "source_info": {
                   "scope": 0,
-                  "span": 93
+                  "span": 88
                 },
                 "value": {
                   "Place": {
@@ -1819,7 +1738,7 @@
                         }
                       ]
                     },
-                    "span": 85
+                    "span": 80
                   }
                 ],
                 "terminator": {
@@ -1849,7 +1768,7 @@
                             "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 85,
+                          "span": 80,
                           "user_ty": null
                         }
                       },
@@ -1859,7 +1778,7 @@
                       }
                     }
                   },
-                  "span": 85
+                  "span": 80
                 }
               },
               {
@@ -1875,14 +1794,14 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 85
+                  "span": 80
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 85
+                  "span": 80
                 }
               },
               {
@@ -1898,36 +1817,36 @@
                       "unwind": "Terminate"
                     }
                   },
-                  "span": 85
+                  "span": 80
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Resume",
-                  "span": 85
+                  "span": 80
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               },
               {
                 "mutability": "Not",
-                "span": 85
+                "span": 80
               }
             ],
-            "span": 85,
+            "span": 80,
             "spread_arg": 2,
             "var_debug_info": []
           },
@@ -1965,7 +1884,7 @@
                         }
                       ]
                     },
-                    "span": 135
+                    "span": 130
                   }
                 ],
                 "terminator": {
@@ -1995,7 +1914,7 @@
                             "id": 17,
                             "kind": "ZeroSized"
                           },
-                          "span": 134,
+                          "span": 129,
                           "user_ty": null
                         }
                       },
@@ -2003,36 +1922,36 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 134
+                  "span": 129
                 }
               },
               {
                 "statements": [],
                 "terminator": {
                   "kind": "Return",
-                  "span": 136
+                  "span": 131
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 137
+                "span": 132
               },
               {
                 "mutability": "Not",
-                "span": 138
+                "span": 133
               },
               {
                 "mutability": "Not",
-                "span": 139
+                "span": 134
               },
               {
                 "mutability": "Mut",
-                "span": 138
+                "span": 133
               }
             ],
-            "span": 140,
+            "span": 135,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -2041,7 +1960,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 0,
-                  "span": 138
+                  "span": 133
                 },
                 "value": {
                   "Place": {
@@ -2056,7 +1975,7 @@
                 "name": "other",
                 "source_info": {
                   "scope": 0,
-                  "span": 139
+                  "span": 134
                 },
                 "value": {
                   "Place": {
@@ -2086,37 +2005,37 @@
                     "kind": {
                       "StorageLive": 3
                     },
-                    "span": 96
+                    "span": 91
                   },
                   {
                     "kind": {
                       "StorageLive": 5
                     },
-                    "span": 97
+                    "span": 92
                   },
                   {
                     "kind": {
                       "StorageLive": 9
                     },
-                    "span": 98
+                    "span": 93
                   },
                   {
                     "kind": {
                       "StorageLive": 10
                     },
-                    "span": 98
+                    "span": 93
                   },
                   {
                     "kind": {
                       "StorageLive": 6
                     },
-                    "span": 95
+                    "span": 90
                   },
                   {
                     "kind": {
                       "StorageLive": 7
                     },
-                    "span": 99
+                    "span": 94
                   },
                   {
                     "kind": {
@@ -2138,7 +2057,7 @@
                         }
                       ]
                     },
-                    "span": 99
+                    "span": 94
                   },
                   {
                     "kind": {
@@ -2180,7 +2099,7 @@
                                     }
                                   }
                                 },
-                                "span": 100,
+                                "span": 95,
                                 "user_ty": null
                               }
                             }
@@ -2188,7 +2107,7 @@
                         }
                       ]
                     },
-                    "span": 95
+                    "span": 90
                   }
                 ],
                 "terminator": {
@@ -2211,7 +2130,7 @@
                       }
                     }
                   },
-                  "span": 95
+                  "span": 90
                 }
               },
               {
@@ -2220,12 +2139,12 @@
                     "kind": {
                       "StorageDead": 3
                     },
-                    "span": 102
+                    "span": 97
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 101
+                  "span": 96
                 }
               },
               {
@@ -2234,13 +2153,13 @@
                     "kind": {
                       "StorageDead": 7
                     },
-                    "span": 100
+                    "span": 95
                   },
                   {
                     "kind": {
                       "StorageLive": 8
                     },
-                    "span": 105
+                    "span": 100
                   },
                   {
                     "kind": {
@@ -2251,7 +2170,7 @@
                         },
                         {
                           "AddressOf": [
-                            "Not",
+                            "Const",
                             {
                               "local": 1,
                               "projection": [
@@ -2262,7 +2181,7 @@
                         }
                       ]
                     },
-                    "span": 106
+                    "span": 101
                   },
                   {
                     "kind": {
@@ -2280,12 +2199,12 @@
                                 "projection": []
                               }
                             },
-                            39
+                            37
                           ]
                         }
                       ]
                     },
-                    "span": 107
+                    "span": 102
                   },
                   {
                     "kind": {
@@ -2310,7 +2229,7 @@
                         }
                       ]
                     },
-                    "span": 108
+                    "span": 103
                   },
                   {
                     "kind": {
@@ -2327,7 +2246,7 @@
                                 1,
                                 [
                                   {
-                                    "Type": 40
+                                    "Type": 38
                                   }
                                 ],
                                 null,
@@ -2346,37 +2265,37 @@
                         }
                       ]
                     },
-                    "span": 109
+                    "span": 104
                   },
                   {
                     "kind": {
                       "StorageDead": 8
                     },
-                    "span": 110
+                    "span": 105
                   },
                   {
                     "kind": {
                       "StorageDead": 6
                     },
-                    "span": 111
+                    "span": 106
                   },
                   {
                     "kind": {
                       "StorageDead": 10
                     },
-                    "span": 98
+                    "span": 93
                   },
                   {
                     "kind": {
                       "StorageDead": 9
                     },
-                    "span": 98
+                    "span": 93
                   },
                   {
                     "kind": {
                       "StorageLive": 11
                     },
-                    "span": 112
+                    "span": 107
                   },
                   {
                     "kind": {
@@ -2396,7 +2315,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    40
+                                    38
                                   ]
                                 }
                               ]
@@ -2405,7 +2324,7 @@
                         }
                       ]
                     },
-                    "span": 113
+                    "span": 108
                   },
                   {
                     "kind": {
@@ -2422,10 +2341,10 @@
                                 0,
                                 [
                                   {
-                                    "Type": 40
+                                    "Type": 38
                                   },
                                   {
-                                    "Type": 41
+                                    "Type": 39
                                   }
                                 ],
                                 null,
@@ -2444,19 +2363,19 @@
                         }
                       ]
                     },
-                    "span": 114
+                    "span": 109
                   },
                   {
                     "kind": {
                       "StorageDead": 11
                     },
-                    "span": 112
+                    "span": 107
                   },
                   {
                     "kind": {
                       "StorageDead": 5
                     },
-                    "span": 115
+                    "span": 110
                   },
                   {
                     "kind": {
@@ -2476,7 +2395,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    40
+                                    38
                                   ]
                                 }
                               ]
@@ -2485,7 +2404,7 @@
                         }
                       ]
                     },
-                    "span": 116
+                    "span": 111
                   }
                 ],
                 "terminator": {
@@ -2515,7 +2434,7 @@
                             "id": 12,
                             "kind": "ZeroSized"
                           },
-                          "span": 103,
+                          "span": 98,
                           "user_ty": null
                         }
                       },
@@ -2523,7 +2442,7 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 104
+                  "span": 99
                 }
               },
               {
@@ -2532,7 +2451,7 @@
                     "kind": {
                       "StorageDead": 7
                     },
-                    "span": 100
+                    "span": 95
                   },
                   {
                     "kind": {
@@ -2566,38 +2485,38 @@
                                   }
                                 }
                               },
-                              "span": 74,
+                              "span": 69,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 118
+                    "span": 113
                   },
                   {
                     "kind": {
                       "StorageDead": 6
                     },
-                    "span": 111
+                    "span": 106
                   },
                   {
                     "kind": {
                       "StorageDead": 10
                     },
-                    "span": 98
+                    "span": 93
                   },
                   {
                     "kind": {
                       "StorageDead": 9
                     },
-                    "span": 98
+                    "span": 93
                   },
                   {
                     "kind": {
                       "StorageLive": 11
                     },
-                    "span": 112
+                    "span": 107
                   },
                   {
                     "kind": {
@@ -2631,26 +2550,26 @@
                                   }
                                 }
                               },
-                              "span": 74,
+                              "span": 69,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 119
+                    "span": 114
                   },
                   {
                     "kind": {
                       "StorageDead": 11
                     },
-                    "span": 112
+                    "span": 107
                   },
                   {
                     "kind": {
                       "StorageDead": 5
                     },
-                    "span": 115
+                    "span": 110
                   },
                   {
                     "kind": {
@@ -2677,14 +2596,14 @@
                                   }
                                 }
                               },
-                              "span": 117,
+                              "span": 112,
                               "user_ty": null
                             }
                           }
                         }
                       ]
                     },
-                    "span": 117
+                    "span": 112
                   }
                 ],
                 "terminator": {
@@ -2693,61 +2612,61 @@
                       "target": 1
                     }
                   },
-                  "span": 117
+                  "span": 112
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 120
-              },
-              {
-                "mutability": "Not",
-                "span": 121
-              },
-              {
-                "mutability": "Not",
-                "span": 122
-              },
-              {
-                "mutability": "Not",
-                "span": 96
+                "span": 115
               },
               {
                 "mutability": "Not",
                 "span": 116
               },
               {
-                "mutability": "Mut",
-                "span": 97
-              },
-              {
-                "mutability": "Mut",
-                "span": 95
-              },
-              {
-                "mutability": "Mut",
-                "span": 99
+                "mutability": "Not",
+                "span": 117
               },
               {
                 "mutability": "Not",
-                "span": 105
+                "span": 91
               },
               {
                 "mutability": "Not",
-                "span": 123
+                "span": 111
               },
               {
                 "mutability": "Mut",
-                "span": 124
+                "span": 92
+              },
+              {
+                "mutability": "Mut",
+                "span": 90
+              },
+              {
+                "mutability": "Mut",
+                "span": 94
               },
               {
                 "mutability": "Not",
-                "span": 113
+                "span": 100
+              },
+              {
+                "mutability": "Not",
+                "span": 118
+              },
+              {
+                "mutability": "Mut",
+                "span": 119
+              },
+              {
+                "mutability": "Not",
+                "span": 108
               }
             ],
-            "span": 133,
+            "span": 128,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -2756,7 +2675,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 0,
-                  "span": 121
+                  "span": 116
                 },
                 "value": {
                   "Place": {
@@ -2771,7 +2690,7 @@
                 "name": "other",
                 "source_info": {
                   "scope": 0,
-                  "span": 122
+                  "span": 117
                 },
                 "value": {
                   "Place": {
@@ -2786,7 +2705,7 @@
                 "name": "b",
                 "source_info": {
                   "scope": 1,
-                  "span": 96
+                  "span": 91
                 },
                 "value": {
                   "Place": {
@@ -2801,7 +2720,7 @@
                 "name": "b",
                 "source_info": {
                   "scope": 2,
-                  "span": 116
+                  "span": 111
                 },
                 "value": {
                   "Place": {
@@ -2816,7 +2735,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 3,
-                  "span": 125
+                  "span": 120
                 },
                 "value": {
                   "Place": {
@@ -2831,7 +2750,7 @@
                 "name": "slice",
                 "source_info": {
                   "scope": 4,
-                  "span": 126
+                  "span": 121
                 },
                 "value": {
                   "Place": {
@@ -2846,7 +2765,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 5,
-                  "span": 127
+                  "span": 122
                 },
                 "value": {
                   "Place": {
@@ -2861,7 +2780,7 @@
                 "name": "ptr",
                 "source_info": {
                   "scope": 6,
-                  "span": 105
+                  "span": 100
                 },
                 "value": {
                   "Place": {
@@ -2876,7 +2795,7 @@
                 "name": "me",
                 "source_info": {
                   "scope": 7,
-                  "span": 123
+                  "span": 118
                 },
                 "value": {
                   "Place": {
@@ -2891,7 +2810,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 8,
-                  "span": 128
+                  "span": 123
                 },
                 "value": {
                   "Place": {
@@ -2906,7 +2825,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 9,
-                  "span": 129
+                  "span": 124
                 },
                 "value": {
                   "Place": {
@@ -2921,7 +2840,7 @@
                 "name": "err",
                 "source_info": {
                   "scope": 9,
-                  "span": 130
+                  "span": 125
                 },
                 "value": {
                   "Const": {
@@ -2929,7 +2848,7 @@
                       "id": 16,
                       "kind": "ZeroSized"
                     },
-                    "span": 74,
+                    "span": 69,
                     "user_ty": null
                   }
                 }
@@ -2940,7 +2859,7 @@
                 "name": "v",
                 "source_info": {
                   "scope": 10,
-                  "span": 113
+                  "span": 108
                 },
                 "value": {
                   "Place": {
@@ -2955,7 +2874,7 @@
                 "name": "self",
                 "source_info": {
                   "scope": 11,
-                  "span": 131
+                  "span": 126
                 },
                 "value": {
                   "Place": {
@@ -2970,7 +2889,7 @@
                 "name": "other",
                 "source_info": {
                   "scope": 11,
-                  "span": 132
+                  "span": 127
                 },
                 "value": {
                   "Place": {
@@ -3000,7 +2919,7 @@
                     "kind": {
                       "StorageLive": 3
                     },
-                    "span": 155
+                    "span": 150
                   },
                   {
                     "kind": {
@@ -3018,12 +2937,12 @@
                                 "projection": []
                               }
                             },
-                            40
+                            38
                           ]
                         }
                       ]
                     },
-                    "span": 155
+                    "span": 150
                   }
                 ],
                 "terminator": {
@@ -3053,7 +2972,7 @@
                             "id": 20,
                             "kind": "ZeroSized"
                           },
-                          "span": 153,
+                          "span": 148,
                           "user_ty": null
                         }
                       },
@@ -3061,7 +2980,7 @@
                       "unwind": "Unreachable"
                     }
                   },
-                  "span": 154
+                  "span": 149
                 }
               },
               {
@@ -3070,34 +2989,34 @@
                     "kind": {
                       "StorageDead": 3
                     },
-                    "span": 157
+                    "span": 152
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 156
+                  "span": 151
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
-                "span": 158
+                "span": 153
               },
               {
                 "mutability": "Not",
-                "span": 159
+                "span": 154
               },
               {
                 "mutability": "Not",
-                "span": 160
+                "span": 155
               },
               {
                 "mutability": "Mut",
-                "span": 155
+                "span": 150
               }
             ],
-            "span": 161,
+            "span": 156,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -3106,7 +3025,7 @@
                 "name": "a",
                 "source_info": {
                   "scope": 0,
-                  "span": 159
+                  "span": 154
                 },
                 "value": {
                   "Place": {
@@ -3121,7 +3040,7 @@
                 "name": "b",
                 "source_info": {
                   "scope": 0,
-                  "span": 160
+                  "span": 155
                 },
                 "value": {
                   "Place": {
@@ -3332,7 +3251,7 @@
                         },
                         {
                           "AddressOf": [
-                            "Not",
+                            "Const",
                             {
                               "local": 2,
                               "projection": [
@@ -3821,7 +3740,7 @@
                 "span": 33
               }
             ],
-            "span": 41,
+            "span": 40,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -3945,21 +3864,6 @@
                 }
               },
               {
-                "argument_index": null,
-                "composite": null,
-                "name": "ptr",
-                "source_info": {
-                  "scope": 4,
-                  "span": 32
-                },
-                "value": {
-                  "Place": {
-                    "local": 15,
-                    "projection": []
-                  }
-                }
-              },
-              {
                 "argument_index": 1,
                 "composite": null,
                 "name": "ptr",
@@ -3970,36 +3874,6 @@
                 "value": {
                   "Place": {
                     "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 2,
-                "composite": null,
-                "name": "index",
-                "source_info": {
-                  "scope": 5,
-                  "span": 40
-                },
-                "value": {
-                  "Place": {
-                    "local": 7,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": null,
-                "composite": null,
-                "name": "ptr",
-                "source_info": {
-                  "scope": 6,
-                  "span": 33
-                },
-                "value": {
-                  "Place": {
-                    "local": 16,
                     "projection": []
                   }
                 }
@@ -4029,21 +3903,15 @@
                   },
                   {
                     "kind": {
-                      "StorageLive": 6
+                      "StorageLive": 7
                     },
                     "span": 44
                   },
                   {
                     "kind": {
-                      "StorageLive": 8
-                    },
-                    "span": 45
-                  },
-                  {
-                    "kind": {
                       "Assign": [
                         {
-                          "local": 8,
+                          "local": 7,
                           "projection": []
                         },
                         {
@@ -4079,29 +3947,6 @@
                         }
                       ]
                     },
-                    "span": 45
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 7,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 8,
-                              "projection": []
-                            }
-                          ]
-                        }
-                      ]
-                    },
                     "span": 44
                   },
                   {
@@ -4112,13 +3957,36 @@
                           "projection": []
                         },
                         {
+                          "Ref": [
+                            {
+                              "kind": "ReErased"
+                            },
+                            "Shared",
+                            {
+                              "local": 7,
+                              "projection": []
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "span": 43
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 5,
+                          "projection": []
+                        },
+                        {
                           "Cast": [
                             {
                               "PointerCoercion": "Unsize"
                             },
                             {
                               "Copy": {
-                                "local": 7,
+                                "local": 6,
                                 "projection": []
                               }
                             },
@@ -4127,7 +3995,7 @@
                         }
                       ]
                     },
-                    "span": 44
+                    "span": 43
                   }
                 ],
                 "terminator": {
@@ -4136,7 +4004,7 @@
                       "args": [
                         {
                           "Move": {
-                            "local": 6,
+                            "local": 5,
                             "projection": []
                           }
                         },
@@ -4160,7 +4028,7 @@
                         }
                       ],
                       "destination": {
-                        "local": 5,
+                        "local": 0,
                         "projection": []
                       },
                       "func": {
@@ -4169,7 +4037,7 @@
                             "id": 2,
                             "kind": "ZeroSized"
                           },
-                          "span": 42,
+                          "span": 41,
                           "user_ty": null
                         }
                       },
@@ -4177,68 +4045,41 @@
                       "unwind": "Continue"
                     }
                   },
-                  "span": 43
+                  "span": 42
                 }
               },
               {
                 "statements": [
                   {
                     "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 47
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 5,
-                              "projection": [
-                                {
-                                  "Downcast": 0
-                                },
-                                {
-                                  "Field": [
-                                    0,
-                                    17
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 48
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 8
-                    },
-                    "span": 49
-                  },
-                  {
-                    "kind": {
                       "StorageDead": 5
                     },
-                    "span": 49
+                    "span": 46
+                  },
+                  {
+                    "kind": {
+                      "StorageDead": 7
+                    },
+                    "span": 47
                   }
                 ],
                 "terminator": {
                   "kind": "Return",
-                  "span": 46
+                  "span": 45
                 }
               }
             ],
             "locals": [
               {
                 "mutability": "Mut",
+                "span": 48
+              },
+              {
+                "mutability": "Not",
+                "span": 49
+              },
+              {
+                "mutability": "Not",
                 "span": 50
               },
               {
@@ -4250,31 +4091,19 @@
                 "span": 52
               },
               {
-                "mutability": "Not",
-                "span": 53
-              },
-              {
-                "mutability": "Not",
-                "span": 54
-              },
-              {
                 "mutability": "Mut",
                 "span": 43
               },
               {
-                "mutability": "Mut",
-                "span": 44
+                "mutability": "Not",
+                "span": 43
               },
               {
                 "mutability": "Not",
                 "span": 44
-              },
-              {
-                "mutability": "Not",
-                "span": 45
               }
             ],
-            "span": 55,
+            "span": 53,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -4283,7 +4112,7 @@
                 "name": "main",
                 "source_info": {
                   "scope": 0,
-                  "span": 51
+                  "span": 49
                 },
                 "value": {
                   "Place": {
@@ -4298,7 +4127,7 @@
                 "name": "argc",
                 "source_info": {
                   "scope": 0,
-                  "span": 52
+                  "span": 50
                 },
                 "value": {
                   "Place": {
@@ -4313,7 +4142,7 @@
                 "name": "argv",
                 "source_info": {
                   "scope": 0,
-                  "span": 53
+                  "span": 51
                 },
                 "value": {
                   "Place": {
@@ -4328,26 +4157,11 @@
                 "name": "sigpipe",
                 "source_info": {
                   "scope": 0,
-                  "span": 54
+                  "span": 52
                 },
                 "value": {
                   "Place": {
                     "local": 4,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": null,
-                "composite": null,
-                "name": "v",
-                "source_info": {
-                  "scope": 1,
-                  "span": 48
-                },
-                "value": {
-                  "Place": {
-                    "local": 0,
                     "projection": []
                   }
                 }
@@ -4798,54 +4612,6 @@
             }
           },
           "name": "std::result::Result<&[i32; 2], std::array::TryFromSliceError>"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            0,
-            1
-          ],
-          "fields": "elided",
-          "layout": {
-            "abi": {
-              "Scalar": {
-                "Initialized": {
-                  "valid_range": {
-                    "end": 18446744073709551615,
-                    "start": 0
-                  },
-                  "value": {
-                    "Int": {
-                      "length": "I64",
-                      "signed": true
-                    }
-                  }
-                }
-              }
-            },
-            "abi_align": 8,
-            "fields": {
-              "Arbitrary": {
-                "offsets": [
-                  {
-                    "num_bits": 0
-                  }
-                ]
-              }
-            },
-            "size": {
-              "num_bits": 64
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "name": "std::result::Result<isize, !>"
         }
       }
     ],
@@ -5491,39 +5257,6 @@
             }
           },
           "mutability": "Mut",
-          "pointee_type": "elided"
-        }
-      }
-    ],
-    [
-      {
-        "RefType": {
-          "layout": {
-            "abi": {
-              "Scalar": {
-                "Initialized": {
-                  "valid_range": {
-                    "end": 18446744073709551615,
-                    "start": 1
-                  },
-                  "value": {
-                    "Pointer": 0
-                  }
-                }
-              }
-            },
-            "abi_align": 8,
-            "fields": "Primitive",
-            "size": {
-              "num_bits": 64
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "mutability": "Not",
           "pointee_type": "elided"
         }
       }

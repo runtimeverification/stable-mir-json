@@ -155,8 +155,8 @@ impl GraphContext {
             } => format!("Ascribe {}.{}", place.label(), projections.base),
             Coverage(_) => "Coverage".to_string(),
             Intrinsic(intr) => format!("Intr: {}", self.render_intrinsic(intr)),
-            ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-            Nop {} => "Nop".to_string(),
+            ConstEvalCounter => "ConstEvalCounter".to_string(),
+            Nop => "Nop".to_string(),
         }
     }
 
@@ -235,10 +235,10 @@ impl GraphContext {
         match &term.kind {
             Goto { .. } => "Goto".to_string(),
             SwitchInt { discr, .. } => format!("SwitchInt {}", self.render_operand(discr)),
-            Resume {} => "Resume".to_string(),
-            Abort {} => "Abort".to_string(),
-            Return {} => "Return".to_string(),
-            Unreachable {} => "Unreachable".to_string(),
+            Resume => "Resume".to_string(),
+            Abort => "Abort".to_string(),
+            Return => "Return".to_string(),
+            Unreachable => "Unreachable".to_string(),
             Drop { place, .. } => format!("Drop {}", place.label()),
             Call {
                 func,
