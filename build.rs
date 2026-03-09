@@ -24,11 +24,18 @@ struct Breakpoint {
 ///   `smir_no_<thing>`  for removals
 ///
 /// Keep this table sorted by date.
-const BREAKPOINTS: &[Breakpoint] = &[Breakpoint {
-    date: "2024-12-14",
-    cfg: "smir_has_coroutine_closure",
-    description: "AggregateKind::CoroutineClosure added",
-}];
+const BREAKPOINTS: &[Breakpoint] = &[
+    Breakpoint {
+        date: "2024-12-14",
+        cfg: "smir_has_coroutine_closure",
+        description: "AggregateKind::CoroutineClosure added",
+    },
+    Breakpoint {
+        date: "2025-01-28",
+        cfg: "smir_has_raw_ptr_kind",
+        description: "Rvalue::AddressOf changed from Mutability to RawPtrKind",
+    },
+];
 
 fn main() {
     // Re-run when the toolchain changes.

@@ -75,10 +75,16 @@ impl GraphLabelString for Rvalue {
     fn label(&self) -> String {
         use Rvalue::*;
         match &self {
+            // In nightlies >= 2025-01-28, AddressOf's first field changed from
+            // Mutability (Mut/Not) to RawPtrKind (Mut/Const/FakeForPtrMetadata).
+            // See build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_raw_ptr_kind))]
             AddressOf(mutability, p) => match mutability {
                 Mutability::Not => format!("&raw {}", p.label()),
                 Mutability::Mut => format!("&raw mut {}", p.label()),
             },
+            #[cfg(smir_has_raw_ptr_kind)]
+            AddressOf(kind, p) => format!("&raw {:?} {}", kind, p.label()),
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
