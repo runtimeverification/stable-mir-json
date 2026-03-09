@@ -43,13 +43,20 @@ pub use rustc_middle as middle;
 /// The compiler's typing context; threaded through most compat functions.
 pub use rustc_middle::ty::TyCtxt;
 /// Bridge between stable MIR types and rustc internals.
+/// In nightlies >= 2025-07-08, these moved from rustc_smir to stable_mir.
+#[cfg(not(smir_rustc_internal_moved))]
 pub use rustc_smir::rustc_internal;
 /// Convenience re-export: converts a stable MIR value to its internal rustc
 /// counterpart.
+#[cfg(not(smir_rustc_internal_moved))]
 pub use rustc_smir::rustc_internal::internal;
 /// Rustc's definition identifier. Re-exported so callers outside `compat`
 /// don't need to depend on `rustc_span` directly.
 pub use rustc_span::def_id::DefId;
+#[cfg(smir_rustc_internal_moved)]
+pub use stable_mir::rustc_internal;
+#[cfg(smir_rustc_internal_moved)]
+pub use stable_mir::rustc_internal::internal;
 
 pub mod bridge;
 pub mod indexed_val;

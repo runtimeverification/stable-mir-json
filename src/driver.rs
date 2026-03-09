@@ -25,6 +25,13 @@ extern crate rustc_smir;
 use rustc_driver::Compilation;
 use rustc_interface::interface::Compiler;
 use rustc_middle::ty::TyCtxt;
+// In nightlies >= 2025-07-08, rustc_internal moved from rustc_smir to stable_mir.
+// Both paths are re-exported through compat/mod.rs; driver.rs is the exception
+// that imports rustc crates directly, so we cfg-gate the source crate here too.
+// See build.rs BREAKPOINTS table.
+#[cfg(smir_rustc_internal_moved)]
+use crate::compat::rustc_internal;
+#[cfg(not(smir_rustc_internal_moved))]
 use rustc_smir::rustc_internal;
 
 struct StableMirCallbacks {

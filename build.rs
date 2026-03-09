@@ -50,6 +50,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_no_indexed_val",
         description: "IndexedVal trait became pub(crate), to_index()/to_val() unavailable",
     },
+    Breakpoint {
+        date: "2025-07-07",
+        cfg: "smir_rustc_internal_moved",
+        description: "rustc_internal::{internal,stable,run} moved from rustc_smir to stable_mir",
+    },
 ];
 
 fn main() {
