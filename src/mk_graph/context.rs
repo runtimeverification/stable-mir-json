@@ -327,9 +327,9 @@ impl GraphContext {
                         .map(|l| format!(" ({} bytes)", l.size))
                         .unwrap_or_default();
                     match field.offset {
-                        Some(off) => lines.push(format!(
-                            "  @{off:3}: field{i}: {field_ty_name}{size_str}"
-                        )),
+                        Some(off) => {
+                            lines.push(format!("  @{off:3}: field{i}: {field_ty_name}{size_str}"))
+                        }
                         None => lines.push(format!("  field{i}: {field_ty_name}{size_str}")),
                     }
                 }

@@ -147,9 +147,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
     let rigid = match ty_kind.rigid() {
         Some(r) => r,
         None => {
-            eprintln!(
-                "get_prov_ty: non-rigid type in allocation: {ty_kind:?} (offset={offset})"
-            );
+            eprintln!("get_prov_ty: non-rigid type in allocation: {ty_kind:?} (offset={offset})");
             return None;
         }
     };

@@ -289,9 +289,7 @@ impl TypeIndex {
 impl TypeEntry {
     pub fn from_metadata(metadata: &TypeMetadata, ty: Ty) -> Self {
         let (name, kind, layout) = match metadata {
-            TypeMetadata::PrimitiveType(rigid) => {
-                (format!("{rigid:?}"), TypeKind::Primitive, None)
-            }
+            TypeMetadata::PrimitiveType(rigid) => (format!("{rigid:?}"), TypeKind::Primitive, None),
             TypeMetadata::StructType {
                 name,
                 fields,
