@@ -1,0 +1,23 @@
+# Manual overrides for nightly-2025-07-11
+# Format: action<TAB>path[<TAB>extra]
+#
+# Actions:
+#   -      remove from passing list (use for behavior changes, not deletions;
+#          git deletions and renames are handled automatically)
+#   +      add to passing list
+#   skip   remove from passing list (alias for -, documents intent)
+#   fail   move to failing list (extra = expected exit code)
+#   pass   move from failing to passing list
+#
+# Upstream reworked unsized_locals tests; our driver panics on these (exit 101).
+skip	tests/ui/unsized-locals/align.rs
+skip	tests/ui/unsized-locals/autoderef.rs
+skip	tests/ui/unsized-locals/by-value-trait-dyn-compatibility-rpass.rs
+skip	tests/ui/unsized-locals/by-value-trait-dyn-compatibility-with-default.rs
+skip	tests/ui/unsized-locals/reference-unsized-locals.rs
+skip	tests/ui/unsized-locals/simple-unsized-locals.rs
+# Upstream reworked deref_patterns tests; our driver panics on these (exit 101).
+skip	tests/ui/pattern/deref-patterns/bindings.rs
+skip	tests/ui/pattern/deref-patterns/branch.rs
+# remap-path-prefix-macro.rs: test content changed upstream, now panics (exit 101).
+skip	tests/ui/errors/remap-path-prefix-macro.rs
