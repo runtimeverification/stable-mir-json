@@ -44,7 +44,13 @@ impl GraphLabelString for Operand {
         }
     }
 }
-
+/// Some `AggregateKind` variants only exist on certain nightlies (the
+/// stable MIR API evolves across compiler versions). Arms gated with
+/// `#[cfg(smir_has_*)]` are toggled by `build.rs`, which inspects the
+/// active rustc's commit-date and emits the appropriate cfg flags.
+/// This keeps the match exhaustive on every supported nightly: without
+/// the flag the variant doesn't exist in the enum, so the arm is
+/// excluded; with the flag the arm is included to cover the new variant.
 impl GraphLabelString for AggregateKind {
     fn label(&self) -> String {
         use AggregateKind::*;
@@ -54,6 +60,11 @@ impl GraphLabelString for AggregateKind {
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()),
             Closure(_, _) => "Closure".to_string(),
             Coroutine(_, _, _) => "Coroutine".to_string(),
+
+            // Added in nightlies >= 2024-12-14; see build.rs BREAKPOINTS table.
+            #[cfg(smir_has_coroutine_closure)]
+            CoroutineClosure(_, _) => "CoroutineClosure".to_string(),
+
             RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
             RawPtr(ty, Mutability::Not) => format!("*({})", ty),
         }
