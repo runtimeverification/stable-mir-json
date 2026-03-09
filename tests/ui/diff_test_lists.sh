@@ -97,7 +97,7 @@ fi
 # ---------------------------------------------------------------------------
 # Resolve nightly list -> (label, commit) pairs
 # ---------------------------------------------------------------------------
-DEFAULT_NIGHTLIES="nightly-2024-12-15 nightly-2025-01-25 nightly-2025-01-28 nightly-2025-01-29 nightly-2025-03-01"
+DEFAULT_NIGHTLIES="nightly-2024-12-15 nightly-2025-01-25 nightly-2025-01-28 nightly-2025-01-29 nightly-2025-03-01 nightly-2025-07-11"
 
 if (( ${#NIGHTLY_ARGS[@]} > 0 )); then
   NIGHTLY_LIST=("${NIGHTLY_ARGS[@]}")
@@ -191,16 +191,19 @@ build_effective_passing() {
     effective["$path"]=1
   done
 
-  # Remove deleted files
+  # Remove deleted files.
+  # N.B.: we mark entries as empty rather than using `unset`, because bash
+  # evaluates the subscript in `unset "arr[$key]"` and chokes on filenames
+  # containing $ (e.g., need-crate-arg-ignore-tidy$x.rs).
   for f in "${GIT_DELETED[@]}"; do
-    unset "effective[$f]" 2>/dev/null || true
+    effective["$f"]=""
   done
 
   # Handle renames: remove old path, add new path
   for entry in "${GIT_RENAMED[@]}"; do
     local old="${entry%%	*}" new="${entry##*	}"
     if [[ -n "${effective[$old]:-}" ]]; then
-      unset "effective[$old]"
+      effective["$old"]=""
       effective["$new"]=1
     fi
   done
@@ -211,15 +214,18 @@ build_effective_passing() {
     while IFS=$'\t' read -r action path _rest; do
       [[ -z "$action" || "$action" == \#* ]] && continue
       case "$action" in
-        -)    unset "effective[$path]" 2>/dev/null || true ;;
+        -)    effective["$path"]="" ;;
         +)    effective["$path"]=1 ;;
-        skip) unset "effective[$path]" 2>/dev/null || true ;;
+        skip) effective["$path"]="" ;;
       esac
     done < "$override_file"
   fi
 
-  # Output sorted
-  printf '%s\n' "${!effective[@]}" | sort
+  # Output sorted (skip empty-value entries, which were deleted/skipped).
+  # The `|| true` prevents a false-last-iteration from triggering set -e.
+  for path in "${!effective[@]}"; do
+    [[ -n "${effective[$path]}" ]] && printf '%s\n' "$path" || true
+  done | sort
 }
 
 # ---------------------------------------------------------------------------
@@ -234,9 +240,9 @@ build_effective_failing() {
     effective["$path"]="${BASE_FAILING[$path]}"
   done
 
-  # Remove deleted files
+  # Remove deleted files (mark empty; see note in build_effective_passing)
   for f in "${GIT_DELETED[@]}"; do
-    unset "effective[$f]" 2>/dev/null || true
+    effective["$f"]=""
   done
 
   # Handle renames
@@ -244,7 +250,7 @@ build_effective_failing() {
     local old="${entry%%	*}" new="${entry##*	}"
     if [[ -n "${effective[$old]:-}" ]]; then
       local code="${effective[$old]}"
-      unset "effective[$old]"
+      effective["$old"]=""
       effective["$new"]="$code"
     fi
   done
@@ -255,17 +261,17 @@ build_effective_failing() {
     while IFS=$'\t' read -r action path rest; do
       [[ -z "$action" || "$action" == \#* ]] && continue
       case "$action" in
-        -)    unset "effective[$path]" 2>/dev/null || true ;;
+        -)    effective["$path"]="" ;;
         fail) effective["$path"]="${rest:-1}" ;;
-        pass) unset "effective[$path]" 2>/dev/null || true ;;
+        pass) effective["$path"]="" ;;
       esac
     done < "$override_file"
   fi
 
-  # Output sorted (path<TAB>exit_code)
-  for path in $(printf '%s\n' "${!effective[@]}" | sort); do
-    printf '%s\t%s\n' "$path" "${effective[$path]}"
-  done
+  # Output sorted (path<TAB>exit_code), skipping empty-value entries
+  for path in "${!effective[@]}"; do
+    [[ -n "${effective[$path]}" ]] && printf '%s\t%s\n' "$path" "${effective[$path]}" || true
+  done | sort
 }
 
 # ---------------------------------------------------------------------------
