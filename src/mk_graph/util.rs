@@ -66,8 +66,8 @@ impl GraphLabelString for AggregateKind {
             #[cfg(smir_has_coroutine_closure)]
             CoroutineClosure(_, _) => "CoroutineClosure".to_string(),
 
-            RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
-            RawPtr(ty, Mutability::Not) => format!("*({})", ty),
+            RawPtr(ty, Mutability::Mut) => format!("*mut ({ty})"),
+            RawPtr(ty, Mutability::Not) => format!("*({ty})"),
         }
     }
 }
@@ -122,7 +122,7 @@ impl GraphLabelString for NullOp {
     fn label(&self) -> String {
         match &self {
             NullOp::OffsetOf(_vec) => "OffsetOf(..)".to_string(),
-            other => format!("{:?}", other),
+            other => format!("{other:?}"),
         }
     }
 }
@@ -152,7 +152,7 @@ fn project(local: String, ps: &[ProjectionElem]) -> String {
 
 fn decorate(thing: String, p: &ProjectionElem) -> String {
     match p {
-        ProjectionElem::Deref => format!("(*{})", thing),
+        ProjectionElem::Deref => format!("(*{thing})"),
         ProjectionElem::Field(i, _) => format!("{thing}.{i}"),
         ProjectionElem::Index(local) => format!("{thing}[_{local}]"),
         ProjectionElem::ConstantIndex {

@@ -76,7 +76,7 @@ pub fn resolve_unevaluated_const(
     let inst = maybe_inst
         .ok()
         .flatten()
-        .unwrap_or_else(|| panic!("Failed to resolve mono item for def {:?}", def_id));
+        .unwrap_or_else(|| panic!("Failed to resolve mono item for def {def_id:?}"));
     let internal_mono_item = middle::mir::mono::MonoItem::Fn(inst);
     let item_name = crate::compat::mono_collect::mono_item_name_int(tcx, &internal_mono_item);
     (rustc_internal::stable(internal_mono_item), item_name)
@@ -89,7 +89,7 @@ pub fn instance_kind(tcx: TyCtxt<'_>, inst: &Instance) -> OpaqueInstanceKind {
     let internal_inst = rustc_internal::internal(tcx, inst);
     let kind = internal_inst.def;
     OpaqueInstanceKind {
-        debug_repr: format!("{:?}", kind),
+        debug_repr: format!("{kind:?}"),
         is_reify_shim: matches!(kind, middle::ty::InstanceKind::ReifyShim(..)),
     }
 }

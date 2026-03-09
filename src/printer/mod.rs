@@ -66,14 +66,14 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
 
     match crate::compat::output::mir_output_path(tcx, "smir.json") {
         crate::compat::output::OutputDest::Stdout => {
-            write!(&io::stdout(), "{}", smir_json).expect("Failed to write smir.json");
+            write!(&io::stdout(), "{smir_json}").expect("Failed to write smir.json");
         }
         crate::compat::output::OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
                 File::create(&path)
                     .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
-            write!(b, "{}", smir_json).expect("Failed to write smir.json");
+            write!(b, "{smir_json}").expect("Failed to write smir.json");
         }
     }
 }

@@ -31,14 +31,14 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
 
     match mir_output_path(tcx, "smir.dot") {
         OutputDest::Stdout => {
-            write!(io::stdout(), "{}", smir_dot).expect("Failed to write smir.dot");
+            write!(io::stdout(), "{smir_dot}").expect("Failed to write smir.dot");
         }
         OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
                 File::create(&path)
                     .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
-            write!(b, "{}", smir_dot).expect("Failed to write smir.dot");
+            write!(b, "{smir_dot}").expect("Failed to write smir.dot");
         }
     }
 }
@@ -49,14 +49,14 @@ pub fn emit_d2file(tcx: TyCtxt<'_>) {
 
     match mir_output_path(tcx, "smir.d2") {
         OutputDest::Stdout => {
-            write!(io::stdout(), "{}", smir_d2).expect("Failed to write smir.d2");
+            write!(io::stdout(), "{smir_d2}").expect("Failed to write smir.d2");
         }
         OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
                 File::create(&path)
                     .unwrap_or_else(|e| panic!("Failed to create {}: {}", path.display(), e)),
             );
-            write!(b, "{}", smir_d2).expect("Failed to write smir.d2");
+            write!(b, "{smir_d2}").expect("Failed to write smir.d2");
         }
     }
 }

@@ -53,7 +53,7 @@ fn render_d2_allocs_legend(ctx: &GraphContext, out: &mut String) {
         .map(|s| escape_d2(s))
         .collect::<Vec<_>>()
         .join("\\n");
-    out.push_str(&format!("  label: \"{}\"\n", legend_text));
+    out.push_str(&format!("  label: \"{legend_text}\"\n"));
     out.push_str("}\n\n");
 }
 
@@ -67,8 +67,8 @@ fn render_d2_function(
     let display_name = escape_d2(&name_lines(name));
 
     // Function container
-    out.push_str(&format!("{}: {{\n", fn_id));
-    out.push_str(&format!("  label: \"{}\"\n", display_name));
+    out.push_str(&format!("{fn_id}: {{\n"));
+    out.push_str(&format!("  label: \"{display_name}\"\n"));
     out.push_str("  style.fill: \"#e0e0ff\"\n");
 
     if let Some(body) = body {
@@ -93,20 +93,20 @@ fn render_d2_blocks(body: &stable_mir::mir::Body, ctx: &GraphContext, out: &mut 
             .collect();
         let term_str = escape_d2(&ctx.render_terminator(&block.terminator));
 
-        let mut label = format!("bb{}:", idx);
+        let mut label = format!("bb{idx}:");
         for stmt in &stmts {
-            label.push_str(&format!("\\n{}", stmt));
+            label.push_str(&format!("\\n{stmt}"));
         }
-        label.push_str(&format!("\\n---\\n{}", term_str));
+        label.push_str(&format!("\\n---\\n{term_str}"));
 
-        out.push_str(&format!("  bb{}: \"{}\"\n", idx, label));
+        out.push_str(&format!("  bb{idx}: \"{label}\"\n"));
     }
 }
 
 fn render_d2_block_edges(body: &stable_mir::mir::Body, out: &mut String) {
     for (idx, block) in body.blocks.iter().enumerate() {
         for target in terminator_targets(&block.terminator) {
-            out.push_str(&format!("  bb{} -> bb{}\n", idx, target));
+            out.push_str(&format!("  bb{idx} -> bb{target}\n"));
         }
     }
 }
@@ -130,15 +130,15 @@ fn render_d2_call_edges(
 
         let target_id = short_name(&callee_name);
         out.push_str(&format!("{}: \"{}\"\n", target_id, escape_d2(&callee_name)));
-        out.push_str(&format!("{}.style.fill: \"#ffe0e0\"\n", target_id));
-        out.push_str(&format!("{}.bb{} -> {}: call\n", fn_id, idx, target_id));
+        out.push_str(&format!("{target_id}.style.fill: \"#ffe0e0\"\n"));
+        out.push_str(&format!("{fn_id}.bb{idx} -> {target_id}: call\n"));
     }
 }
 
 fn render_d2_asm(asm: &str, out: &mut String) {
     let asm_id = short_name(asm);
     let asm_text = escape_d2(&asm.lines().collect::<String>());
-    out.push_str(&format!("{}: \"{}\" {{\n", asm_id, asm_text));
+    out.push_str(&format!("{asm_id}: \"{asm_text}\" {{\n"));
     out.push_str("  style.fill: \"#ffe0ff\"\n");
     out.push_str("}\n\n");
 }

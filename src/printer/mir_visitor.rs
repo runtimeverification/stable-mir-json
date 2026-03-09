@@ -127,8 +127,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
     if let Some(derefed) = ty_kind.builtin_deref(true) {
         if *offset != 0 {
             eprintln!(
-                "get_prov_ty: unexpected non-zero offset {} for builtin_deref type {:?}",
-                offset, ty_kind
+                "get_prov_ty: unexpected non-zero offset {offset} for builtin_deref type {ty_kind:?}"
             );
             return None;
         }
@@ -141,7 +140,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
     let layout = match ty.layout().map(|l| l.shape()) {
         Ok(l) => l,
         Err(_) => {
-            eprintln!("get_prov_ty: unable to get layout for {:?}", ty_kind);
+            eprintln!("get_prov_ty: unable to get layout for {ty_kind:?}");
             return None;
         }
     };
@@ -149,8 +148,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
         Some(r) => r,
         None => {
             eprintln!(
-                "get_prov_ty: non-rigid type in allocation: {:?} (offset={})",
-                ty_kind, offset
+                "get_prov_ty: non-rigid type in allocation: {ty_kind:?} (offset={offset})"
             );
             return None;
         }

@@ -118,11 +118,10 @@ impl AllocMap {
 
         assert!(
             missing_from_map.is_empty(),
-            "Alloc-id coherence violation: AllocIds {:?} are referenced in \
+            "Alloc-id coherence violation: AllocIds {missing_from_map:?} are referenced in \
              stored Item bodies but missing from the alloc map. This means \
              the analysis phase collected allocations from a different body \
-             than what is stored in the Items.",
-            missing_from_map
+             than what is stored in the Items."
         );
 
         assert!(

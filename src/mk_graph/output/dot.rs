@@ -83,7 +83,7 @@ impl SmirJson {
                         vector.push(String::from("LOCALS"));
                         for (index, decl) in body.clone().unwrap().local_decls() {
                             let ty_with_layout = ctx.render_type_with_layout(decl.ty);
-                            vector.push(format!("{index} = {}", ty_with_layout));
+                            vector.push(format!("{index} = {ty_with_layout}"));
                         }
                         vector.push("".to_string());
                         local_node.set_label(vector.join("\\l").to_string().as_str());

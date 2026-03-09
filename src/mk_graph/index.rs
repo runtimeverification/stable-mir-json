@@ -141,7 +141,7 @@ impl AllocIndex {
     pub fn describe(&self, id: u64) -> String {
         match self.get(id) {
             Some(entry) => entry.short_description(),
-            None => format!("alloc{}", id),
+            None => format!("alloc{id}"),
         }
     }
 }
@@ -175,7 +175,7 @@ impl AllocEntry {
                     if concrete_bytes.len() > 20 {
                         format!("\"{}...\" ({} bytes)", s, concrete_bytes.len())
                     } else {
-                        format!("\"{}\"", s)
+                        format!("\"{s}\"")
                     }
                 } else if concrete_bytes.len() <= 8 && !concrete_bytes.is_empty() {
                     format!(
@@ -199,23 +199,23 @@ impl AllocEntry {
                 let name = def.name();
                 (
                     AllocKind::Static { name: name.clone() },
-                    format!("static {}", name),
+                    format!("static {name}"),
                 )
             }
             GlobalAlloc::VTable(vty, _trait_ref) => {
-                let desc = format!("{}", vty);
+                let desc = format!("{vty}");
                 (
                     AllocKind::VTable {
                         ty_desc: desc.clone(),
                     },
-                    format!("vtable<{}>", desc),
+                    format!("vtable<{desc}>"),
                 )
             }
             GlobalAlloc::Function(instance) => {
                 let name = instance.name();
                 (
                     AllocKind::Function { name: name.clone() },
-                    format!("fn {}", name),
+                    format!("fn {name}"),
                 )
             }
         };
@@ -267,7 +267,7 @@ impl TypeIndex {
         self.by_id
             .get(&(to_index(&ty) as u64))
             .map(|e| e.name.clone())
-            .unwrap_or_else(|| format!("{}", ty))
+            .unwrap_or_else(|| format!("{ty}"))
     }
 
     pub fn get_layout(&self, ty: Ty) -> Option<&LayoutInfo> {
@@ -290,7 +290,7 @@ impl TypeEntry {
     pub fn from_metadata(metadata: &TypeMetadata, ty: Ty) -> Self {
         let (name, kind, layout) = match metadata {
             TypeMetadata::PrimitiveType(rigid) => {
-                (format!("{:?}", rigid), TypeKind::Primitive, None)
+                (format!("{rigid:?}"), TypeKind::Primitive, None)
             }
             TypeMetadata::StructType {
                 name,
@@ -363,7 +363,7 @@ impl TypeEntry {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 let len = size.as_ref().and_then(|s| s.eval_target_usize().ok());
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Array {
                         elem_ty: *elem_type,
                         len,
@@ -374,7 +374,7 @@ impl TypeEntry {
             TypeMetadata::TupleType { types, layout } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Tuple {
                         fields: types.clone(),
                     },
@@ -388,7 +388,7 @@ impl TypeEntry {
             } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Ptr {
                         pointee: *pointee_type,
                         mutability: *mutability,
@@ -403,7 +403,7 @@ impl TypeEntry {
             } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Ref {
                         pointee: *pointee_type,
                         mutability: *mutability,
@@ -448,7 +448,7 @@ impl TypeEntry {
                         .map(|f| {
                             let ty_name = type_index.get_name(f.ty);
                             match f.offset {
-                                Some(off) => format!("@{}: {}", off, ty_name),
+                                Some(off) => format!("@{off}: {ty_name}"),
                                 None => ty_name,
                             }
                         })

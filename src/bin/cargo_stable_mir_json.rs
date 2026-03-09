@@ -222,6 +222,6 @@ fn record_ld_library_path(smir_json_dir: &Path) -> Result<PathBuf> {
     };
 
     let mut ld_library_file = std::fs::File::create(smir_json_dir.join("ld_library_path"))?;
-    writeln!(ld_library_file, "{}", lib_path)?;
+    writeln!(ld_library_file, "{lib_path}")?;
     Ok(lib_path.into())
 }

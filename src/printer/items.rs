@@ -101,8 +101,7 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (Mon
                 Ok(alloc) => Some(alloc),
                 err => {
                     eprintln!(
-                        "StaticDef({:#?}).eval_initializer() failed with: {:#?}",
-                        static_def, err
+                        "StaticDef({static_def:#?}).eval_initializer() failed with: {err:#?}"
                     );
                     None
                 }
@@ -125,7 +124,7 @@ pub(super) fn mk_item(tcx: TyCtxt<'_>, item: MonoItem, sym_name: String) -> (Mon
             )
         }
         MonoItem::GlobalAsm(ref asm) => {
-            let asm_str = format!("{:#?}", asm);
+            let asm_str = format!("{asm:#?}");
             (
                 item,
                 Item::new(

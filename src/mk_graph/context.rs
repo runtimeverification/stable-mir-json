@@ -73,7 +73,7 @@ impl GraphContext {
                             ty_name
                         )
                     } else {
-                        format!("const {}", ty_name)
+                        format!("const {ty_name}")
                     }
                 }
             }
@@ -83,15 +83,15 @@ impl GraphContext {
                     if let Some(name) = self.functions.get(&ty) {
                         format!("const fn {}", short_fn_name(name))
                     } else {
-                        format!("const {}", ty_name)
+                        format!("const {ty_name}")
                     }
                 } else {
-                    format!("const {}", ty_name)
+                    format!("const {ty_name}")
                 }
             }
-            ConstantKind::Ty(_) => format!("const {}", ty_name),
-            ConstantKind::Unevaluated(_) => format!("const unevaluated {}", ty_name),
-            ConstantKind::Param(_) => format!("const param {}", ty_name),
+            ConstantKind::Ty(_) => format!("const {ty_name}"),
+            ConstantKind::Unevaluated(_) => format!("const unevaluated {ty_name}"),
+            ConstantKind::Param(_) => format!("const param {ty_name}"),
         }
     }
 
@@ -292,7 +292,7 @@ impl GraphContext {
     pub fn render_type_detailed(&self, ty: Ty) -> String {
         match self.types.get(ty) {
             Some(entry) => entry.detailed_description(&self.types),
-            None => format!("{}", ty),
+            None => format!("{ty}"),
         }
     }
 
@@ -302,7 +302,7 @@ impl GraphContext {
         let entry = match self.types.get(ty) {
             Some(e) => e,
             None => {
-                lines.push(format!("{}", ty));
+                lines.push(format!("{ty}"));
                 return lines;
             }
         };
@@ -328,10 +328,9 @@ impl GraphContext {
                         .unwrap_or_default();
                     match field.offset {
                         Some(off) => lines.push(format!(
-                            "  @{:3}: field{}: {}{}",
-                            off, i, field_ty_name, size_str
+                            "  @{off:3}: field{i}: {field_ty_name}{size_str}"
                         )),
-                        None => lines.push(format!("  field{}: {}{}", i, field_ty_name, size_str)),
+                        None => lines.push(format!("  field{i}: {field_ty_name}{size_str}")),
                     }
                 }
             }
@@ -343,7 +342,7 @@ impl GraphContext {
                     let size_str = field_layout
                         .map(|l| format!(" ({} bytes)", l.size))
                         .unwrap_or_default();
-                    lines.push(format!("  field{}: {}{}", i, field_ty_name, size_str));
+                    lines.push(format!("  field{i}: {field_ty_name}{size_str}"));
                 }
             }
             TypeKind::Enum { variants } => {
@@ -354,7 +353,7 @@ impl GraphContext {
                     ));
                     for (j, field) in variant.fields.iter().enumerate() {
                         let field_ty_name = self.types.get_name(field.ty);
-                        lines.push(format!("    field{}: {}", j, field_ty_name));
+                        lines.push(format!("    field{j}: {field_ty_name}"));
                     }
                 }
             }
@@ -363,15 +362,15 @@ impl GraphContext {
                     let field_ty_name = self.types.get_name(field_ty);
                     let offset = entry.layout.as_ref().and_then(|l| l.field_offset(i));
                     match offset {
-                        Some(off) => lines.push(format!("  @{:3}: .{}: {}", off, i, field_ty_name)),
-                        None => lines.push(format!("  .{}: {}", i, field_ty_name)),
+                        Some(off) => lines.push(format!("  @{off:3}: .{i}: {field_ty_name}")),
+                        None => lines.push(format!("  .{i}: {field_ty_name}")),
                     }
                 }
             }
             TypeKind::Array { elem_ty, len } => {
                 let elem_name = self.types.get_name(*elem_ty);
                 let len_str = len.map(|l| l.to_string()).unwrap_or("?".to_string());
-                lines.push(format!("  [{}; {}]", elem_name, len_str));
+                lines.push(format!("  [{elem_name}; {len_str}]"));
             }
             _ => {}
         }
