@@ -11,7 +11,12 @@
 # Apply the normalisation filter
 { allocs:    ( .allocs | sort ),
   functions: (.functions | sort ),
-  items:     (.items | map(walk(if type == "object" then del(.ty) else . end)) | sort ),
+  items:     (.items | map(walk(
+               if type == "object" then del(.ty)
+               # Field projections are {"Field": [field_idx, ty_id]}; the ty_id
+               # is an unstable interned index. Replace it with a placeholder.
+               | if .Field then .Field[1] = 0 else . end
+               else . end)) | sort_by(.symbol_name + "|" + (.mono_item_kind.MonoItemFn.name // "")) ),
   types: ( [
 # sort by constructors and remove unstable IDs within each
     ( .types | map(select(.[0].PrimitiveType)) | sort ),
@@ -29,12 +34,10 @@
     ( .types | map(select(.[0].FunType) | sort) )
   ] | flatten(1) )
 }
-# Strip def_id fields globally. These are interned compiler indices (the
-# underlying ID inside AdtDef) that are consistent within a single rustc
-# invocation but not stable across runs; the same non-determinism that
-# affects alloc_id, Ty indices, and adt_def (see lines 5-6, 18-21 above).
-# Downstream consumers use adt_def/def_id as cross-reference keys to join
-# AggregateKind::Adt in MIR bodies with type metadata entries, so the
-# values can't be dropped from the output itself; we only strip them here
-# for golden-file comparison.
-| walk(if type == "object" then del(.def_id) else . end)
+# Strip interned index fields globally: def_id (AdtDef indices) and id
+# (MonoItemFn and const_ interned IDs). These are consistent within a
+# single rustc invocation but not stable across runs or platforms; the
+# same non-determinism that affects alloc_id, Ty indices, and adt_def
+# (see lines 5-6, 18-21 above). We only strip them here for golden-file
+# comparison.
+| walk(if type == "object" then del(.def_id) | del(.id) else . end)
