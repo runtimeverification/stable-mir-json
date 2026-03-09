@@ -36,7 +36,7 @@ fn main() {
     println!("cargo:rerun-if-changed=rust-toolchain.toml");
 
     let commit_date = detect_commit_date();
-    println!("cargo::warning=rustc commit-date: {commit_date}");
+    eprintln!("build.rs: rustc commit-date: {commit_date}");
 
     for bp in BREAKPOINTS {
         // Unconditionally declare the cfg so that rustc doesn't warn about
@@ -45,8 +45,8 @@ fn main() {
 
         if commit_date.as_str() >= bp.date {
             println!("cargo:rustc-cfg={}", bp.cfg);
-            println!(
-                "cargo::warning=  enabled cfg `{}` (>= {}): {}",
+            eprintln!(
+                "build.rs:   enabled cfg `{}` (>= {}): {}",
                 bp.cfg, bp.date, bp.description
             );
         }

@@ -84,6 +84,14 @@ test-ui: VERBOSE?=0
 test-ui:
 	bash tests/ui/run_ui_tests.sh $(if $(filter 1,$(VERBOSE)),--verbose) "$$RUST_DIR_ROOT"
 
+### Diagnostics
+
+.PHONY: build-info
+## Show build.rs cfg detection output (rustc commit-date, enabled flags)
+build-info:
+	@touch build.rs
+	@cargo build -vv 2>&1 | grep '\] build\.rs:'
+
 ### Code quality
 
 .PHONY: format
