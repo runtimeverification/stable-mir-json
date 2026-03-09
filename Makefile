@@ -84,6 +84,11 @@ test-ui: VERBOSE?=0
 test-ui:
 	bash tests/ui/run_ui_tests.sh $(if $(filter 1,$(VERBOSE)),--verbose) "$$RUST_DIR_ROOT"
 
+.PHONY: test-ui-emit
+## Generate effective UI test lists for a nightly (requires RUST_DIR_ROOT, NIGHTLY=nightly-YYYY-MM-DD)
+test-ui-emit:
+	bash tests/ui/diff_test_lists.sh --emit "$$RUST_DIR_ROOT" $(NIGHTLY)
+
 ### Diagnostics
 
 .PHONY: build-info
