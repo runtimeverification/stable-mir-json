@@ -73,17 +73,24 @@ canonical. If they ever diverge, trust `build.rs`.
 ### Supported range
 
 ```
-  oldest tested          pinned (CI)            newest tested
-       v                     v                       v
-  2024-11-29  ------>  2025-03-01  ---------->  2025-07-05
-       |                                             |
-       +-- all 5 breakpoints covered ----------------+
+  oldest tested                            pinned (CI)
+       v                                       v
+  2024-11-29  --------------------------  2025-07-05
+       |                                       |
+       +-- all 5 breakpoints covered ----------+
 ```
 
 The pinned nightly (the one CI actually runs) is whatever `rust-toolchain.toml`
-says. Everything between the oldest and newest tested nightlies should compile;
-anything outside that range is uncharted territory and may have uncatalogued
-breakpoints.
+says. Everything between the oldest tested nightly and the pinned one should
+compile; anything past the pinned nightly is uncharted territory and may have
+uncatalogued breakpoints.
+
+Integration test golden files are stored per-nightly under
+`tests/integration/expected/<nightly>/`. The Makefile auto-detects the active
+nightly and selects the matching directory (falling back to the pinned nightly's
+set). `make golden` writes into the detected nightly's directory, so adding
+golden files for a new nightly is just
+`RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD make golden`.
 
 ## Shim patterns
 
@@ -323,6 +330,9 @@ Worth being honest about what this buys us and what it costs.
 | See which cfg flags are active | `make build-info` |
 | Build against a different nightly | `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD cargo build` |
 | Run integration tests | `make integration-test` |
-| Regenerate golden files | `make golden` |
+| Run tests against a specific nightly | `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD make integration-test` |
+| Regenerate golden files (active nightly) | `make golden` |
+| Generate golden files for a new nightly | `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD make golden` |
 | Check the pinned nightly | `cat rust-toolchain.toml` |
 | Find the breakpoints table | `build.rs`, search for `BREAKPOINTS` |
+| List available golden file sets | `ls tests/integration/expected/` |
