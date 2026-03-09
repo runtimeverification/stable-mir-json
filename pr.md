@@ -156,6 +156,8 @@ The script has three modes:
 
 `run_ui_tests.sh` auto-detects the active nightly via `rustup show active-toolchain` and uses the effective list from `overrides/<nightly>/` if it exists, falling back to the base list otherwise. No manual flag-passing needed.
 
+Effective lists exist for both `nightly-2025-03-01` (2878 tests) and `nightly-2025-07-11` (2780 tests; upstream deleted 418 files, renamed 323, and 9 now-failing tests are skipped via manual overrides).
+
 
 ### 6. Per-nightly integration test golden files
 
@@ -226,7 +228,7 @@ The compat layer cleanly separates rustc internal changes (absorbed in `compat/`
 
 ### Tests
 - `make integration-test` passes (29/29) with per-nightly golden files for four nightlies
-- `make test-ui` passes (2878/2878 against nightly-2025-03-01)
+- `make test-ui` passes (2878/2878 against nightly-2025-03-01; 2780/2780 against nightly-2025-07-11)
 - `make stdlib-smir` produces 21 valid artifacts
 - Backward compatibility verified: `RUSTUP_TOOLCHAIN=nightly-2024-11-29 cargo build` succeeds
 - Forward compatibility verified: `RUSTUP_TOOLCHAIN=nightly-2025-07-14 cargo build` succeeds
