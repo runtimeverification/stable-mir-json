@@ -31,6 +31,16 @@ const BREAKPOINTS: &[Breakpoint] = &[
         description: "AggregateKind::CoroutineClosure added",
     },
     Breakpoint {
+        date: "2025-01-24",
+        cfg: "smir_has_run_compiler_fn",
+        description: "RunCompiler struct replaced by run_compiler() free function",
+    },
+    Breakpoint {
+        date: "2025-01-27",
+        cfg: "smir_has_named_mono_item_partitions",
+        description: "MonoItemPartitions changed from tuple to named fields",
+    },
+    Breakpoint {
         date: "2025-01-28",
         cfg: "smir_has_raw_ptr_kind",
         description: "Rvalue::AddressOf changed from Mutability to RawPtrKind",

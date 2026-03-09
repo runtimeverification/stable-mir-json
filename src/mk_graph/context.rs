@@ -4,9 +4,11 @@ use std::collections::HashMap;
 
 use crate::compat::stable_mir;
 use stable_mir::mir::{
-    BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue, Statement,
-    StatementKind, Terminator, TerminatorKind,
+    BorrowKind, ConstOperand, NonDivergingIntrinsic, Operand, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind,
 };
+#[cfg(not(smir_has_raw_ptr_kind))]
+use stable_mir::mir::Mutability;
 use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
 
 use crate::printer::SmirJson;
