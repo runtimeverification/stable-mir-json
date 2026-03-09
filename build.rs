@@ -45,6 +45,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_has_raw_ptr_kind",
         description: "Rvalue::AddressOf changed from Mutability to RawPtrKind",
     },
+    Breakpoint {
+        date: "2025-07-04",
+        cfg: "smir_no_indexed_val",
+        description: "IndexedVal trait became pub(crate), to_index()/to_val() unavailable",
+    },
 ];
 
 fn main() {

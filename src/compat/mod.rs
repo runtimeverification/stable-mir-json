@@ -52,6 +52,7 @@ pub use rustc_smir::rustc_internal::internal;
 pub use rustc_span::def_id::DefId;
 
 pub mod bridge;
+pub mod indexed_val;
 pub mod mono_collect;
 pub mod output;
 pub mod spans;

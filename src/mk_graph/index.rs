@@ -5,7 +5,8 @@ use std::collections::HashMap;
 use crate::compat::stable_mir;
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
-use stable_mir::ty::{IndexedVal, Ty};
+use stable_mir::ty::Ty;
+use crate::compat::indexed_val::to_index;
 use stable_mir::CrateDef;
 
 use crate::printer::{AllocInfo, TypeMetadata};
@@ -151,7 +152,7 @@ impl AllocIndex {
 
 impl AllocEntry {
     pub fn from_alloc_info(info: &AllocInfo, type_index: &TypeIndex) -> Self {
-        let alloc_id = info.alloc_id().to_index() as u64;
+        let alloc_id = to_index(&info.alloc_id()) as u64;
         let ty = info.ty();
         let ty_name = type_index.get_name(ty);
 
@@ -253,25 +254,25 @@ impl TypeIndex {
         let mut index = Self::new();
         for (ty, metadata) in types {
             let entry = TypeEntry::from_metadata(metadata, *ty);
-            index.by_id.insert(ty.to_index() as u64, entry);
+            index.by_id.insert(to_index(ty) as u64, entry);
         }
         index
     }
 
     pub fn get(&self, ty: Ty) -> Option<&TypeEntry> {
-        self.by_id.get(&(ty.to_index() as u64))
+        self.by_id.get(&(to_index(&ty) as u64))
     }
 
     pub fn get_name(&self, ty: Ty) -> String {
         self.by_id
-            .get(&(ty.to_index() as u64))
+            .get(&(to_index(&ty) as u64))
             .map(|e| e.name.clone())
             .unwrap_or_else(|| format!("{}", ty))
     }
 
     pub fn get_layout(&self, ty: Ty) -> Option<&LayoutInfo> {
         self.by_id
-            .get(&(ty.to_index() as u64))
+            .get(&(to_index(&ty) as u64))
             .and_then(|e| e.layout.as_ref())
     }
 

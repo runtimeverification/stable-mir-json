@@ -9,7 +9,8 @@ use stable_mir::mir::{
     BorrowKind, ConstOperand, NonDivergingIntrinsic, Operand, Rvalue, Statement, StatementKind,
     Terminator, TerminatorKind,
 };
-use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
+use stable_mir::ty::{ConstantKind, MirConst, Ty};
+use crate::compat::indexed_val::to_index;
 
 use crate::printer::SmirJson;
 
@@ -57,7 +58,7 @@ impl GraphContext {
                         .provenance
                         .ptrs
                         .iter()
-                        .map(|(_offset, prov)| self.allocs.describe(prov.0.to_index() as u64))
+                        .map(|(_offset, prov)| self.allocs.describe(to_index(&prov.0) as u64))
                         .collect();
                     format!("const [{}]", alloc_refs.join(", "))
                 } else {
@@ -141,7 +142,7 @@ impl GraphContext {
             } => format!(
                 "set discriminant {}({})",
                 place.label(),
-                variant_index.to_index()
+                to_index(variant_index)
             ),
             Deinit(p) => format!("Deinit {}", p.label()),
             StorageLive(l) => format!("Storage Live _{}", &l),
