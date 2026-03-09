@@ -74,6 +74,22 @@ To run the tests, do the following:
 make integration-test
 ```
 
+## Standard library
+
+To generate `smir.json` for Rust's standard library (and its transitive dependencies):
+
+```shell
+make stdlib-smir
+```
+
+This builds stable-mir-json, creates a throwaway crate, runs `cargo -Zbuild-std` through the driver, and collects the resulting artifacts into `tests/stdlib-artifacts/`. The output includes `std`, `core`, `alloc`, `proc_macro`, and their dependencies.
+
+To clean up:
+
+```shell
+make clean-stdlib-smir
+```
+
 ## Integration with `cargo`
 Currently the system to integrate with cargo is to create a `.stable_mir_json` package that contains the libraries, binaries, and run scripts for `stable_mir_json`. These run scripts ensure that the the same library that built `stable_mir_json` is used in the `cargo` project. Here are the steps required:
 
