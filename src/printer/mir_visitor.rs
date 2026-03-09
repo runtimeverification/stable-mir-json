@@ -15,13 +15,13 @@
 use crate::compat::middle::ty::TyCtxt;
 use crate::compat::stable_mir;
 
+use crate::compat::indexed_val::{to_index, to_val};
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::Instance;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::mir::{LocalDecl, Rvalue, Terminator, TerminatorKind};
 use stable_mir::ty::ConstDef;
-use crate::compat::indexed_val::{to_index, to_val};
 use stable_mir::visitor::Visitable;
 use stable_mir::CrateDef;
 
@@ -417,7 +417,7 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
     }
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
-        ty.visit(self.ty_visitor);
+        let _ = ty.visit(self.ty_visitor);
         self.super_ty(ty);
     }
 }

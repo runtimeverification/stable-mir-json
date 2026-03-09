@@ -16,10 +16,10 @@ use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
+use crate::compat::indexed_val::to_index;
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
-use crate::compat::indexed_val::to_index;
 use stable_mir::CrateDef;
 
 use super::items::{get_foreign_module_details, mk_item};

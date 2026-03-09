@@ -67,7 +67,7 @@ pub(super) struct TyCollector<'tcx> {
 }
 
 impl TyCollector<'_> {
-    pub fn new(tcx: TyCtxt<'_>) -> TyCollector {
+    pub fn new(tcx: TyCtxt<'_>) -> TyCollector<'_> {
         TyCollector {
             tcx,
             types: HashMap::new(),

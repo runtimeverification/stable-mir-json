@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
+use crate::compat::indexed_val::to_index;
 use crate::compat::stable_mir;
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::ty::Ty;
-use crate::compat::indexed_val::to_index;
 use stable_mir::CrateDef;
 
 use crate::printer::{AllocInfo, TypeMetadata};

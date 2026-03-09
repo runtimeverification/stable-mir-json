@@ -126,7 +126,10 @@ impl super::serde::Serializer for UsizeExtractor {
     fn serialize_none(self) -> Result<usize, Self::Error> {
         Err(UsizeExtractError)
     }
-    fn serialize_some<T: ?Sized + super::serde::Serialize>(self, _: &T) -> Result<usize, Self::Error> {
+    fn serialize_some<T: ?Sized + super::serde::Serialize>(
+        self,
+        _: &T,
+    ) -> Result<usize, Self::Error> {
         Err(UsizeExtractError)
     }
     fn serialize_unit(self) -> Result<usize, Self::Error> {

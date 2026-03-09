@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use crate::compat::indexed_val::to_index;
 use crate::compat::stable_mir;
 #[cfg(not(smir_has_raw_ptr_kind))]
 use stable_mir::mir::Mutability;
@@ -10,7 +11,6 @@ use stable_mir::mir::{
     Terminator, TerminatorKind,
 };
 use stable_mir::ty::{ConstantKind, MirConst, Ty};
-use crate::compat::indexed_val::to_index;
 
 use crate::printer::SmirJson;
 

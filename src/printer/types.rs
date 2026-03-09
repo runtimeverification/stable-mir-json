@@ -8,10 +8,10 @@
 use crate::compat::middle::ty::TyCtxt;
 use crate::compat::stable_mir;
 
-use stable_mir::abi::LayoutShape;
-use stable_mir::ty::TyKind;
 #[cfg(feature = "debug_log")]
 use crate::compat::indexed_val::to_index;
+use stable_mir::abi::LayoutShape;
+use stable_mir::ty::TyKind;
 
 use super::schema::TypeMetadata;
 
