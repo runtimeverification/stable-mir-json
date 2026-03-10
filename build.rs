@@ -70,6 +70,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_no_coroutine_movability",
         description: "Movability removed from RigidTy::Coroutine and AggregateKind::Coroutine",
     },
+    Breakpoint {
+        date: "2025-09-18",
+        cfg: "smir_no_dyn_kind",
+        description: "DynKind removed from TyKind::Dynamic (3 fields to 2)",
+    },
 ];
 
 fn main() {

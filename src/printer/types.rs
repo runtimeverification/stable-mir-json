@@ -140,7 +140,11 @@ pub(super) fn mk_type_metadata(
         // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty references
         T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(name))),
         // other types are not provided either
+        // DynKind removed in nightlies >= 2025-09-18; see build.rs BREAKPOINTS table.
+        #[cfg(not(smir_no_dyn_kind))]
         T(Dynamic(_, _, _)) => Some((k, DynType { name, layout })),
+        #[cfg(smir_no_dyn_kind)]
+        T(Dynamic(_, _)) => Some((k, DynType { name, layout })),
         T(Foreign(_)) | T(Pat(_, _)) | T(CoroutineWitness(_, _)) => {
             debug_log_println!(
                 "\nDEBUG: Skipping unsupported ty {}: {:?}",
