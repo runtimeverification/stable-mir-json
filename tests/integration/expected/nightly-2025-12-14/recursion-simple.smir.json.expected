@@ -54,42 +54,42 @@
     ],
     [
       {
-        "NormalSym": "_RINvNtNtCscDO4RCH5abB_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECse2lkjkuHjnf_1"
+        "NormalSym": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_16recursion_simple"
       }
     ],
     [
       {
-        "NormalSym": "_RNCINvNtCscDO4RCH5abB_3std2rt10lang_startuE0Cse2lkjkuHjnf_1"
+        "NormalSym": "_RNC_3std2rt10lang_startuE0C_16recursion_simple"
       }
     ],
     [
       {
-        "NormalSym": "_RNvCse2lkjkuHjnf_16recursion_sim"
+        "NormalSym": "_RNvC_16recursion_simple12sum_to_n_rec"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCs8Fr6PjOO57e_4cor"
+        "NormalSym": "_RNvNtC_3std2rt19lang_start_internal"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCscDO4RCH5abB_3std2rt19la"
+        "NormalSym": "_RNvNtC_4core9panicking5panic"
       }
     ],
     [
       {
-        "NormalSym": "_RNvXsZ_NtCscDO4RCH5abB_3std7processuNtB5_11Termination6reportCse2lkjkuHjnf_1"
+        "NormalSym": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_16recursion_simple"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYFEuINtNtNtCs8Fr6PjOO57e_4core3ops8function6FnOnceuE9call_onceCse2lkjkuHjnf_1"
+        "NormalSym": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_16recursion_simple"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYNCINvNtCscDO4RCH5abB_3std2rt10lang_startuE0INtNtNtCs8Fr6PjOO57e_4core3ops8function6FnOnceuE9call_onceCse2lkjkuHjnf_1"
+        "NormalSym": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_16recursion_simple"
       }
     ]
   ],
@@ -106,14 +106,12 @@
                   {
                     "kind": {
                       "StorageLive": 5
-                    },
-                    "span": 2
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 7
-                    },
-                    "span": 3
+                    }
                   },
                   {
                     "kind": {
@@ -154,8 +152,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 3
+                    }
                   },
                   {
                     "kind": {
@@ -177,8 +174,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 2
+                    }
                   },
                   {
                     "kind": {
@@ -202,8 +198,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 2
+                    }
                   }
                 ],
                 "terminator": {
@@ -244,15 +239,13 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 0,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 1
+                  }
                 }
               },
               {
@@ -260,57 +253,45 @@
                   {
                     "kind": {
                       "StorageDead": 7
-                    },
-                    "span": 5
+                    }
                   },
                   {
                     "kind": {
                       "StorageDead": 5
-                    },
-                    "span": 5
+                    }
                   }
                 ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 4
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 6
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 7
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 8
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 9
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 10
+                "mutability": "Not"
               },
               {
-                "mutability": "Mut",
-                "span": 2
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 2
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 3
+                "mutability": "Not"
               }
             ],
-            "span": 11,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -318,8 +299,7 @@
                 "composite": null,
                 "name": "main",
                 "source_info": {
-                  "scope": 0,
-                  "span": 7
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -333,8 +313,7 @@
                 "composite": null,
                 "name": "argc",
                 "source_info": {
-                  "scope": 0,
-                  "span": 8
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -348,8 +327,7 @@
                 "composite": null,
                 "name": "argv",
                 "source_info": {
-                  "scope": 0,
-                  "span": 9
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -363,8 +341,7 @@
                 "composite": null,
                 "name": "sigpipe",
                 "source_info": {
-                  "scope": 0,
-                  "span": 10
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -378,7 +355,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "_RINvNtCscDO4RCH5abB_3std2rt10lang_startuECse2lkjkuHjnf_1"
+      "symbol_name": "_RINvNtC_3std2rt10lang_startuEC_16recursion_simple"
     },
     {
       "details": null,
@@ -404,7 +381,6 @@
                             "const_": {
                               "kind": "ZeroSized"
                             },
-                            "span": 13,
                             "user_ty": null
                           }
                         }
@@ -418,15 +394,13 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 12,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 14
+                  }
                 }
               },
               {
@@ -440,7 +414,6 @@
                             "const_": {
                               "kind": "ZeroSized"
                             },
-                            "span": 13,
                             "user_ty": null
                           }
                         }
@@ -454,40 +427,33 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 15,
                           "user_ty": null
                         }
                       },
                       "target": 2,
                       "unwind": "Unreachable"
                     }
-                  },
-                  "span": 16
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 17
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 18
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 19
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 20
+                "mutability": "Not"
               }
             ],
-            "span": 23,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -495,8 +461,7 @@
                 "composite": null,
                 "name": "f",
                 "source_info": {
-                  "scope": 0,
-                  "span": 19
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -510,8 +475,7 @@
                 "composite": null,
                 "name": "result",
                 "source_info": {
-                  "scope": 1,
-                  "span": 21
+                  "scope": 1
                 },
                 "value": {
                   "Place": {
@@ -525,15 +489,13 @@
                 "composite": null,
                 "name": "dummy",
                 "source_info": {
-                  "scope": 2,
-                  "span": 22
+                  "scope": 2
                 },
                 "value": {
                   "Const": {
                     "const_": {
                       "kind": "ZeroSized"
                     },
-                    "span": 13,
                     "user_ty": null
                   }
                 }
@@ -543,7 +505,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "_RINvNtNtCscDO4RCH5abB_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECse2lkjkuHjnf_1"
+      "symbol_name": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_16recursion_simple"
     },
     {
       "details": null,
@@ -557,20 +519,17 @@
                   {
                     "kind": {
                       "StorageLive": 2
-                    },
-                    "span": 26
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 3
-                    },
-                    "span": 25
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 4
-                    },
-                    "span": 27
+                    }
                   },
                   {
                     "kind": {
@@ -596,8 +555,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 27
+                    }
                   }
                 ],
                 "terminator": {
@@ -620,15 +578,13 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 24,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 25
+                  }
                 }
               },
               {
@@ -636,8 +592,7 @@
                   {
                     "kind": {
                       "StorageDead": 4
-                    },
-                    "span": 29
+                    }
                   }
                 ],
                 "terminator": {
@@ -660,15 +615,13 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 28,
                           "user_ty": null
                         }
                       },
                       "target": 2,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 26
+                  }
                 }
               },
               {
@@ -676,14 +629,12 @@
                   {
                     "kind": {
                       "StorageDead": 3
-                    },
-                    "span": 31
+                    }
                   },
                   {
                     "kind": {
                       "StorageLive": 5
-                    },
-                    "span": 32
+                    }
                   },
                   {
                     "kind": {
@@ -714,8 +665,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 32
+                    }
                   },
                   {
                     "kind": {
@@ -737,55 +687,44 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 33
+                    }
                   },
                   {
                     "kind": {
                       "StorageDead": 5
-                    },
-                    "span": 34
+                    }
                   },
                   {
                     "kind": {
                       "StorageDead": 2
-                    },
-                    "span": 35
+                    }
                   }
                 ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 30
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 36
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 3
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 26
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 25
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 27
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 32
+                "mutability": "Mut"
               }
             ],
-            "span": 3,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -793,8 +732,7 @@
                 "composite": null,
                 "name": "main",
                 "source_info": {
-                  "scope": 0,
-                  "span": 7
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -816,8 +754,7 @@
                 "composite": null,
                 "name": "self",
                 "source_info": {
-                  "scope": 1,
-                  "span": 37
+                  "scope": 1
                 },
                 "value": {
                   "Place": {
@@ -831,7 +768,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "_RNCINvNtCscDO4RCH5abB_3std2rt10lang_startuE0Cse2lkjkuHjnf_1"
+      "symbol_name": "_RNC_3std2rt10lang_startuE0C_16recursion_simple"
     },
     {
       "details": null,
@@ -870,47 +807,40 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 38,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 38
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 38
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 38
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               }
             ],
-            "span": 38,
             "spread_arg": 2,
             "var_debug_info": []
           },
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNSNvYNCINvNtCscDO4RCH5abB_3std2rt10lang_startuE0INtNtNtCs8Fr6PjOO57e_4core3ops8function6FnOnceuE9call_once6vtableCse2lkjkuHjnf_1"
+      "symbol_name": "_RNSNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_once6vtableC_16recursion_simple"
     },
     {
       "details": null,
@@ -940,8 +870,7 @@
                         "otherwise": 2
                       }
                     }
-                  },
-                  "span": 39
+                  }
                 }
               },
               {
@@ -973,14 +902,12 @@
                                   }
                                 }
                               },
-                              "span": 41,
                               "user_ty": null
                             }
                           }
                         }
                       ]
-                    },
-                    "span": 41
+                    }
                   }
                 ],
                 "terminator": {
@@ -988,8 +915,7 @@
                     "Goto": {
                       "target": 6
                     }
-                  },
-                  "span": 40
+                  }
                 }
               },
               {
@@ -1029,15 +955,13 @@
                                     }
                                   }
                                 },
-                                "span": 42,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 43
+                    }
                   }
                 ],
                 "terminator": {
@@ -1085,7 +1009,6 @@
                                   }
                                 }
                               },
-                              "span": 42,
                               "user_ty": null
                             }
                           }
@@ -1094,8 +1017,7 @@
                       "target": 3,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 43
+                  }
                 }
               },
               {
@@ -1123,8 +1045,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 43
+                    }
                   }
                 ],
                 "terminator": {
@@ -1147,15 +1068,13 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 44,
                           "user_ty": null
                         }
                       },
                       "target": 4,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 45
+                  }
                 }
               },
               {
@@ -1185,8 +1104,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 46
+                    }
                   }
                 ],
                 "terminator": {
@@ -1226,8 +1144,7 @@
                       "target": 5,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 46
+                  }
                 }
               },
               {
@@ -1255,8 +1172,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 46
+                    }
                   }
                 ],
                 "terminator": {
@@ -1264,45 +1180,36 @@
                     "Goto": {
                       "target": 6
                     }
-                  },
-                  "span": 40
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 47
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 48
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 49
+                "mutability": "Not"
               },
               {
-                "mutability": "Mut",
-                "span": 45
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 43
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 43
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 46
+                "mutability": "Mut"
               }
             ],
-            "span": 50,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1310,8 +1217,7 @@
                 "composite": null,
                 "name": "n",
                 "source_info": {
-                  "scope": 0,
-                  "span": 49
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -1325,7 +1231,7 @@
           "name": "recursion_simple::sum_to_n_rec"
         }
       },
-      "symbol_name": "_RNvCse2lkjkuHjnf_16recursion_sim"
+      "symbol_name": "_RNvC_16recursion_simple12sum_to_n_rec"
     },
     {
       "details": null,
@@ -1359,7 +1265,6 @@
                                 }
                               }
                             },
-                            "span": 52,
                             "user_ty": null
                           }
                         }
@@ -1373,15 +1278,13 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 51,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 53
+                  }
                 }
               },
               {
@@ -1405,15 +1308,13 @@
                         "otherwise": 3
                       }
                     }
-                  },
-                  "span": 54
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 55
+                  "kind": "Return"
                 }
               },
               {
@@ -1458,7 +1359,6 @@
                                 }
                               }
                             },
-                            "span": 13,
                             "user_ty": null
                           }
                         }
@@ -1472,33 +1372,27 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 56,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 56
+                  }
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 57
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 58
+                "mutability": "Not"
               },
               {
-                "mutability": "Mut",
-                "span": 56
+                "mutability": "Mut"
               }
             ],
-            "span": 59,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1506,8 +1400,7 @@
                 "composite": null,
                 "name": "ans",
                 "source_info": {
-                  "scope": 1,
-                  "span": 58
+                  "scope": 1
                 },
                 "value": {
                   "Place": {
@@ -1521,7 +1414,7 @@
           "name": "recursion_simple::main"
         }
       },
-      "symbol_name": "_RNvCse2lkjkuHjnf_16recu"
+      "symbol_name": "_RNvC_16recursion_simple4main"
     },
     {
       "details": null,
@@ -1556,40 +1449,34 @@
                                   }
                                 }
                               },
-                              "span": 13,
                               "user_ty": null
                             }
                           }
                         }
                       ]
-                    },
-                    "span": 61
+                    }
                   }
                 ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 60
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 62
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 63
+                "mutability": "Not"
               }
             ],
-            "span": 64,
             "spread_arg": null,
             "var_debug_info": []
           },
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "_RNvXsZ_NtCscDO4RCH5abB_3std7processuNtB5_11Termination6reportCse2lkjkuHjnf_1"
+      "symbol_name": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_16recursion_simple"
     },
     {
       "details": null,
@@ -1617,40 +1504,34 @@
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 38
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 38
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 38
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               }
             ],
-            "span": 38,
             "spread_arg": 2,
             "var_debug_info": []
           },
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYFEuINtNtNtCs8Fr6PjOO57e_4core3ops8function6FnOnceuE9call_onceCse2lkjkuHjnf_1"
+      "symbol_name": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_16recursion_simple"
     },
     {
       "details": null,
@@ -1685,8 +1566,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 38
+                    }
                   }
                 ],
                 "terminator": {
@@ -1715,7 +1595,6 @@
                           "const_": {
                             "kind": "ZeroSized"
                           },
-                          "span": 38,
                           "user_ty": null
                         }
                       },
@@ -1724,8 +1603,7 @@
                         "Cleanup": 3
                       }
                     }
-                  },
-                  "span": 38
+                  }
                 }
               },
               {
@@ -1740,15 +1618,13 @@
                       "target": 2,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 38
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 38
+                  "kind": "Return"
                 }
               },
               {
@@ -1763,44 +1639,37 @@
                       "target": 4,
                       "unwind": "Terminate"
                     }
-                  },
-                  "span": 38
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Resume",
-                  "span": 38
+                  "kind": "Resume"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 38
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               }
             ],
-            "span": 38,
             "spread_arg": 2,
             "var_debug_info": []
           },
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYNCINvNtCscDO4RCH5abB_3std2rt10lang_startuE0INtNtNtCs8Fr6PjOO57e_4core3ops8function6FnOnceuE9call_onceCse2lkjkuHjnf_1"
+      "symbol_name": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_16recursion_simple"
     }
   ],
   "types": [

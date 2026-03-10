@@ -76,15 +76,20 @@ canonical. If they ever diverge, trust `build.rs`.
 | 2025-07-25 | `smir_no_coroutine_movability` | `Movability` removed from `RigidTy::Coroutine` and `AggregateKind::Coroutine` | `printer/types.rs`, `mk_graph/util.rs` (conditional match arms) |
 | 2025-09-18 | `smir_no_dyn_kind` | `DynKind` removed from `TyKind::Dynamic` (3 fields to 2) | `printer/types.rs` (conditional match arm) |
 | 2025-10-02 | `smir_no_projection_subtype` | `ProjectionElem::Subtype` moved to `CastKind::Subtype` | `mk_graph/util.rs` (conditional match arm) |
+| 2025-10-11 | `smir_no_deinit` | `StatementKind::Deinit` removed | `mk_graph/util.rs`, `mk_graph/context.rs` (conditional match arms) |
+| 2025-11-18 | `smir_no_nullop_offsetof` | `NullOp::OffsetOf` removed; `NullaryOp` loses `Ty` field | `mk_graph/util.rs` (conditional match arm) |
+| 2025-12-05 | `smir_has_reify_fn_pointer_safety` | `PointerCoercion::ReifyFnPointer` gains `Safety` field | `printer/mir_visitor.rs` (conditional match arm) |
+| 2025-12-13 | `smir_no_filename_display_pref` | `FileNameDisplayPreference` became private; `display()` takes `RemapPathScopeComponents` | `compat/spans.rs` (mutually exclusive blocks) |
+| 2025-12-22 | `smir_no_nullary_op` | `Rvalue::NullaryOp` and `NullOp` enum removed entirely; checks move to `Operand::RuntimeChecks` | `mk_graph/util.rs`, `mk_graph/context.rs`, `mk_graph/output/dot.rs` (conditional match arms + gated imports) |
 
 ### Supported range
 
 ```
   oldest tested                                      pinned (CI)   newest tested
        v                                                v              v
-  2024-11-29  ----------------------------------------  2025-10-03  --  2025-10-03
+  2024-11-29  ----------------------------------------  2026-01-15  --  2026-01-15
        |                                                                |
-       +-- all 11 breakpoints covered ---------------------------------+
+       +-- all 16 breakpoints covered ---------------------------------+
 ```
 
 The pinned nightly (the one CI actually runs) is whatever `rust-toolchain.toml`
@@ -292,8 +297,8 @@ There's a dynamic here that's easy to miss if you're only looking at the current
 state of the table: the upfront cost of cataloguing breakpoints is front-loaded,
 but the ongoing cost drops dramatically once you catch up to the present.
 
-Right now, the table covers roughly 8 months of upstream evolution (2024-11-29
-through 2025-07-05). Building that catalogue meant triaging months of
+Right now, the table covers roughly 13 months of upstream evolution (2024-11-29
+through 2026-01-15). Building that catalogue meant triaging months of
 accumulated changes after the fact: archaeological work, sifting through rustc
 commit history to figure out when each break landed. That's the expensive part.
 
