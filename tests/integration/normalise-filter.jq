@@ -22,6 +22,12 @@ def strip_hashes:
                # Field projections are {"Field": [field_idx, ty_id]}; the ty_id
                # is an unstable interned index. Replace it with a placeholder.
                | if .Field then .Field[1] = 0 else . end
+               # {"Type": <int>} wrappers carry interned Ty indices (e.g. inside
+               # Closure aggregate kinds). Normalize to 0.
+               | if .Type and (.Type | type) == "number" then .Type = 0 else . end
+               # {"Array": <int>} is a bare Ty index; {"Array": {count,stride}}
+               # is a layout descriptor. Only normalize the integer form.
+               | if .Array and (.Array | type) == "number" then .Array = 0 else . end
                else . end)) | sort_by(.symbol_name + "|" + (.mono_item_kind.MonoItemFn.name // "")) ),
   types: ( [
 # sort by constructors and remove unstable IDs within each
