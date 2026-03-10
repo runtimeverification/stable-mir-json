@@ -97,7 +97,7 @@ fi
 # ---------------------------------------------------------------------------
 # Resolve nightly list -> (label, commit) pairs
 # ---------------------------------------------------------------------------
-DEFAULT_NIGHTLIES="nightly-2024-12-15 nightly-2025-01-25 nightly-2025-01-28 nightly-2025-01-29 nightly-2025-03-01 nightly-2025-07-11 nightly-2025-07-15 nightly-2025-07-26 nightly-2025-09-19 nightly-2025-10-03"
+DEFAULT_NIGHTLIES="nightly-2024-12-15 nightly-2025-01-25 nightly-2025-01-28 nightly-2025-01-29 nightly-2025-03-01 nightly-2025-07-11 nightly-2025-07-15 nightly-2025-07-26 nightly-2025-09-19 nightly-2025-10-03 nightly-2025-10-12"
 
 if (( ${#NIGHTLY_ARGS[@]} > 0 )); then
   NIGHTLY_LIST=("${NIGHTLY_ARGS[@]}")
