@@ -53,6 +53,7 @@ you'd get `unexpected_cfgs` warnings on every nightly where the flag isn't set.
 |---------|---------|---------|
 | `smir_has_<thing>` | A type, variant, or function was **added** on this date | `smir_has_coroutine_closure` |
 | `smir_no_<thing>` | A type, trait, or function was **removed** (or made private) | `smir_no_indexed_val` |
+| `smir_<descriptive>` | Structural change that doesn't fit add/remove (renames, moves) | `smir_crate_renamed` |
 
 The `smir_` prefix scopes these to stable MIR public API changes. Rustc
 internal changes don't get cfg flags; the compat layer eats those.
@@ -71,15 +72,16 @@ canonical. If they ever diverge, trust `build.rs`.
 | 2025-07-04 | `smir_no_indexed_val` | `IndexedVal` trait became `pub(crate)` | `compat/indexed_val.rs` (adapter module); all `mk_graph/` and `printer/` call sites use the shim |
 | 2025-07-07 | `smir_rustc_internal_moved` | `rustc_internal::{internal,stable,run}` moved from `rustc_smir` to `stable_mir` | `compat/mod.rs` (cfg-gated re-export), `driver.rs` (cfg-gated import) |
 | 2025-07-10 | `smir_has_global_alloc_typeid` | `GlobalAlloc::TypeId { ty }` variant added | `mk_graph/index.rs`, `printer/collect.rs`, `printer/mir_visitor.rs` (conditional match arms) |
+| 2025-07-14 | `smir_crate_renamed` | `stable_mir` -> `rustc_public`, `rustc_smir` -> `rustc_public_bridge` | `compat/mod.rs`, `driver.rs` (cfg-gated `extern crate` aliases) |
 
 ### Supported range
 
 ```
   oldest tested                   pinned (CI)   newest tested
        v                              v              v
-  2024-11-29  ------------------  2025-07-05  --  2025-07-14
+  2024-11-29  ------------------  2025-07-11  --  2025-07-15
        |                                              |
-       +-- all 7 breakpoints covered ----------------+
+       +-- all 8 breakpoints covered ----------------+
 ```
 
 The pinned nightly (the one CI actually runs) is whatever `rust-toolchain.toml`
@@ -94,41 +96,40 @@ set). `make golden` writes into the detected nightly's directory, so adding
 golden files for a new nightly is just
 `RUSTUP_TOOLCHAIN=nightly-YYYY-MM-DD make golden`.
 
-### The `rustc_public` epoch boundary
+### The `rustc_public` crate rename
 
-Nightly 2025-07-15 (commit-date 2025-07-14) lands a wholesale crate rename and
-API restructuring that is too large for the cfg-gating strategy described above.
-This is not another breakpoint; it's an epoch boundary.
+Nightly 2025-07-15 (commit-date 2025-07-14) renames the stable MIR crates:
 
-**What changed:**
+- `stable_mir` -> `rustc_public`
+- `rustc_smir` -> `rustc_public_bridge`
 
-- `stable_mir` was renamed to `rustc_public`
-- `rustc_smir` was renamed to `rustc_public_bridge`
-- Tuple variants across `Rvalue`, `TerminatorKind`, `StatementKind`,
-  `AggregateKind`, and `TyKind` were converted to struct variants
+An unguarded build against nightly-2025-07-15 produces 96 errors, all starting
+from `can't find crate for stable_mir`. The error count looks alarming, but
+it's misleading: every downstream `use` path that touches these crates fails,
+so the errors cascade. The actual API surface (enum variants, function
+signatures, trait definitions) is unchanged; the diff between the old and new
+crates is 58 insertions and 56 deletions across 38 files, almost entirely
+`s/stable_mir/rustc_public/` and `s/rustc_smir/rustc_public_bridge/`.
 
-Attempting to build against nightly-2025-07-15 produces 96 errors, starting
-with `can't find crate for stable_mir`. The crate rename alone could be handled
-with `extern crate rustc_public as stable_mir`, but the tuple-to-struct variant
-migration touches virtually every `match` expression in `printer/` and
-`mk_graph/`. Every match arm would need a dual form (tuple on old nightlies,
-struct on new), which would roughly double the size of the affected code with
-cfg gates. That crosses the line from "manageable conditional compilation" to
-"unmaintainable."
+The fix is a single breakpoint (`smir_crate_renamed`) with cfg-gated
+`extern crate` aliases:
 
-**The decision:** treat 2025-07-14 as a hard upper bound for this branch. The
-current codebase (with all 7 breakpoints) covers nightlies from 2024-11-29
-through 2025-07-14; that's nearly 8 months of backward compatibility from a
-single source. Migration to the `rustc_public` API is future work on a separate
-branch.
+```rust
+#[cfg(not(smir_crate_renamed))]
+pub extern crate rustc_smir;
+#[cfg(smir_crate_renamed)]
+pub extern crate rustc_public_bridge as rustc_smir;
 
-**Migration path (future work):**
+#[cfg(not(smir_crate_renamed))]
+pub extern crate stable_mir;
+#[cfg(smir_crate_renamed)]
+pub extern crate rustc_public as stable_mir;
+```
 
-1. `extern crate rustc_public as stable_mir;` aliases to preserve import paths
-2. Migrate all tuple-variant match arms to struct variants
-3. Fresh breakpoint table starting from the `rustc_public` epoch
-4. The pre-epoch branch remains available for anyone who needs to target older
-   nightlies
+All downstream code continues using `stable_mir::` and `rustc_smir::` paths,
+completely unchanged. This is the same technique the compat layer already uses
+for `rustc_middle as middle`; it just hadn't been needed for a full crate rename
+before.
 
 ## Shim patterns
 
