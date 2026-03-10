@@ -29,46 +29,6 @@ log() {
 }
 
 # -------------------------
-# Extract test directives
-# -------------------------
-
-# Extract //@ compile-flags:, //@ edition:, and //@ rustc-env: directives
-# from a test file. Prints space-separated flags to stdout.
-extract_test_flags() {
-    local file="$1"
-    local flags=""
-
-    # Extract //@ compile-flags: directives (everything after "compile-flags:")
-    local compile_flags
-    compile_flags=$(grep -s '^[[:space:]]*//@[[:space:]]*compile-flags:' "$file" \
-                    | sed 's/^.*compile-flags:[[:space:]]*//' || true)
-    if [ -n "$compile_flags" ]; then
-        flags="$compile_flags"
-    fi
-
-    # Extract //@ edition: directive (e.g., "//@ edition: 2021")
-    local edition
-    edition=$(grep -s '^[[:space:]]*//@[[:space:]]*edition:' "$file" \
-              | sed 's/^.*edition:[[:space:]]*//' | head -1 || true)
-    if [ -n "$edition" ]; then
-        flags="$flags --edition $edition"
-    fi
-
-    # Extract //@ rustc-env: directives (e.g., "//@ rustc-env:MY_VAR=value")
-    # These set environment variables for the rustc process via --env-set.
-    local rustc_envs
-    rustc_envs=$(grep -s '^[[:space:]]*//@[[:space:]]*rustc-env:' "$file" \
-                 | sed 's/^.*rustc-env:[[:space:]]*//' || true)
-    if [ -n "$rustc_envs" ]; then
-        while IFS= read -r env_pair; do
-            flags="$flags --env-set $env_pair -Zunstable-options"
-        done <<< "$rustc_envs"
-    fi
-
-    echo "$flags"
-}
-
-# -------------------------
 # Arg parsing
 # -------------------------
 VERBOSE=0
@@ -116,6 +76,12 @@ done
 # -------------------------
 UI_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+# parse_test_directives.awk handles both skip-detection and flag extraction
+# in a single pass over each test file. It prints one line:
+#   SKIP<TAB>reason     if the test should not run on this host
+#   FLAGS<TAB>flags     if the test should run (flags may be empty)
+AWK_SCRIPT="${UI_DIR}/parse_test_directives.awk"
+
 # Ensure the rust checkout is at the expected commit (handles bare repos)
 source "$UI_DIR/ensure_rustc_commit.sh"
 # Determine the active nightly and use per-nightly effective lists if available.
@@ -138,6 +104,10 @@ if (( SAVE_DEBUG_OUTPUT )); then
   rm -rf "$DEBUG_DIR"
   mkdir -p "$DEBUG_DIR"
 fi
+
+# Collect failed test paths for easy re-investigation.
+FAILED_FILE=$(mktemp /tmp/ui_failed.XXXXXX)
+trap 'rm -f "$FAILED_FILE"' EXIT
 
 # -------------------------
 # Runner setup
@@ -169,27 +139,39 @@ else
 fi
 
 # -------------------------
-# Arch filtering
+# Host detection
 # -------------------------
-HOST_ARCH="$(uname -m)"
-case "$HOST_ARCH" in
-  arm64|aarch64)
-    SKIP_ARCH_RE='/(x86_64|x86|i686|i386|s390x|powerpc|mips|riscv|loongarch|sparc|hexagon|bpf|avr|msp430|nvptx)/'
-    HOST_ONLY_RE='^//@ (\[.*\])?only-(aarch64|arm)'
-    ;;
-  x86_64)
-    SKIP_ARCH_RE='/(aarch64|arm|s390x|powerpc|mips|riscv|loongarch|sparc|hexagon|bpf|avr|msp430|nvptx)/'
-    HOST_ONLY_RE='^//@ (\[.*\])?only-(x86_64|x86)'
-    ;;
-  *)
-    SKIP_ARCH_RE='^$'       # no filtering on unknown arch
-    HOST_ONLY_RE=''         # no directive filtering either
-    ;;
+
+# Normalize host arch: uname -m reports "arm64" on macOS, but rustc
+# test directives use "aarch64".
+HOST_UNAME_ARCH="$(uname -m)"
+case "$HOST_UNAME_ARCH" in
+  arm64)   HOST_ARCH="aarch64" ;;
+  *)       HOST_ARCH="$HOST_UNAME_ARCH" ;;
 esac
 
-ANY_ARCH_ONLY_RE='^//@ (\[.*\])?only-(x86_64|x86|i686|aarch64|arm|s390x|riscv|mips|powerpc|loongarch|sparc)'
+# Normalize host OS to match rustc directive conventions.
+HOST_UNAME_OS="$(uname -s)"
+case "$HOST_UNAME_OS" in
+  Linux)   HOST_OS="linux" ;;
+  Darwin)  HOST_OS="macos" ;;
+  MINGW*|MSYS*|CYGWIN*) HOST_OS="windows" ;;
+  FreeBSD) HOST_OS="freebsd" ;;
+  *)       HOST_OS="$(echo "$HOST_UNAME_OS" | tr '[:upper:]' '[:lower:]')" ;;
+esac
 
-log "Running regression tests for passing UI cases (host: $HOST_ARCH)..."
+# Pointer width for only-32bit / only-64bit directives.
+HOST_BITS="$(getconf LONG_BIT 2>/dev/null || echo 64)"
+
+# Path-based arch filter: skip tests whose path contains a foreign arch
+# directory (e.g., tests/ui/asm/x86_64/ on aarch64).
+FOREIGN_ARCH_RE=""
+case "$HOST_ARCH" in
+  aarch64) FOREIGN_ARCH_RE='/(x86_64|x86|i686|i386|s390x|powerpc|mips|riscv|loongarch|sparc|hexagon|bpf|avr|msp430|nvptx)/' ;;
+  x86_64)  FOREIGN_ARCH_RE='/(aarch64|arm|s390x|powerpc|mips|riscv|loongarch|sparc|hexagon|bpf|avr|msp430|nvptx)/' ;;
+esac
+
+log "Running regression tests for passing UI cases (host: $HOST_ARCH, os: $HOST_OS)..."
 
 start_time=$SECONDS
 failed=0
@@ -206,28 +188,32 @@ while IFS= read -r test; do
 
   (( ++total ))
 
-  # Skip tests gated on a different architecture.
-  # Check 1: path contains a foreign-arch directory name.
-  # Check 2: file contains a rustc `//@ only-<arch>` directive for a different arch.
-  skip_test=0
-  if grep -qE "$SKIP_ARCH_RE" <<<"$test"; then
-    skip_test=1
-  elif [[ -f "$test_path" ]] && grep -qE "$ANY_ARCH_ONLY_RE" "$test_path"; then
-    if [[ -n "${HOST_ONLY_RE:-}" ]] && ! grep -qE "$HOST_ONLY_RE" "$test_path"; then
-      skip_test=1
-    fi
-  fi
-
-  if (( skip_test )); then
+  # --- Skip check and flag extraction ---
+  # Fast path: skip tests whose path contains a foreign-arch directory name
+  # (avoids reading the file at all).
+  if [[ -n "$FOREIGN_ARCH_RE" ]] && grep -qE "$FOREIGN_ARCH_RE" <<<"$test"; then
     (( ++skipped ))
-    if (( VERBOSE )); then
-      log "⏭️  SKIPPED (arch): $test_path"
-    fi
+    (( VERBOSE )) && log "SKIPPED (arch path): $test_path"
     continue
   fi
 
-  # Extract //@ compile-flags:, //@ edition:, and //@ rustc-env: directives.
-  test_flags=$(extract_test_flags "$test_path")
+  # Parse //@ directives: determines whether to skip (and why) and
+  # extracts compile-flags/edition/rustc-env in one pass.
+  directive_result=$(awk -v host_os="$HOST_OS" \
+                         -v host_arch="$HOST_ARCH" \
+                         -v host_bits="$HOST_BITS" \
+                         -f "$AWK_SCRIPT" "$test_path" 2>/dev/null || echo "FLAGS	")
+
+  directive_kind="${directive_result%%	*}"
+  directive_value="${directive_result#*	}"
+
+  if [[ "$directive_kind" == "SKIP" ]]; then
+    (( ++skipped ))
+    (( VERBOSE )) && log "SKIPPED ($directive_value): $test_path"
+    continue
+  fi
+
+  test_flags="$directive_value"
 
   # shellcheck disable=SC2086 # intentional word-splitting of $test_flags
   if (( SAVE_DEBUG_OUTPUT )); then
@@ -244,6 +230,7 @@ while IFS= read -r test; do
     fi
   else
     log "❌ FAILED: $test_path (exit $rc)"
+    printf '%s\t%d\n' "$test" "$rc" >> "$FAILED_FILE"
     if (( SAVE_DEBUG_OUTPUT )) && [[ -s "$test_stderr" ]]; then
       tail -4 "$test_stderr" | sed 's/^/   /'
       cp -- "$test_stderr" "${DEBUG_DIR}/${test_name}.stderr"
@@ -271,6 +258,13 @@ if (( run > 0 )); then
   ratio_passed="$(awk "BEGIN { printf \"%.2f\", $passed/$run }")"
   ratio_failed="$(awk "BEGIN { printf \"%.2f\", $failed/$run }")"
   printf '\nPassing ratio : %s\nFailing ratio : %s\n' "$ratio_passed" "$ratio_failed"
+fi
+
+if (( failed > 0 )); then
+  printf '\nFailed tests:\n'
+  while IFS=$'\t' read -r fpath frc; do
+    printf '  %s (exit %s)\n' "$fpath" "$frc"
+  done < "$FAILED_FILE"
 fi
 
 if (( SAVE_DEBUG_OUTPUT && failed > 0 )); then
