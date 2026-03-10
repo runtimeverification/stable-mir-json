@@ -25,6 +25,11 @@ BEGIN {
     is_apple = (host_os == "macos")
 }
 
+# Tests that use `extern crate libc` fail with E0464 (multiple candidates)
+# because our sysroot ships both .rmeta and .rlib for libc. This is an
+# environment limitation of running rustc directly outside cargo.
+/extern[[:space:]]+crate[[:space:]]+libc/ { skip = "extern-crate-libc" }
+
 # Only process //@ directive lines.
 /^[[:space:]]*\/\/@[[:space:]]/ {
     # Strip leading whitespace and the //@ prefix to get the directive.
@@ -72,6 +77,10 @@ BEGIN {
     # needs-sanitizer-*: we don't have sanitizer support in our test setup
     if (match(dir, /^needs-sanitizer/))  { skip = "needs-sanitizer" }
 
+    # needs-subprocess: test forks/execs the compiled binary; we run with
+    # -Zno-codegen so there is no binary to execute.
+    if (match(dir, /^needs-subprocess/)) { skip = "needs-subprocess" }
+
     # --- Flag extraction directives ---
     # Only extract flags from non-revision-gated directives. Revision-gated
     # flags (e.g., [x32]compile-flags: -Ctarget-feature=+sse2) are for a
@@ -86,12 +95,25 @@ BEGIN {
         }
 
         # edition: append --edition <value>
+        # Range syntax (e.g., "2015..2021") is a compiletest feature that
+        # runs the test once per edition in the range. We use the earliest
+        # edition, since every test in the range must compile with it and
+        # later editions may reject deprecated syntax the test exercises.
         if (match(dir, /^edition:[[:space:]]*/)) {
             val = dir
             sub(/^edition:[[:space:]]*/, "", val)
             # Take first word only
             sub(/[[:space:]].*/, "", val)
-            if (val != "") flags = flags " --edition " val
+            # Range edition: "2015..2021" or "2015..=2021"; extract the start
+            if (match(val, /\.\./)) {
+                val = substr(val, 1, RSTART - 1)
+            }
+            # Validate: edition must be a 4-digit year or "future"
+            if (val == "" || (!match(val, /^[0-9][0-9][0-9][0-9]$/) && val != "future")) {
+                printf "WARNING: unrecognized edition value \"%s\" from directive: %s (in %s)\n", val, dir, FILENAME > "/dev/stderr"
+            } else {
+                flags = flags " --edition " val
+            }
         }
 
         # rustc-env: append --env-set <KEY=VALUE> -Zunstable-options

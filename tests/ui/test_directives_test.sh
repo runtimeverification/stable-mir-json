@@ -232,6 +232,15 @@ check "needs-sanitizer-address skips everywhere" \
 boundary "needs-sanitizer-address skips everywhere" \
   "all needs-sanitizer-* skip unconditionally; our test harness has no sanitizer support"
 
+# Skip directives: needs-subprocess
+
+check "needs-subprocess skips (no binary with -Zno-codegen)" \
+  linux x86_64 64 "SKIP	needs-subprocess" \
+  "//@ run-pass" \
+  "//@ needs-subprocess"
+boundary "needs-subprocess skips (no binary with -Zno-codegen)" \
+  "we run with -Zno-codegen so there is no binary to fork/exec"
+
 # =========================================================================
 # Revision-gated skip directives
 # =========================================================================
@@ -277,6 +286,14 @@ check "compile-flags and edition combined" \
   linux x86_64 64 "FLAGS	-C opt-level=3 --edition 2021" \
   "//@ compile-flags: -C opt-level=3" \
   "//@ edition: 2021"
+
+check "range edition uses earliest (dotdot)" \
+  linux x86_64 64 "FLAGS	--edition 2015" \
+  "//@ edition:2015..2021"
+
+check "range edition uses earliest (dotdoteq)" \
+  linux x86_64 64 "FLAGS	--edition 2021" \
+  "//@ edition:2021..=2024"
 
 # =========================================================================
 # Flag extraction: rustc-env
