@@ -19,9 +19,18 @@ def strip_hashes:
   functions: (.functions | sort ),
   items:     (.items | map(walk(
                if type == "object" then del(.ty)
-               # Field projections are {"Field": [field_idx, ty_id]}; the ty_id
-               # is an unstable interned index. Replace it with a placeholder.
-               | if .Field then .Field[1] = 0 else . end
+               # Several array-encoded constructs embed interned Ty or DefId
+               # indices as bare integers at known positions. Normalize each:
+               #   Field[1]     - Ty index in field projections
+               #   Cast[2]      - Ty index (target type of a cast)
+               #   Closure[0]   - DefId index
+               #   VTable[0]    - Ty index
+               #   Adt[0]       - AdtDef index
+               | if .Field   then .Field[1]   = 0 else . end
+               | if .Cast    then .Cast[2]    = 0 else . end
+               | if .Closure then .Closure[0] = 0 else . end
+               | if .VTable  then .VTable[0]  = 0 else . end
+               | if .Adt     then .Adt[0]     = 0 else . end
                # {"Type": <int>} wrappers carry interned Ty indices (e.g. inside
                # Closure aggregate kinds). Normalize to 0.
                | if .Type and (.Type | type) == "number" then .Type = 0 else . end
