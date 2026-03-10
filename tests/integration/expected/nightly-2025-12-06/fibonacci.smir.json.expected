@@ -53,42 +53,42 @@
     ],
     [
       {
-        "NormalSym": "_RINvNtNtCsaQpuHc5kgGh_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECs8WeZA"
+        "NormalSym": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_9fibonacci"
       }
     ],
     [
       {
-        "NormalSym": "_RNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0Cs8WeZA"
+        "NormalSym": "_RNC_3std2rt10lang_startuE0C_9fibonacci"
       }
     ],
     [
       {
-        "NormalSym": "_RNvCs8WeZA5J7dDC_9fi"
+        "NormalSym": "_RNvC_9fibonacci9fibonacci"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCsaQpuHc5kgGh_3std2rt19la"
+        "NormalSym": "_RNvNtC_3std2rt19lang_start_internal"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCsfKPDvPXsWnO_4cor"
+        "NormalSym": "_RNvNtC_4core9panicking5panic"
       }
     ],
     [
       {
-        "NormalSym": "_RNvXsZ_NtCsaQpuHc5kgGh_3std7processuNtB5_11Termination6reportCs8WeZA"
+        "NormalSym": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_9fibonacci"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYFEuINtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs8WeZA"
+        "NormalSym": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_9fibonacci"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs8WeZA"
+        "NormalSym": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_9fibonacci"
       }
     ]
   ],
@@ -377,7 +377,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "_RINvNtCsaQpuHc5kgGh_3std2rt10lang_startuECs8WeZA"
+      "symbol_name": "_RINvNtC_3std2rt10lang_startuEC_9fibonacci"
     },
     {
       "details": null,
@@ -542,7 +542,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "_RINvNtNtCsaQpuHc5kgGh_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECs8WeZA"
+      "symbol_name": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_9fibonacci"
     },
     {
       "details": null,
@@ -830,7 +830,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "_RNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0Cs8WeZA"
+      "symbol_name": "_RNC_3std2rt10lang_startuE0C_9fibonacci"
     },
     {
       "details": null,
@@ -909,7 +909,203 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNSNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_once6vtableCs8WeZA"
+      "symbol_name": "_RNSNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_once6vtableC_9fibonacci"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 0,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Constant": {
+                            "const_": {
+                              "kind": {
+                                "Allocated": {
+                                  "align": 4,
+                                  "bytes": [
+                                    5,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "mutability": "Mut",
+                                  "provenance": {
+                                    "ptrs": []
+                                  }
+                                }
+                              }
+                            },
+                            "span": 40,
+                            "user_ty": null
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 1,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "kind": "ZeroSized"
+                          },
+                          "span": 39,
+                          "user_ty": null
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 41
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "SwitchInt": {
+                      "discr": {
+                        "Copy": {
+                          "local": 1,
+                          "projection": []
+                        }
+                      },
+                      "targets": {
+                        "branches": [
+                          [
+                            5,
+                            2
+                          ]
+                        ],
+                        "otherwise": 3
+                      }
+                    }
+                  },
+                  "span": 42
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 43
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Constant": {
+                            "const_": {
+                              "kind": {
+                                "Allocated": {
+                                  "align": 8,
+                                  "bytes": [
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    26,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                  ],
+                                  "mutability": "Mut",
+                                  "provenance": {
+                                    "ptrs": [
+                                      [
+                                        0,
+                                        0
+                                      ]
+                                    ]
+                                  }
+                                }
+                              }
+                            },
+                            "span": 13,
+                            "user_ty": null
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 2,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "kind": "ZeroSized"
+                          },
+                          "span": 44,
+                          "user_ty": null
+                        }
+                      },
+                      "target": null,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 44
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 45
+              },
+              {
+                "mutability": "Not",
+                "span": 46
+              },
+              {
+                "mutability": "Mut",
+                "span": 44
+              }
+            ],
+            "span": 47,
+            "spread_arg": null,
+            "var_debug_info": [
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "ans",
+                "source_info": {
+                  "scope": 1,
+                  "span": 46
+                },
+                "value": {
+                  "Place": {
+                    "local": 1,
+                    "projection": []
+                  }
+                }
+              }
+            ]
+          },
+          "name": "main"
+        }
+      },
+      "symbol_name": "_RNvC_9fibonacci4main"
     },
     {
       "details": null,
@@ -1554,203 +1750,7 @@
           "name": "fibonacci"
         }
       },
-      "symbol_name": "_RNvCs8WeZA5J7dDC_9fi"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 0,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Constant": {
-                            "const_": {
-                              "kind": {
-                                "Allocated": {
-                                  "align": 4,
-                                  "bytes": [
-                                    5,
-                                    0,
-                                    0,
-                                    0
-                                  ],
-                                  "mutability": "Mut",
-                                  "provenance": {
-                                    "ptrs": []
-                                  }
-                                }
-                              }
-                            },
-                            "span": 40,
-                            "user_ty": null
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 1,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "kind": "ZeroSized"
-                          },
-                          "span": 39,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 41
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "SwitchInt": {
-                      "discr": {
-                        "Copy": {
-                          "local": 1,
-                          "projection": []
-                        }
-                      },
-                      "targets": {
-                        "branches": [
-                          [
-                            5,
-                            2
-                          ]
-                        ],
-                        "otherwise": 3
-                      }
-                    }
-                  },
-                  "span": 42
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Constant": {
-                            "const_": {
-                              "kind": {
-                                "Allocated": {
-                                  "align": 8,
-                                  "bytes": [
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    26,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0
-                                  ],
-                                  "mutability": "Mut",
-                                  "provenance": {
-                                    "ptrs": [
-                                      [
-                                        0,
-                                        0
-                                      ]
-                                    ]
-                                  }
-                                }
-                              }
-                            },
-                            "span": 13,
-                            "user_ty": null
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 2,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "kind": "ZeroSized"
-                          },
-                          "span": 44,
-                          "user_ty": null
-                        }
-                      },
-                      "target": null,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 44
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 45
-              },
-              {
-                "mutability": "Not",
-                "span": 46
-              },
-              {
-                "mutability": "Mut",
-                "span": 44
-              }
-            ],
-            "span": 47,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": null,
-                "composite": null,
-                "name": "ans",
-                "source_info": {
-                  "scope": 1,
-                  "span": 46
-                },
-                "value": {
-                  "Place": {
-                    "local": 1,
-                    "projection": []
-                  }
-                }
-              }
-            ]
-          },
-          "name": "main"
-        }
-      },
-      "symbol_name": "_RNvCs8WeZA5J7dD"
+      "symbol_name": "_RNvC_9fibonacci9fibonacci"
     },
     {
       "details": null,
@@ -1818,7 +1818,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "_RNvXsZ_NtCsaQpuHc5kgGh_3std7processuNtB5_11Termination6reportCs8WeZA"
+      "symbol_name": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_9fibonacci"
     },
     {
       "details": null,
@@ -1879,7 +1879,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYFEuINtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs8WeZA"
+      "symbol_name": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_9fibonacci"
     },
     {
       "details": null,
@@ -2029,7 +2029,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs8WeZA"
+      "symbol_name": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_9fibonacci"
     }
   ],
   "types": [

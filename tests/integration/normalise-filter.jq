@@ -1,6 +1,12 @@
-# Remove the hashes at the end of mangled names
-.functions = ( [ .functions[] | if .[1].NormalSym then .[1].NormalSym = .[1].NormalSym[:-17] else .  end ] )
-    | .items = ( [ .items[] | if .symbol_name then .symbol_name = .symbol_name[:-17] else .  end ] )
+# Strip platform-specific crate hashes from mangled symbol names.
+# Legacy mangling (_ZN...): hash is always the trailing 17 chars (16 hex + "h" prefix).
+# v0 mangling (_R...): crate disambiguators appear as C<base62>_ throughout the symbol;
+# replace each with "C_" to normalize across platforms.
+def strip_hashes:
+    if startswith("_R") then gsub("C[a-zA-Z0-9]+_(?=[0-9])"; "C_")
+    else .[:-17] end;
+.functions = ( [ .functions[] | if .[1].NormalSym then .[1].NormalSym = (.[1].NormalSym | strip_hashes) else .  end ] )
+    | .items = ( [ .items[] | if .symbol_name then .symbol_name = (.symbol_name | strip_hashes) else .  end ] )
 # delete unstable alloc, function, and type IDs
     | .allocs = ( .allocs | map(del(.alloc_id)) | map(del(.ty)) )
     | .functions = ( [ .functions[] ] | map(del(.[0])) )

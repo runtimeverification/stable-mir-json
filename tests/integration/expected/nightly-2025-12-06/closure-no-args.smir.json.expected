@@ -56,42 +56,42 @@
     ],
     [
       {
-        "NormalSym": "_RINvNtNtCsaQpuHc5kgGh_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECsx9tiu1enOi_"
+        "NormalSym": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_15closure_no_args"
       }
     ],
     [
       {
-        "NormalSym": "_RNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0Csx9tiu1enOi_"
+        "NormalSym": "_RNC_15closure_no_args4main0B3_"
       }
     ],
     [
       {
-        "NormalSym": "_RNCNvCsx9tiu1enOi_15closure"
+        "NormalSym": "_RNC_3std2rt10lang_startuE0C_15closure_no_args"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCsaQpuHc5kgGh_3std2rt19la"
+        "NormalSym": "_RNvNtC_3std2rt19lang_start_internal"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCsfKPDvPXsWnO_4cor"
+        "NormalSym": "_RNvNtC_4core9panicking5panic"
       }
     ],
     [
       {
-        "NormalSym": "_RNvXsZ_NtCsaQpuHc5kgGh_3std7processuNtB5_11Termination6reportCsx9tiu1enOi_"
+        "NormalSym": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_15closure_no_args"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYFEuINtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCsx9tiu1enOi_"
+        "NormalSym": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_15closure_no_args"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCsx9tiu1enOi_"
+        "NormalSym": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_15closure_no_args"
       }
     ]
   ],
@@ -380,7 +380,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "_RINvNtCsaQpuHc5kgGh_3std2rt10lang_startuECsx9tiu1enOi_"
+      "symbol_name": "_RINvNtC_3std2rt10lang_startuEC_15closure_no_args"
     },
     {
       "details": null,
@@ -545,7 +545,78 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "_RINvNtNtCsaQpuHc5kgGh_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECsx9tiu1enOi_"
+      "symbol_name": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_15closure_no_args"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 1,
+            "blocks": [
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 0,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 4,
+                                    "bytes": [
+                                      42,
+                                      0,
+                                      0,
+                                      0
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
+                                    }
+                                  }
+                                }
+                              },
+                              "span": 39,
+                              "user_ty": null
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "span": 39
+                  }
+                ],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 38
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 40
+              },
+              {
+                "mutability": "Mut",
+                "span": 41
+              }
+            ],
+            "span": 41,
+            "spread_arg": null,
+            "var_debug_info": []
+          },
+          "name": "main::{closure#0}"
+        }
+      },
+      "symbol_name": "_RNC_15closure_no_args4main0B3_"
     },
     {
       "details": null,
@@ -833,78 +904,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "_RNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0Csx9tiu1enOi_"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Constant": {
-                              "const_": {
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      42,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                }
-                              },
-                              "span": 39,
-                              "user_ty": null
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 39
-                  }
-                ],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 38
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 40
-              },
-              {
-                "mutability": "Mut",
-                "span": 41
-              }
-            ],
-            "span": 41,
-            "spread_arg": null,
-            "var_debug_info": []
-          },
-          "name": "main::{closure#0}"
-        }
-      },
-      "symbol_name": "_RNCNvCsx9tiu1enOi_15closure"
+      "symbol_name": "_RNC_3std2rt10lang_startuE0C_15closure_no_args"
     },
     {
       "details": null,
@@ -983,7 +983,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNSNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_once6vtableCsx9tiu1enOi_"
+      "symbol_name": "_RNSNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_once6vtableC_15closure_no_args"
     },
     {
       "details": null,
@@ -1206,7 +1206,7 @@
           "name": "main"
         }
       },
-      "symbol_name": "_RNvCsx9tiu1enOi_15clo"
+      "symbol_name": "_RNvC_15closure_no_args4main"
     },
     {
       "details": null,
@@ -1274,7 +1274,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "_RNvXsZ_NtCsaQpuHc5kgGh_3std7processuNtB5_11Termination6reportCsx9tiu1enOi_"
+      "symbol_name": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_15closure_no_args"
     },
     {
       "details": null,
@@ -1335,7 +1335,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYFEuINtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCsx9tiu1enOi_"
+      "symbol_name": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_15closure_no_args"
     },
     {
       "details": null,
@@ -1485,7 +1485,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCsx9tiu1enOi_"
+      "symbol_name": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_15closure_no_args"
     }
   ],
   "types": [

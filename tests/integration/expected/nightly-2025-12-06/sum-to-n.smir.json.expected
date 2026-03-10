@@ -51,47 +51,47 @@
     ],
     [
       {
-        "NormalSym": "_RINvNtNtCsaQpuHc5kgGh_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECs4I0O"
+        "NormalSym": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_8sum_to_n"
       }
     ],
     [
       {
-        "NormalSym": "_RNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0Cs4I0O"
+        "NormalSym": "_RNC_3std2rt10lang_startuE0C_8sum_to_n"
       }
     ],
     [
       {
-        "NormalSym": "_RNvCs4I0OxdBArTp_8"
+        "NormalSym": "_RNvC_8sum_to_n13test_sum_to_n"
       }
     ],
     [
       {
-        "NormalSym": "_RNvCs4I0OxdBArTp_8sum_to"
+        "NormalSym": "_RNvC_8sum_to_n8sum_to_n"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCsaQpuHc5kgGh_3std2rt19la"
+        "NormalSym": "_RNvNtC_3std2rt19lang_start_internal"
       }
     ],
     [
       {
-        "NormalSym": "_RNvNtCsfKPDvPXsWnO_4cor"
+        "NormalSym": "_RNvNtC_4core9panicking5panic"
       }
     ],
     [
       {
-        "NormalSym": "_RNvXsZ_NtCsaQpuHc5kgGh_3std7processuNtB5_11Termination6reportCs4I0O"
+        "NormalSym": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_8sum_to_n"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYFEuINtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs4I0O"
+        "NormalSym": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_8sum_to_n"
       }
     ],
     [
       {
-        "NormalSym": "_RNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs4I0O"
+        "NormalSym": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_8sum_to_n"
       }
     ]
   ],
@@ -380,7 +380,7 @@
           "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "_RINvNtCsaQpuHc5kgGh_3std2rt10lang_startuECs4I0O"
+      "symbol_name": "_RINvNtC_3std2rt10lang_startuEC_8sum_to_n"
     },
     {
       "details": null,
@@ -545,7 +545,7 @@
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
-      "symbol_name": "_RINvNtNtCsaQpuHc5kgGh_3std3sys9backtrace28___rust_begin_short_backtraceFEuuECs4I0O"
+      "symbol_name": "_RINvNtNtC_3std3sys9backtrace28___rust_begin_short_backtraceFEuuEC_8sum_to_n"
     },
     {
       "details": null,
@@ -833,7 +833,7 @@
           "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "_RNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0Cs4I0O"
+      "symbol_name": "_RNC_3std2rt10lang_startuE0C_8sum_to_n"
     },
     {
       "details": null,
@@ -912,7 +912,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNSNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_once6vtableCs4I0O"
+      "symbol_name": "_RNSNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_once6vtableC_8sum_to_n"
     },
     {
       "details": null,
@@ -1285,7 +1285,67 @@
           "name": "test_sum_to_n"
         }
       },
-      "symbol_name": "_RNvCs4I0OxdBArTp_8sum_to"
+      "symbol_name": "_RNvC_8sum_to_n13test_sum_to_n"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 0,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [],
+                      "destination": {
+                        "local": 1,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "kind": "ZeroSized"
+                          },
+                          "span": 54,
+                          "user_ty": null
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  },
+                  "span": 55
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return",
+                  "span": 56
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut",
+                "span": 57
+              },
+              {
+                "mutability": "Not",
+                "span": 55
+              }
+            ],
+            "span": 58,
+            "spread_arg": null,
+            "var_debug_info": []
+          },
+          "name": "main"
+        }
+      },
+      "symbol_name": "_RNvC_8sum_to_n4main"
     },
     {
       "details": null,
@@ -1870,67 +1930,7 @@
           "name": "sum_to_n"
         }
       },
-      "symbol_name": "_RNvCs4I0OxdBArTp_8"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 0,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [],
-                      "destination": {
-                        "local": 1,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "kind": "ZeroSized"
-                          },
-                          "span": 54,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 55
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 56
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 57
-              },
-              {
-                "mutability": "Not",
-                "span": 55
-              }
-            ],
-            "span": 58,
-            "spread_arg": null,
-            "var_debug_info": []
-          },
-          "name": "main"
-        }
-      },
-      "symbol_name": "_RNvCs4I0OxdBAr"
+      "symbol_name": "_RNvC_8sum_to_n8sum_to_n"
     },
     {
       "details": null,
@@ -1998,7 +1998,7 @@
           "name": "<() as std::process::Termination>::report"
         }
       },
-      "symbol_name": "_RNvXsZ_NtCsaQpuHc5kgGh_3std7processuNtB5_11Termination6reportCs4I0O"
+      "symbol_name": "_RNvXsZ_NtC_3std7processuNtB5_11Termination6reportC_8sum_to_n"
     },
     {
       "details": null,
@@ -2059,7 +2059,7 @@
           "name": "<fn() as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYFEuINtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs4I0O"
+      "symbol_name": "_RNvYFEuINtNtNtC_4core3ops8function6FnOnceuE9call_onceC_8sum_to_n"
     },
     {
       "details": null,
@@ -2209,7 +2209,7 @@
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
-      "symbol_name": "_RNvYNCINvNtCsaQpuHc5kgGh_3std2rt10lang_startuE0INtNtNtCsfKPDvPXsWnO_4core3ops8function6FnOnceuE9call_onceCs4I0O"
+      "symbol_name": "_RNvYNC_3std2rt10lang_startuE0INtNtNtC_4core3ops8function6FnOnceuE9call_onceC_8sum_to_n"
     }
   ],
   "types": [
