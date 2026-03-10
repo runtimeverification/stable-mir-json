@@ -36,6 +36,35 @@ const INTERNED_TYPES: &[&str] = &[
     "VariantIdx",
 ];
 
+// Interned key names that always need normalizing, regardless of whether
+// the spy encounters them in a particular program's output.  These fields
+// carry interned indices used as cross-reference keys by downstream tools
+// (joining AggregateKind::Adt in MIR bodies with type metadata entries,
+// etc.), so they can't be dropped from the output itself; they're only
+// stripped for golden-file comparison.
+//
+// The spy may miss them because (a) the program under test doesn't
+// exercise the code path that produces them, or (b) the DefId is wrapped
+// in a domain-specific newtype (TraitDef, StaticDef, ClosureDef) that's
+// transparent in JSON but opaque to the spy's immediate-parent check.
+const SEEDED_INTERNED_KEYS: &[&str] = &[
+    "def_id", "adt_def", "ty", "span", "id", "alloc_id",
+];
+
+// Interned newtype wrappers that always need normalizing.  On newer
+// nightlies the serialize_index_impl! macro serializes interned types
+// as bare integers, so the spy can't discover these dynamically.
+const SEEDED_INTERNED_NEWTYPES: &[&str] = &["Type", "Array"];
+
+// Interned positions that always need normalizing.
+const SEEDED_INTERNED_POSITIONS: &[(&str, &[usize])] = &[
+    ("Field", &[1]),
+    ("Cast", &[2]),
+    ("Closure", &[0]),
+    ("VTable", &[0]),
+    ("Adt", &[0]),
+];
+
 // ── Receipt output ──────────────────────────────────────────────────────────
 
 /// Schema-level receipt of where interned indices appear in the JSON output.
@@ -84,12 +113,19 @@ struct Tracker {
 
 impl Tracker {
     fn new() -> Self {
+        let mut positions = BTreeMap::new();
+        for (name, idxs) in SEEDED_INTERNED_POSITIONS {
+            positions
+                .entry(name.to_string())
+                .or_insert_with(BTreeSet::new)
+                .extend(idxs.iter().copied());
+        }
         Self {
             context: vec![ParentKind::Root],
             interned_names: INTERNED_TYPES.iter().copied().collect(),
-            keys: BTreeSet::new(),
-            newtypes: BTreeSet::new(),
-            positions: BTreeMap::new(),
+            keys: SEEDED_INTERNED_KEYS.iter().map(|s| s.to_string()).collect(),
+            newtypes: SEEDED_INTERNED_NEWTYPES.iter().map(|s| s.to_string()).collect(),
+            positions,
         }
     }
 
@@ -128,11 +164,7 @@ impl Tracker {
         Receipts {
             interned_keys: self.keys,
             interned_newtypes: self.newtypes,
-            interned_positions: self
-                .positions
-                .into_iter()
-                .map(|(k, v)| (k, v))
-                .collect(),
+            interned_positions: self.positions,
         }
     }
 }
@@ -312,6 +344,19 @@ impl ser::Serializer for SpySerializer {
         name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
+        // On newer nightlies (post-ThreadLocalIndex), interned types like
+        // Ty(usize, ThreadLocalIndex) serialize as tuple structs instead of
+        // newtype structs.  Detect them the same way we detect newtypes.
+        {
+            let tracker = self.tracker.borrow();
+            if tracker.interned_names.contains(name) {
+                drop(tracker);
+                self.tracker.borrow_mut().record_interned();
+                // Return a compound that ignores its fields; we've already
+                // recorded the finding and don't need to recurse deeper.
+                return Ok(SpyCompound::new(self.tracker, "", false));
+            }
+        }
         Ok(SpyCompound::new(self.tracker, name, false))
     }
 
@@ -608,5 +653,38 @@ mod tests {
             "expected Cast[2] in interned_positions, got: {:?}",
             receipts.interned_positions
         );
+
+        // Seeded values should always be present, even if the test type
+        // doesn't exercise the code paths that produce them.
+        for key in SEEDED_INTERNED_KEYS {
+            assert!(
+                receipts.interned_keys.contains(*key),
+                "expected seeded key '{}' in interned_keys, got: {:?}",
+                key,
+                receipts.interned_keys
+            );
+        }
+        for nt in SEEDED_INTERNED_NEWTYPES {
+            assert!(
+                receipts.interned_newtypes.contains(*nt),
+                "expected seeded newtype '{}' in interned_newtypes, got: {:?}",
+                nt,
+                receipts.interned_newtypes
+            );
+        }
+        for (name, idxs) in SEEDED_INTERNED_POSITIONS {
+            for idx in *idxs {
+                assert!(
+                    receipts
+                        .interned_positions
+                        .get(*name)
+                        .map_or(false, |s| s.contains(idx)),
+                    "expected seeded position {}[{}] in interned_positions, got: {:?}",
+                    name,
+                    idx,
+                    receipts.interned_positions
+                );
+            }
+        }
     }
 }

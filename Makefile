@@ -69,7 +69,7 @@ GOLDEN_DIR     := $(shell \
 integration-test: TESTS     ?= $(shell find $(TESTDIR) -type f -name "*.rs")
 integration-test: SMIR      ?= cargo run -- "-Zno-codegen"
 # override this to tweak how expectations are formatted
-integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
+integration-test: FILTER    ?= $(TESTDIR)/../normalise-filter.jq
 # override this to re-make golden files
 integration-test: DIFF      ?= | diff -
 ## Run integration tests against expected outputs
@@ -79,14 +79,15 @@ integration-test:
 	report() { echo "$$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
 	for rust in $(TESTS); do \
 		target=$${rust%.rs}.smir.json; \
+		receipts=$${target%.json}.receipts.json; \
 		name=$$(basename $${rust%.rs}); \
 		dir=$$(dirname $${rust}); \
 		expected="$(GOLDEN_DIR)/$${name}.smir.json.expected"; \
 		echo "$$rust"; \
 		$(SMIR) --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
 		[ -f $${target} ] \
-			&& $(NORMALIZE) $${target} $(DIFF) $${expected} \
-			&& rm $${target} \
+			&& jq -S -e --slurpfile receipts $${receipts} -f $(FILTER) $${target} $(DIFF) $${expected} \
+			&& rm -f $${target} $${receipts} \
 			|| report "$$rust" "Unexpected json output"; \
 		done; \
 	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
