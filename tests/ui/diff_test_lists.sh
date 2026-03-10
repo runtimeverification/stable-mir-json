@@ -97,7 +97,7 @@ fi
 # ---------------------------------------------------------------------------
 # Resolve nightly list -> (label, commit) pairs
 # ---------------------------------------------------------------------------
-DEFAULT_NIGHTLIES="nightly-2024-12-15 nightly-2025-01-25 nightly-2025-01-28 nightly-2025-01-29 nightly-2025-03-01 nightly-2025-07-11"
+DEFAULT_NIGHTLIES="nightly-2024-12-15 nightly-2025-01-25 nightly-2025-01-28 nightly-2025-01-29 nightly-2025-03-01 nightly-2025-07-11 nightly-2025-07-15"
 
 if (( ${#NIGHTLY_ARGS[@]} > 0 )); then
   NIGHTLY_LIST=("${NIGHTLY_ARGS[@]}")
@@ -150,24 +150,29 @@ done < "$FAILING_TSV"
 compute_diff() {
   local from="$1" to="$2"
 
+  # Use a high rename limit to avoid truncated rename detection on large diffs.
+  # Without this, git silently falls back to treating renames as delete+add,
+  # which shrinks the effective test list by dropping renamed tests.
+  local -a diff_cmd=(git -C "$RUST_DIR" -c diff.renameLimit=5000 diff)
+
   mapfile -t GIT_DELETED < <(
-    git -C "$RUST_DIR" diff --diff-filter=D --name-only "$from..$to" -- tests/ui/ \
+    "${diff_cmd[@]}" --diff-filter=D --name-only "$from..$to" -- tests/ui/ \
     | grep '\.rs$' || true
   )
 
   mapfile -t GIT_ADDED < <(
-    git -C "$RUST_DIR" diff --diff-filter=A --name-only "$from..$to" -- tests/ui/ \
+    "${diff_cmd[@]}" --diff-filter=A --name-only "$from..$to" -- tests/ui/ \
     | grep '\.rs$' || true
   )
 
   mapfile -t GIT_RENAMED < <(
-    git -C "$RUST_DIR" diff --diff-filter=R --name-status "$from..$to" -- tests/ui/ \
+    "${diff_cmd[@]}" --diff-filter=R --name-status "$from..$to" -- tests/ui/ \
     | grep '\.rs' \
     | awk '{print $2 "\t" $3}' || true
   )
 
   mapfile -t GIT_MODIFIED < <(
-    git -C "$RUST_DIR" diff --diff-filter=M --name-only "$from..$to" -- tests/ui/ \
+    "${diff_cmd[@]}" --diff-filter=M --name-only "$from..$to" -- tests/ui/ \
     | grep '\.rs$' || true
   )
 }
