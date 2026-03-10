@@ -71,8 +71,7 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
     let receipt_json =
         serde_json::to_string(&receipt).expect("serde_json failed to write receipts");
 
-    let smir_json =
-        serde_json::to_string(&collected).expect("serde_json failed to write result");
+    let smir_json = serde_json::to_string(&collected).expect("serde_json failed to write result");
 
     match crate::compat::output::mir_output_path(tcx, "smir.json") {
         crate::compat::output::OutputDest::Stdout => {
@@ -91,15 +90,10 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
             // Write the receipts file alongside the JSON output:
             // foo.smir.json → foo.smir.receipts.json
             let receipts_path = path.with_extension("receipts.json");
-            let mut rb = io::BufWriter::new(
-                File::create(&receipts_path).unwrap_or_else(|e| {
-                    panic!(
-                        "Failed to create {}: {}",
-                        receipts_path.display(),
-                        e
-                    )
-                }),
-            );
+            let mut rb =
+                io::BufWriter::new(File::create(&receipts_path).unwrap_or_else(|e| {
+                    panic!("Failed to create {}: {}", receipts_path.display(), e)
+                }));
             write!(rb, "{receipt_json}").expect("Failed to write receipts");
         }
     }

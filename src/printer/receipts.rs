@@ -26,14 +26,7 @@ use std::rc::Rc;
 // serializer sees one of these names, it records the enclosing context in
 // the receipt.
 
-const INTERNED_TYPES: &[&str] = &[
-    "Ty",
-    "Span",
-    "AllocId",
-    "DefId",
-    "AdtDef",
-    "CrateNum",
-];
+const INTERNED_TYPES: &[&str] = &["Ty", "Span", "AllocId", "DefId", "AdtDef", "CrateNum"];
 
 // Interned key names that always need normalizing, regardless of whether
 // the spy encounters them in a particular program's output.  These fields
@@ -46,9 +39,7 @@ const INTERNED_TYPES: &[&str] = &[
 // exercise the code path that produces them, or (b) the DefId is wrapped
 // in a domain-specific newtype (TraitDef, StaticDef, ClosureDef) that's
 // transparent in JSON but opaque to the spy's immediate-parent check.
-const SEEDED_INTERNED_KEYS: &[&str] = &[
-    "def_id", "adt_def", "ty", "span", "id", "alloc_id",
-];
+const SEEDED_INTERNED_KEYS: &[&str] = &["def_id", "adt_def", "ty", "span", "id", "alloc_id"];
 
 // Interned newtype wrappers that always need normalizing.  On newer
 // nightlies the serialize_index_impl! macro serializes interned types
@@ -123,7 +114,10 @@ impl Tracker {
             context: vec![ParentKind::Root],
             interned_names: INTERNED_TYPES.iter().copied().collect(),
             keys: SEEDED_INTERNED_KEYS.iter().map(|s| s.to_string()).collect(),
-            newtypes: SEEDED_INTERNED_NEWTYPES.iter().map(|s| s.to_string()).collect(),
+            newtypes: SEEDED_INTERNED_NEWTYPES
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             positions,
         }
     }
@@ -147,10 +141,7 @@ impl Tracker {
                 self.newtypes.insert(name.clone());
             }
             ParentKind::TupleEntry(name, idx) => {
-                self.positions
-                    .entry(name.clone())
-                    .or_default()
-                    .insert(*idx);
+                self.positions.entry(name.clone()).or_default().insert(*idx);
             }
             ParentKind::SeqElement(_) | ParentKind::Root => {
                 // Inside a sequence or at top level; the enclosing field
