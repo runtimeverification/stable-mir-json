@@ -124,6 +124,28 @@ test-directives:
 test-ui-emit:
 	bash tests/ui/diff_test_lists.sh --emit "$$RUST_DIR_ROOT" $(NIGHTLY)
 
+### Nightly management
+
+.PHONY: nightly-add
+## Add support for a new nightly (requires NIGHTLY, RUST_DIR_ROOT)
+nightly-add:
+	@test -n "$$NIGHTLY" || { echo "Error: NIGHTLY not set (e.g., NIGHTLY=nightly-2025-08-01)"; exit 1; }
+	@test -n "$$RUST_DIR_ROOT" || { echo "Error: RUST_DIR_ROOT not set"; exit 1; }
+	python3 scripts/nightly_admin.py add "$$NIGHTLY" --rust-dir "$$RUST_DIR_ROOT"
+
+.PHONY: nightly-check
+## Run all tests for a nightly (requires NIGHTLY, RUST_DIR_ROOT)
+nightly-check:
+	@test -n "$$NIGHTLY" || { echo "Error: NIGHTLY not set"; exit 1; }
+	@test -n "$$RUST_DIR_ROOT" || { echo "Error: RUST_DIR_ROOT not set"; exit 1; }
+	python3 scripts/nightly_admin.py check "$$NIGHTLY" --rust-dir "$$RUST_DIR_ROOT"
+
+.PHONY: nightly-bump
+## Bump the pinned nightly (requires NIGHTLY)
+nightly-bump:
+	@test -n "$$NIGHTLY" || { echo "Error: NIGHTLY not set"; exit 1; }
+	python3 scripts/nightly_admin.py bump "$$NIGHTLY"
+
 ### Diagnostics
 
 .PHONY: build-info
