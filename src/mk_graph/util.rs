@@ -5,9 +5,12 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use crate::compat::indexed_val::to_index;
 use crate::compat::stable_mir;
 use stable_mir::mir::{
-    AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
-    Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
+    AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Place,
+    ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
 };
+// NullOp removed entirely in nightlies >= 2025-12-23; see build.rs BREAKPOINTS table.
+#[cfg(not(smir_no_nullary_op))]
+use stable_mir::mir::NullOp;
 use stable_mir::ty::RigidTy;
 
 use crate::printer::FnSymType;
@@ -42,6 +45,10 @@ impl GraphLabelString for Operand {
             }
             Operand::Copy(place) => format!("cp({})", place.label()),
             Operand::Move(place) => format!("mv({})", place.label()),
+            // RuntimeChecks added to Operand in nightlies >= 2025-12-23 (moved from
+            // Rvalue::NullaryOp); see build.rs BREAKPOINTS table.
+            #[cfg(smir_no_nullary_op)]
+            Operand::RuntimeChecks(rc) => format!("RuntimeChecks({:?})", rc),
         }
     }
 }
@@ -115,10 +122,11 @@ impl GraphLabelString for Rvalue {
             Repeat(op, _ty_const) => format!("Repeat {}", op.label()),
             ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", op.label()),
             ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
-            // NullaryOp lost its Ty field in nightlies >= 2025-11-18; see build.rs BREAKPOINTS table.
+            // NullaryOp lost its Ty field in nightlies >= 2025-11-18, then removed
+            // entirely in >= 2025-12-23; see build.rs BREAKPOINTS table.
             #[cfg(not(smir_no_nullop_offsetof))]
             NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
-            #[cfg(smir_no_nullop_offsetof)]
+            #[cfg(all(smir_no_nullop_offsetof, not(smir_no_nullary_op)))]
             NullaryOp(nullop) => format!("{:?}", nullop),
             UnaryOp(unop, op) => format!("{:?}({})", unop, op.label()),
             Use(op) => format!("Use({})", op.label()),
@@ -126,6 +134,8 @@ impl GraphLabelString for Rvalue {
     }
 }
 
+// NullOp removed entirely in nightlies >= 2025-12-23; see build.rs BREAKPOINTS table.
+#[cfg(not(smir_no_nullary_op))]
 impl GraphLabelString for NullOp {
     fn label(&self) -> String {
         match &self {

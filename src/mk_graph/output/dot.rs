@@ -272,6 +272,11 @@ impl SmirJson {
                                                     &this_block,
                                                     format!("{}: {}", &this_block, place.label()),
                                                 ),
+                                                // RuntimeChecks added in nightlies >= 2025-12-23; see build.rs.
+                                                #[cfg(smir_no_nullary_op)]
+                                                Operand::RuntimeChecks(_) => {
+                                                    graph.edge(&this_block, "RuntimeChecks")
+                                                }
                                             };
                                             let arg_str = args
                                                 .iter()

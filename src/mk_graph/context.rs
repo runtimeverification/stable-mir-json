@@ -101,6 +101,9 @@ impl GraphContext {
             Operand::Constant(ConstOperand { const_, .. }) => self.render_const(const_),
             Operand::Copy(place) => format!("cp({})", place.label()),
             Operand::Move(place) => format!("mv({})", place.label()),
+            // RuntimeChecks added to Operand in nightlies >= 2025-12-23; see build.rs.
+            #[cfg(smir_no_nullary_op)]
+            Operand::RuntimeChecks(rc) => format!("RuntimeChecks({:?})", rc),
         }
     }
 
@@ -212,10 +215,11 @@ impl GraphContext {
             Repeat(op, _ty_const) => format!("Repeat {}", self.render_operand(op)),
             ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", self.render_operand(op)),
             ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
-            // NullaryOp lost its Ty field in nightlies >= 2025-11-18; see build.rs BREAKPOINTS table.
+            // NullaryOp lost its Ty field in nightlies >= 2025-11-18, then removed
+            // entirely in >= 2025-12-23; see build.rs BREAKPOINTS table.
             #[cfg(not(smir_no_nullop_offsetof))]
             NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
-            #[cfg(smir_no_nullop_offsetof)]
+            #[cfg(all(smir_no_nullop_offsetof, not(smir_no_nullary_op)))]
             NullaryOp(nullop) => format!("{:?}", nullop),
             UnaryOp(unop, op) => format!("{:?}({})", unop, self.render_operand(op)),
             Use(op) => format!("Use({})", self.render_operand(op)),

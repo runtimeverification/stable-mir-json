@@ -101,6 +101,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         description:
             "FileNameDisplayPreference became private; display() takes RemapPathScopeComponents",
     },
+    Breakpoint {
+        date: "2025-12-22",
+        cfg: "smir_no_nullary_op",
+        description: "Rvalue::NullaryOp and NullOp enum removed entirely",
+    },
 ];
 
 fn main() {
