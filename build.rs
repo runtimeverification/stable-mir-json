@@ -60,6 +60,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_has_global_alloc_typeid",
         description: "GlobalAlloc::TypeId { ty } variant added",
     },
+    Breakpoint {
+        date: "2025-07-14",
+        cfg: "smir_crate_renamed",
+        description: "stable_mir -> rustc_public, rustc_smir -> rustc_public_bridge",
+    },
 ];
 
 fn main() {
