@@ -24,3 +24,6 @@ skip	tests/ui/pattern/deref-patterns/branch.rs
 # Upstream reworked remap-path-prefix-macro.rs; new source references a `file`
 # crate that requires auxiliary build setup we don't handle (rustc exit 101).
 skip	tests/ui/errors/remap-path-prefix-macro.rs
+# Upstream changed temporary-lifetime-extension.rs; new source fails to compile
+# (rustc exit 101, not a driver bug).
+skip	tests/ui/lifetimes/temporary-lifetime-extension.rs
