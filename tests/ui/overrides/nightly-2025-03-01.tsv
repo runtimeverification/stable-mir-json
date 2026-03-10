@@ -1,0 +1,14 @@
+# Manual overrides for nightly-2025-03-01
+# Format: action<TAB>path[<TAB>extra]
+#
+# Actions:
+#   -      remove from passing list (use for behavior changes, not deletions;
+#          git deletions and renames are handled automatically)
+#   +      add to passing list
+#   skip   remove from passing list (alias for -, documents intent)
+#   fail   move to failing list (extra = expected exit code)
+#   pass   move from failing to passing list
+#
+# Upstream changed this test to use ${concat()} macro metavar expressions,
+# which don't compile through our driver.
+skip	tests/ui/macros/macro-metavar-expr-concat/repetitions.rs

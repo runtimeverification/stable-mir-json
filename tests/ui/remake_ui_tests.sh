@@ -24,6 +24,9 @@ UI_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # Ensure the rust checkout is at the expected commit (handles bare repos)
 source "$UI_DIR/ensure_rustc_commit.sh"
 
+# Shared directive parser (skip detection + flag extraction)
+AWK_SCRIPT="${UI_DIR}/parse_test_directives.awk"
+
 UI_SOURCES="${UI_DIR}/ui_sources.txt"
 FAILING_TSV="${UI_DIR}/failing.tsv"
 PASSING_TSV="${UI_DIR}/passing.tsv"
@@ -39,41 +42,34 @@ if [ -n "${KEEP_OUTPUT}" ]; then
     mkdir -p "$FAILING_DIR" "$PASSING_DIR"
 fi
 
-# Extract //@ compile-flags: and //@ edition: directives from a test file.
-# Prints space-separated flags to stdout.
-extract_test_flags() {
-    local file="$1"
-    local flags=""
+# -------------------------
+# Host detection (mirrors run_ui_tests.sh)
+# -------------------------
+HOST_UNAME_ARCH="$(uname -m)"
+case "$HOST_UNAME_ARCH" in
+  arm64)   HOST_ARCH="aarch64" ;;
+  *)       HOST_ARCH="$HOST_UNAME_ARCH" ;;
+esac
 
-    # Extract //@ compile-flags: directives (everything after "compile-flags:")
-    local compile_flags
-    compile_flags=$(grep -s '^[[:space:]]*//@[[:space:]]*compile-flags:' "$file" \
-                    | sed 's/^.*compile-flags:[[:space:]]*//' || true)
-    if [ -n "$compile_flags" ]; then
-        flags="$compile_flags"
-    fi
+HOST_UNAME_OS="$(uname -s)"
+case "$HOST_UNAME_OS" in
+  Linux)   HOST_OS="linux" ;;
+  Darwin)  HOST_OS="macos" ;;
+  MINGW*|MSYS*|CYGWIN*) HOST_OS="windows" ;;
+  FreeBSD) HOST_OS="freebsd" ;;
+  *)       HOST_OS="$(echo "$HOST_UNAME_OS" | tr '[:upper:]' '[:lower:]')" ;;
+esac
 
-    # Extract //@ edition: directive (e.g., "//@ edition: 2021")
-    local edition
-    edition=$(grep -s '^[[:space:]]*//@[[:space:]]*edition:' "$file" \
-              | sed 's/^.*edition:[[:space:]]*//' | head -1 || true)
-    if [ -n "$edition" ]; then
-        flags="$flags --edition $edition"
-    fi
+HOST_BITS="$(getconf LONG_BIT 2>/dev/null || echo 64)"
 
-    # Extract //@ rustc-env: directives (e.g., "//@ rustc-env:MY_VAR=value")
-    # These set environment variables for the rustc process via --env-set.
-    local rustc_envs
-    rustc_envs=$(grep -s '^[[:space:]]*//@[[:space:]]*rustc-env:' "$file" \
-                 | sed 's/^.*rustc-env:[[:space:]]*//' || true)
-    if [ -n "$rustc_envs" ]; then
-        while IFS= read -r env_pair; do
-            flags="$flags --env-set $env_pair -Zunstable-options"
-        done <<< "$rustc_envs"
-    fi
+# Path-based arch filter (mirrors run_ui_tests.sh)
+FOREIGN_ARCH_RE=""
+case "$HOST_ARCH" in
+  aarch64) FOREIGN_ARCH_RE='/(x86_64|x86|i686|i386|s390x|powerpc|mips|riscv|loongarch|sparc|hexagon|bpf|avr|msp430|nvptx)/' ;;
+  x86_64)  FOREIGN_ARCH_RE='/(aarch64|arm|s390x|powerpc|mips|riscv|loongarch|sparc|hexagon|bpf|avr|msp430|nvptx)/' ;;
+esac
 
-    echo "$flags"
-}
+skipped=0
 
 echo "Running UI tests..."
 while read -r test; do
@@ -84,8 +80,30 @@ while read -r test; do
         exit 3 # The test files should always be there
     fi
 
+    # --- Skip check (same logic as run_ui_tests.sh) ---
+    if [[ -n "$FOREIGN_ARCH_RE" ]] && grep -qE "$FOREIGN_ARCH_RE" <<<"$test"; then
+        (( ++skipped ))
+        echo "SKIPPED (arch path): $test"
+        continue
+    fi
+
+    directive_result=$(awk -v host_os="$HOST_OS" \
+                           -v host_arch="$HOST_ARCH" \
+                           -v host_bits="$HOST_BITS" \
+                           -f "$AWK_SCRIPT" "$full_path" 2>/dev/null || echo "FLAGS	")
+
+    directive_kind="${directive_result%%	*}"
+    directive_value="${directive_result#*	}"
+
+    if [[ "$directive_kind" == "SKIP" ]]; then
+        (( ++skipped ))
+        echo "SKIPPED ($directive_value): $test"
+        continue
+    fi
+
+    test_flags="$directive_value"
+
     echo "Running test: $test"
-    test_flags=$(extract_test_flags "$full_path")
     # shellcheck disable=SC2086 # intentional word-splitting of test_flags
     cargo run -- -Zno-codegen ${test_flags} "$full_path" > tmp.stdout 2> tmp.stderr
     status=$?
@@ -120,4 +138,5 @@ echo "Sorting TSV files..."
 [ -s "$FAILING_TSV" ] && LC_ALL=C sort "$FAILING_TSV" -o "$FAILING_TSV"
 [ -s "$PASSING_TSV" ] && LC_ALL=C sort "$PASSING_TSV" -o "$PASSING_TSV"
 
+echo "Skipped: $skipped"
 echo "UI tests remade."

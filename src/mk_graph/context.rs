@@ -3,11 +3,14 @@
 use std::collections::HashMap;
 
 use crate::compat::stable_mir;
+#[cfg(not(smir_has_raw_ptr_kind))]
+use stable_mir::mir::Mutability;
 use stable_mir::mir::{
-    BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue, Statement,
-    StatementKind, Terminator, TerminatorKind,
+    BorrowKind, ConstOperand, NonDivergingIntrinsic, Operand, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind,
 };
-use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
+use stable_mir::ty::{ConstantKind, MirConst, Ty};
+use crate::compat::indexed_val::to_index;
 
 use crate::printer::SmirJson;
 
@@ -55,7 +58,7 @@ impl GraphContext {
                         .provenance
                         .ptrs
                         .iter()
-                        .map(|(_offset, prov)| self.allocs.describe(prov.0.to_index() as u64))
+                        .map(|(_offset, prov)| self.allocs.describe(to_index(&prov.0) as u64))
                         .collect();
                     format!("const [{}]", alloc_refs.join(", "))
                 } else {
@@ -139,7 +142,7 @@ impl GraphContext {
             } => format!(
                 "set discriminant {}({})",
                 place.label(),
-                variant_index.to_index()
+                to_index(variant_index)
             ),
             Deinit(p) => format!("Deinit {}", p.label()),
             StorageLive(l) => format!("Storage Live _{}", &l),
@@ -153,8 +156,8 @@ impl GraphContext {
             } => format!("Ascribe {}.{}", place.label(), projections.base),
             Coverage(_) => "Coverage".to_string(),
             Intrinsic(intr) => format!("Intr: {}", self.render_intrinsic(intr)),
-            ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-            Nop {} => "Nop".to_string(),
+            ConstEvalCounter => "ConstEvalCounter".to_string(),
+            Nop => "Nop".to_string(),
         }
     }
 
@@ -162,10 +165,16 @@ impl GraphContext {
     pub fn render_rvalue(&self, v: &Rvalue) -> String {
         use Rvalue::*;
         match v {
+            // In nightlies >= 2025-01-28, AddressOf's first field changed from
+            // Mutability (Mut/Not) to RawPtrKind (Mut/Const/FakeForPtrMetadata).
+            // See build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_raw_ptr_kind))]
             AddressOf(mutability, p) => match mutability {
                 Mutability::Not => format!("&raw {}", p.label()),
                 Mutability::Mut => format!("&raw mut {}", p.label()),
             },
+            #[cfg(smir_has_raw_ptr_kind)]
+            AddressOf(kind, p) => format!("&raw {:?} {}", kind, p.label()),
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| self.render_operand(op)).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
@@ -227,10 +236,10 @@ impl GraphContext {
         match &term.kind {
             Goto { .. } => "Goto".to_string(),
             SwitchInt { discr, .. } => format!("SwitchInt {}", self.render_operand(discr)),
-            Resume {} => "Resume".to_string(),
-            Abort {} => "Abort".to_string(),
-            Return {} => "Return".to_string(),
-            Unreachable {} => "Unreachable".to_string(),
+            Resume => "Resume".to_string(),
+            Abort => "Abort".to_string(),
+            Return => "Return".to_string(),
+            Unreachable => "Unreachable".to_string(),
             Drop { place, .. } => format!("Drop {}", place.label()),
             Call {
                 func,

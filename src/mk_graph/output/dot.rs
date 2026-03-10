@@ -125,16 +125,16 @@ impl SmirJson {
                                             .attributes()
                                             .set_label("other");
                                     }
-                                    Resume {} => {
+                                    Resume => {
                                         label_strs.push("Resume".to_string());
                                     }
-                                    Abort {} => {
+                                    Abort => {
                                         label_strs.push("Abort".to_string());
                                     }
-                                    Return {} => {
+                                    Return => {
                                         label_strs.push("Return".to_string());
                                     }
-                                    Unreachable {} => {
+                                    Unreachable => {
                                         label_strs.push("Unreachable".to_string());
                                     }
                                     TerminatorKind::Drop {

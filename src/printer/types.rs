@@ -10,6 +10,8 @@ use crate::compat::stable_mir;
 
 use stable_mir::abi::LayoutShape;
 use stable_mir::ty::TyKind;
+#[cfg(feature = "debug_log")]
+use crate::compat::indexed_val::to_index;
 
 use super::schema::TypeMetadata;
 
@@ -142,19 +144,19 @@ pub(super) fn mk_type_metadata(
         T(Foreign(_)) | T(Pat(_, _)) | T(Coroutine(_, _, _)) | T(CoroutineWitness(_, _)) => {
             debug_log_println!(
                 "\nDEBUG: Skipping unsupported ty {}: {:?}",
-                k.to_index(),
+                to_index(&k),
                 k.kind()
             );
             None
         }
         T(Never) => Some((k, VoidType)),
         TyKind::Alias(_, _) | TyKind::Param(_) | TyKind::Bound(_, _) => {
-            debug_log_println!("\nSkipping undesired ty {}: {:?}", k.to_index(), k.kind());
+            debug_log_println!("\nSkipping undesired ty {}: {:?}", to_index(&k), k.kind());
             None
         }
         _ => {
             // redundant because of first 4 cases, but rustc does not understand that
-            debug_log_println!("\nDEBUG: Funny other Ty {}: {:?}", k.to_index(), k.kind());
+            debug_log_println!("\nDEBUG: Funny other Ty {}: {:?}", to_index(&k), k.kind());
             None
         }
     }

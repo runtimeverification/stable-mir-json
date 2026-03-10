@@ -20,7 +20,8 @@ use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::Instance;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::mir::{LocalDecl, Rvalue, Terminator, TerminatorKind};
-use stable_mir::ty::{ConstDef, IndexedVal};
+use stable_mir::ty::ConstDef;
+use crate::compat::indexed_val::{to_index, to_val};
 use stable_mir::visitor::Visitable;
 use stable_mir::CrateDef;
 
@@ -115,7 +116,7 @@ fn field_containing_offset(l: &LayoutShape, offset: usize) -> Option<(usize, usi
 }
 
 fn opaque_placeholder_ty() -> stable_mir::ty::Ty {
-    stable_mir::ty::Ty::to_val(0)
+    to_val::<stable_mir::ty::Ty>(0)
 }
 
 fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty::Ty> {
@@ -305,7 +306,7 @@ fn collect_alloc(
 impl MirVisitor for BodyAnalyzer<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
         self.spans.insert(
-            span.to_index(),
+            to_index(span),
             crate::compat::spans::resolve_span(self.tcx, span),
         );
     }
