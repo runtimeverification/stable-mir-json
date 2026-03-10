@@ -1,0 +1,88 @@
+name: 'Test All Nightlies'
+
+# Verifies that every breakpoint nightly (i.e., every nightly that has a
+# golden-file directory under tests/integration/expected/) builds and passes
+# integration tests.  This is the safety net that catches cfg-gating mistakes:
+# a conditional match arm that compiles on the pinned nightly but not on an
+# older (or newer) one in the supported range.
+#
+# Runs on:
+#   - Weekly (Sunday 04:00 UTC): keeps the matrix green even when the branch
+#     is quiet.
+#   - Manual dispatch: for ad-hoc verification after absorbing new breakpoints.
+#   - Push to master: ensures the supported range is intact on merge.
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'   # every Sunday at 04:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [master, cds/the-curious-case-of-stdlib]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Discover the nightly matrix dynamically from the golden-file directories.
+  # This means adding a new breakpoint nightly (with its golden files) is
+  # sufficient to include it in CI; no workflow file edits needed.
+  # ---------------------------------------------------------------------------
+  enumerate-nightlies:
+    name: 'Enumerate nightlies'
+    runs-on: [self-hosted, linux, normal]
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Build nightly matrix from golden-file directories'
+        id: set-matrix
+        run: |
+          set -euo pipefail
+          # Each directory name under tests/integration/expected/ is a nightly
+          # date string like "nightly-2025-07-15".
+          nightlies=$(
+            ls -1 tests/integration/expected/ \
+              | sort \
+              | jq -Rnc '[inputs | select(length > 0)]'
+          )
+          echo "matrix={\"nightly\":${nightlies}}" >> "$GITHUB_OUTPUT"
+          echo "Discovered nightlies: ${nightlies}"
+
+  # ---------------------------------------------------------------------------
+  # For each nightly: install the toolchain, build, run integration tests.
+  # ---------------------------------------------------------------------------
+  test-nightly:
+    name: '${{ matrix.nightly }}'
+    needs: enumerate-nightlies
+    runs-on: [self-hosted, linux, normal]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.enumerate-nightlies.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Install nightly toolchain'
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.nightly }}
+          components: rustc-dev,llvm-tools,rust-src
+
+      - name: 'Build stable-mir-json'
+        run: |
+          RUSTUP_TOOLCHAIN=${{ matrix.nightly }} cargo build -vv
+
+      - name: 'Install jq'
+        uses: dcarbone/install-jq-action@v3
+        with:
+          version: 1.7.1
+          force: true
+
+      - name: 'Run integration tests'
+        run: |
+          RUSTUP_TOOLCHAIN=${{ matrix.nightly }} make integration-test
