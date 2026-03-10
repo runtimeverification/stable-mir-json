@@ -7,7 +7,8 @@ use stable_mir::mir::{
     AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
     Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
 };
-use stable_mir::ty::{IndexedVal, RigidTy};
+use stable_mir::ty::RigidTy;
+use crate::compat::indexed_val::to_index;
 
 use crate::printer::FnSymType;
 
@@ -57,7 +58,7 @@ impl GraphLabelString for AggregateKind {
         match &self {
             Array(_ty) => "Array".to_string(),
             Tuple => "Tuple".to_string(),
-            Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()),
+            Adt(_, idx, _, _, _) => format!("Adt{{{}}}", to_index(idx)),
             Closure(_, _) => "Closure".to_string(),
             Coroutine(_, _, _) => "Coroutine".to_string(),
 
@@ -167,7 +168,7 @@ fn decorate(thing: String, p: &ProjectionElem) -> String {
                 to
             )
         }
-        ProjectionElem::Downcast(i) => format!("({thing} as variant {})", i.to_index()),
+        ProjectionElem::Downcast(i) => format!("({thing} as variant {})", to_index(i)),
         ProjectionElem::OpaqueCast(ty) => format!("{thing} as type {ty}"),
         ProjectionElem::Subtype(i) => format!("{thing} :> {i}"),
     }
