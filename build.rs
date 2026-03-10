@@ -75,6 +75,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_no_dyn_kind",
         description: "DynKind removed from TyKind::Dynamic (3 fields to 2)",
     },
+    Breakpoint {
+        date: "2025-10-02",
+        cfg: "smir_no_projection_subtype",
+        description: "ProjectionElem::Subtype moved to CastKind::Subtype",
+    },
 ];
 
 fn main() {

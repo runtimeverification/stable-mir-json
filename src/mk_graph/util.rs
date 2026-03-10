@@ -174,6 +174,8 @@ fn decorate(thing: String, p: &ProjectionElem) -> String {
         }
         ProjectionElem::Downcast(i) => format!("({thing} as variant {})", to_index(i)),
         ProjectionElem::OpaqueCast(ty) => format!("{thing} as type {ty}"),
+        // Subtype moved to CastKind in nightlies >= 2025-10-02; see build.rs BREAKPOINTS table.
+        #[cfg(not(smir_no_projection_subtype))]
         ProjectionElem::Subtype(i) => format!("{thing} :> {i}"),
     }
 }
