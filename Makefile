@@ -114,6 +114,11 @@ test-ui: VERBOSE?=0
 test-ui:
 	bash tests/ui/run_ui_tests.sh $(if $(filter 1,$(VERBOSE)),--verbose) "$$RUST_DIR_ROOT"
 
+.PHONY: test-directives
+## Run unit tests for the directive parser (parse_test_directives.awk)
+test-directives:
+	bash tests/ui/test_directives_test.sh
+
 .PHONY: test-ui-emit
 ## Generate effective UI test lists for a nightly (requires RUST_DIR_ROOT, NIGHTLY=nightly-YYYY-MM-DD)
 test-ui-emit:
