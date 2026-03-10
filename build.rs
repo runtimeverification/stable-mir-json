@@ -65,6 +65,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_crate_renamed",
         description: "stable_mir -> rustc_public, rustc_smir -> rustc_public_bridge",
     },
+    Breakpoint {
+        date: "2025-07-25",
+        cfg: "smir_no_coroutine_movability",
+        description: "Movability removed from RigidTy::Coroutine and AggregateKind::Coroutine",
+    },
 ];
 
 fn main() {

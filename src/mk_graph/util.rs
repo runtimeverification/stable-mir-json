@@ -60,7 +60,11 @@ impl GraphLabelString for AggregateKind {
             Tuple => "Tuple".to_string(),
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", to_index(idx)),
             Closure(_, _) => "Closure".to_string(),
+            // Movability removed in nightlies >= 2025-07-25; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_coroutine_movability))]
             Coroutine(_, _, _) => "Coroutine".to_string(),
+            #[cfg(smir_no_coroutine_movability)]
+            Coroutine(_, _) => "Coroutine".to_string(),
 
             // Added in nightlies >= 2024-12-14; see build.rs BREAKPOINTS table.
             #[cfg(smir_has_coroutine_closure)]

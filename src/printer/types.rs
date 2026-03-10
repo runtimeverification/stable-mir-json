@@ -141,7 +141,26 @@ pub(super) fn mk_type_metadata(
         T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(name))),
         // other types are not provided either
         T(Dynamic(_, _, _)) => Some((k, DynType { name, layout })),
-        T(Foreign(_)) | T(Pat(_, _)) | T(Coroutine(_, _, _)) | T(CoroutineWitness(_, _)) => {
+        T(Foreign(_)) | T(Pat(_, _)) | T(CoroutineWitness(_, _)) => {
+            debug_log_println!(
+                "\nDEBUG: Skipping unsupported ty {}: {:?}",
+                to_index(&k),
+                k.kind()
+            );
+            None
+        }
+        // Movability removed in nightlies >= 2025-07-25; see build.rs BREAKPOINTS table.
+        #[cfg(not(smir_no_coroutine_movability))]
+        T(Coroutine(_, _, _)) => {
+            debug_log_println!(
+                "\nDEBUG: Skipping unsupported ty {}: {:?}",
+                to_index(&k),
+                k.kind()
+            );
+            None
+        }
+        #[cfg(smir_no_coroutine_movability)]
+        T(Coroutine(_, _)) => {
             debug_log_println!(
                 "\nDEBUG: Skipping unsupported ty {}: {:?}",
                 to_index(&k),
