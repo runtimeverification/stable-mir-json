@@ -93,7 +93,13 @@ OVERRIDE_DIR="${UI_DIR}/overrides/${ACTIVE_NIGHTLY}"
 
 if [[ -n "$ACTIVE_NIGHTLY" && -f "${OVERRIDE_DIR}/passing.tsv" ]]; then
   PASSING_TSV="${OVERRIDE_DIR}/passing.tsv"
+  if [[ ! -s "$PASSING_TSV" ]]; then
+    die "Override passing.tsv for ${ACTIVE_NIGHTLY} is empty; regenerate with: bash tests/ui/diff_test_lists.sh --emit RUST_DIR ${ACTIVE_NIGHTLY}"
+  fi
   log "Using effective test list for ${ACTIVE_NIGHTLY}"
+elif [[ -n "$ACTIVE_NIGHTLY" ]]; then
+  log "WARNING: no UI test override for ${ACTIVE_NIGHTLY}; falling back to base list (results may be unreliable)"
+  PASSING_TSV="${UI_DIR}/passing.tsv"
 else
   PASSING_TSV="${UI_DIR}/passing.tsv"
 fi

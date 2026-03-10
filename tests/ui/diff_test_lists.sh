@@ -442,6 +442,22 @@ case "$MODE" in
 
       p_count=$(wc -l < "${out_dir}/passing.tsv")
       f_count=$(wc -l < "${out_dir}/failing.tsv")
+      if (( p_count == 0 )); then
+        cat >&2 <<ERRMSG
+ERROR: effective passing list for ${local_label} is empty.
+
+This usually means one of:
+  1. The rust repo at ${RUST_DIR} does not contain commit ${local_commit:0:12}
+     (try: git -C ${RUST_DIR} cat-file -t ${local_commit:0:12})
+  2. The base passing.tsv has no entries that survive the git diff + directive filter.
+     Check that the base list (${PASSING_TSV}) is non-empty and that the commit
+     resolves correctly: rustup run ${local_label} rustc -vV | grep commit-hash
+
+Cleaned up partial output in ${out_dir}/.
+ERRMSG
+        rm -f "${out_dir}/passing.tsv" "${out_dir}/failing.tsv"
+        exit 1
+      fi
       printf "  -> %s/passing.tsv (%d entries)\n" "$out_dir" "$p_count"
       printf "  -> %s/failing.tsv (%d entries)\n" "$out_dir" "$f_count"
     done
