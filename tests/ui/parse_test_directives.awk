@@ -8,6 +8,10 @@
 #   host_os     - "linux", "macos", "windows", etc.
 #   host_arch   - "aarch64", "x86_64", etc.
 #   host_bits   - "32" or "64"
+#   universal   - if non-empty, only apply platform-independent skips
+#                 (needs-sanitizer, needs-subprocess, extern crate libc).
+#                 Use this when generating lists that must be correct on
+#                 any host; platform-specific filtering happens at runtime.
 #
 # Output (printed to stdout):
 #   If the test should be skipped:  SKIP<TAB>reason
@@ -45,34 +49,38 @@ BEGIN {
 
     # --- Skip directives ---
     # Each of these sets skip="reason" if the test shouldn't run here.
+    # Platform-specific skips are only evaluated when universal is not set;
+    # in universal mode, run_ui_tests.sh handles these at runtime.
 
-    # only-<os>: skip unless we match
-    if (match(dir, /^only-linux/))       { if (host_os != "linux")   skip = "only-linux" }
-    if (match(dir, /^only-windows/))     { if (host_os != "windows") skip = "only-windows" }
-    if (match(dir, /^only-macos/))       { if (host_os != "macos")   skip = "only-macos" }
-    if (match(dir, /^only-unix/))        { if (!is_unix)             skip = "only-unix" }
-    if (match(dir, /^only-apple/))       { if (!is_apple)            skip = "only-apple" }
-    if (match(dir, /^only-msvc/))        { if (host_os != "windows") skip = "only-msvc" }
+    if (!universal) {
+        # only-<os>: skip unless we match
+        if (match(dir, /^only-linux/))       { if (host_os != "linux")   skip = "only-linux" }
+        if (match(dir, /^only-windows/))     { if (host_os != "windows") skip = "only-windows" }
+        if (match(dir, /^only-macos/))       { if (host_os != "macos")   skip = "only-macos" }
+        if (match(dir, /^only-unix/))        { if (!is_unix)             skip = "only-unix" }
+        if (match(dir, /^only-apple/))       { if (!is_apple)            skip = "only-apple" }
+        if (match(dir, /^only-msvc/))        { if (host_os != "windows") skip = "only-msvc" }
 
-    # only-<arch>: skip unless we match
-    if (match(dir, /^only-x86_64/))      { if (host_arch != "x86_64")  skip = "only-x86_64" }
-    if (match(dir, /^only-x86$/) || match(dir, /^only-x86[^_]/)) { if (host_arch != "x86_64" && host_arch != "i686") skip = "only-x86" }
-    if (match(dir, /^only-aarch64/))     { if (host_arch != "aarch64") skip = "only-aarch64" }
+        # only-<arch>: skip unless we match
+        if (match(dir, /^only-x86_64/))      { if (host_arch != "x86_64")  skip = "only-x86_64" }
+        if (match(dir, /^only-x86$/) || match(dir, /^only-x86[^_]/)) { if (host_arch != "x86_64" && host_arch != "i686") skip = "only-x86" }
+        if (match(dir, /^only-aarch64/))     { if (host_arch != "aarch64") skip = "only-aarch64" }
 
-    # only-<bits>: skip unless we match
-    if (match(dir, /^only-32bit/))       { if (host_bits != "32") skip = "only-32bit" }
-    if (match(dir, /^only-64bit/))       { if (host_bits != "64") skip = "only-64bit" }
+        # only-<bits>: skip unless we match
+        if (match(dir, /^only-32bit/))       { if (host_bits != "32") skip = "only-32bit" }
+        if (match(dir, /^only-64bit/))       { if (host_bits != "64") skip = "only-64bit" }
 
-    # ignore-<os>: skip if we match
-    if (match(dir, /^ignore-linux/))     { if (host_os == "linux")   skip = "ignore-linux" }
-    if (match(dir, /^ignore-windows/))   { if (host_os == "windows") skip = "ignore-windows" }
-    if (match(dir, /^ignore-macos/))     { if (host_os == "macos")   skip = "ignore-macos" }
-    if (match(dir, /^ignore-apple/))     { if (is_apple)             skip = "ignore-apple" }
-    if (match(dir, /^ignore-unix/))      { if (is_unix)              skip = "ignore-unix" }
+        # ignore-<os>: skip if we match
+        if (match(dir, /^ignore-linux/))     { if (host_os == "linux")   skip = "ignore-linux" }
+        if (match(dir, /^ignore-windows/))   { if (host_os == "windows") skip = "ignore-windows" }
+        if (match(dir, /^ignore-macos/))     { if (host_os == "macos")   skip = "ignore-macos" }
+        if (match(dir, /^ignore-apple/))     { if (is_apple)             skip = "ignore-apple" }
+        if (match(dir, /^ignore-unix/))      { if (is_unix)              skip = "ignore-unix" }
 
-    # ignore-<arch>: skip if we match
-    if (match(dir, /^ignore-x86_64/))    { if (host_arch == "x86_64")  skip = "ignore-x86_64" }
-    if (match(dir, /^ignore-aarch64/))   { if (host_arch == "aarch64") skip = "ignore-aarch64" }
+        # ignore-<arch>: skip if we match
+        if (match(dir, /^ignore-x86_64/))    { if (host_arch == "x86_64")  skip = "ignore-x86_64" }
+        if (match(dir, /^ignore-aarch64/))   { if (host_arch == "aarch64") skip = "ignore-aarch64" }
+    }
 
     # needs-sanitizer-*: we don't have sanitizer support in our test setup
     if (match(dir, /^needs-sanitizer/))  { skip = "needs-sanitizer" }

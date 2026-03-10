@@ -53,6 +53,22 @@ check() {
   assert_output "$name" "$expected" "$actual"
 }
 
+# run_awk_universal <file_content...>
+# Runs with universal=1 (no platform-specific skips).
+run_awk_universal() {
+  printf '%s\n' "$@" > "$TMPFILE"
+  awk -v universal=1 -f "$AWK" "$TMPFILE"
+}
+
+# check_universal <test_name> <expected_output> <lines...>
+check_universal() {
+  local name="$1" expected="$2"
+  shift 2
+  local actual
+  actual=$(run_awk_universal "$@")
+  assert_output "$name" "$expected" "$actual"
+}
+
 # Register a boundary note. These are printed in a report section after
 # the pass/fail summary to document non-obvious design decisions.
 # boundary <test_name> <note>
@@ -346,6 +362,36 @@ check "skip takes precedence over extracted flags" \
   "//@ compile-flags: -C opt-level=3"
 boundary "skip takes precedence over extracted flags" \
   "flags are still parsed but never emitted; the SKIP line is output instead of FLAGS"
+
+# =========================================================================
+# Universal mode: platform-independent skips only
+# =========================================================================
+
+check_universal "universal: needs-sanitizer still skips" \
+  "SKIP	needs-sanitizer" \
+  "//@ needs-sanitizer-cfi"
+
+check_universal "universal: needs-subprocess still skips" \
+  "SKIP	needs-subprocess" \
+  "//@ needs-subprocess"
+
+check_universal "universal: extern crate libc still skips" \
+  "SKIP	extern-crate-libc" \
+  "extern crate libc;"
+
+check_universal "universal: only-linux does NOT skip" \
+  "FLAGS	" \
+  "//@ only-linux"
+boundary "universal: only-linux does NOT skip" \
+  "in universal mode, platform-specific directives are deferred to runtime"
+
+check_universal "universal: ignore-aarch64 does NOT skip" \
+  "FLAGS	" \
+  "//@ ignore-aarch64"
+
+check_universal "universal: flags still extracted" \
+  "FLAGS	--edition 2021" \
+  "//@ edition: 2021"
 
 # =========================================================================
 # Summary

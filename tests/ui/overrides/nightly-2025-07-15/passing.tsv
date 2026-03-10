@@ -1,3 +1,4 @@
+tests/ui/abi/abi-sysv64-arg-passing.rs
 tests/ui/abi/anon-extern-mod.rs
 tests/ui/abi/c-stack-as-value.rs
 tests/ui/abi/c-stack-returning-int64.rs
@@ -30,10 +31,12 @@ tests/ui/abi/mir/mir_codegen_calls_variadic.rs
 tests/ui/abi/nullable-pointer-ffi-compat.rs
 tests/ui/abi/numbers-arithmetic/i128-ffi.rs
 tests/ui/abi/numbers-arithmetic/return-float.rs
+tests/ui/abi/stack-protector.rs
 tests/ui/abi/statics/static-mut-foreign.rs
 tests/ui/abi/struct-enums/struct-return.rs
 tests/ui/abi/union/union-c-interop.rs
 tests/ui/abi/variadic-ffi.rs
+tests/ui/abi/x86stdcall2.rs
 tests/ui/allocator/alloc-shrink-oob-read.rs
 tests/ui/allocator/dyn-compatible.rs
 tests/ui/allocator/empty-alloc-nonnull-guarantee.rs
@@ -88,6 +91,11 @@ tests/ui/array-slice-vec/vector-no-ann-2.rs
 tests/ui/asm/aarch64/const.rs
 tests/ui/asm/aarch64/may_unwind.rs
 tests/ui/asm/may_unwind.rs
+tests/ui/asm/x86_64/const.rs
+tests/ui/asm/x86_64/goto.rs
+tests/ui/asm/x86_64/may_unwind.rs
+tests/ui/asm/x86_64/multiple-clobber-abi.rs
+tests/ui/asm/x86_64/sym.rs
 tests/ui/associated-consts/assoc-const.rs
 tests/ui/associated-consts/associated-const-const-eval.rs
 tests/ui/associated-consts/associated-const-in-global-const.rs
@@ -459,6 +467,7 @@ tests/ui/codegen/issue-27859.rs
 tests/ui/codegen/issue-28950.rs
 tests/ui/codegen/issue-55976.rs
 tests/ui/codegen/issue-63787.rs
+tests/ui/codegen/issue-79865-llvm-miscompile.rs
 tests/ui/codegen/issue-82833-slice-miscompile.rs
 tests/ui/codegen/issue-82859-slice-miscompile.rs
 tests/ui/codegen/output-slot-init-vs-noninit.rs
@@ -765,6 +774,8 @@ tests/ui/coroutine/too-live-local-in-immovable-gen.rs
 tests/ui/coroutine/uninhabited-field.rs
 tests/ui/coroutine/yield-in-initializer.rs
 tests/ui/debuginfo/issue-105386-debuginfo-ub.rs
+tests/ui/debuginfo/msvc-strip-debuginfo.rs
+tests/ui/debuginfo/msvc-strip-symbols.rs
 tests/ui/delegation/explicit-paths-in-traits-pass.rs
 tests/ui/delegation/explicit-paths-pass.rs
 tests/ui/delegation/explicit-paths-signature-pass.rs
@@ -926,12 +937,14 @@ tests/ui/extern/extern-types-manual-sync-send.rs
 tests/ui/extern/extern-types-pointer-cast.rs
 tests/ui/extern/extern-types-thin-pointer.rs
 tests/ui/extern/extern-types-trait-impl.rs
+tests/ui/extern/extern-vectorcall.rs
 tests/ui/extern/issue-10025.rs
 tests/ui/extern/issue-13655.rs
 tests/ui/extern/issue-64655-allow-unwind-when-calling-panic-directly.rs
 tests/ui/extern/issue-64655-extern-rust-must-allow-unwind.rs
 tests/ui/float/classify-runtime-const.rs
 tests/ui/float/conv-bits-runtime-const.rs
+tests/ui/float/int-to-float-miscompile-issue-105626.rs
 tests/ui/fmt/debug-single-call.rs
 tests/ui/fmt/fmt_debug/full.rs
 tests/ui/fmt/fmt_debug/none.rs
@@ -1156,6 +1169,7 @@ tests/ui/inline-const/const-expr-lifetime.rs
 tests/ui/inline-const/const-expr-macro.rs
 tests/ui/inline-const/const-expr-reference.rs
 tests/ui/intrinsics/always-gets-overridden.rs
+tests/ui/intrinsics/const-eval-select-x86_64.rs
 tests/ui/intrinsics/const-eval-select.rs
 tests/ui/intrinsics/intrinsic-alignment.rs
 tests/ui/intrinsics/intrinsic-assume.rs
@@ -1558,13 +1572,18 @@ tests/ui/issues/issue-9942.rs
 tests/ui/issues/issue-9951.rs
 tests/ui/issues/issue-99838.rs
 tests/ui/iterators/iter-cloned-type-inference.rs
+tests/ui/iterators/iter-count-overflow-debug.rs
+tests/ui/iterators/iter-count-overflow-ndebug.rs
 tests/ui/iterators/iter-map-fold-type-length.rs
+tests/ui/iterators/iter-position-overflow-debug.rs
+tests/ui/iterators/iter-position-overflow-ndebug.rs
 tests/ui/iterators/iter-range.rs
 tests/ui/iterators/iter-step-overflow-debug.rs
 tests/ui/iterators/iter-step-overflow-ndebug.rs
 tests/ui/iterators/iter-sum-overflow-debug.rs
 tests/ui/iterators/iter-sum-overflow-ndebug.rs
 tests/ui/iterators/iter-sum-overflow-overflow-checks.rs
+tests/ui/iterators/skip-count-overflow.rs
 tests/ui/label/label_break_value_desugared_break.rs
 tests/ui/late-bound-lifetimes/issue-36381.rs
 tests/ui/layout/aggregate-lang/struct-align.rs
@@ -1691,6 +1710,7 @@ tests/ui/macros/metavar-expressions/macro-expansion.rs
 tests/ui/macros/nested-macro-expansion.rs
 tests/ui/macros/pub-item-inside-macro.rs
 tests/ui/macros/pub-method-inside-macro.rs
+tests/ui/macros/rfc-2011-nicer-assert-messages/all-expr-kinds.rs
 tests/ui/macros/rfc-2011-nicer-assert-messages/assert-with-custom-errors-does-not-create-unnecessary-code.rs
 tests/ui/macros/rfc-2011-nicer-assert-messages/feature-gate-generic_assert.rs
 tests/ui/macros/semi-after-macro-ty.rs
@@ -1952,6 +1972,7 @@ tests/ui/packed/packed-tuple-struct-size.rs
 tests/ui/packed/packed-with-inference-vars-issue-61402.rs
 tests/ui/panic-runtime/link-to-unwind.rs
 tests/ui/panics/nested_panic_caught.rs
+tests/ui/panics/oom-panic-unwind.rs
 tests/ui/panics/panic-during-display-formatting.rs
 tests/ui/panics/panic-handler-chain-update-hook.rs
 tests/ui/panics/panic-handler-chain.rs
@@ -2157,6 +2178,14 @@ tests/ui/rfcs/rfc-2497-if-let-chains/ast-lowering-does-not-wrap-let-chains.rs
 tests/ui/rfcs/rfc-2497-if-let-chains/protect-precedences.rs
 tests/ui/rfcs/rfc-2497-if-let-chains/then-else-blocks.rs
 tests/ui/runtime/deep_recursion.rs
+tests/ui/runtime/stdout-before-main.rs
+tests/ui/runtime/stdout-during-shutdown-windows.rs
+tests/ui/sanitizer/cfi/complex-receiver.rs
+tests/ui/sanitizer/cfi/fn-ptr.rs
+tests/ui/sanitizer/cfi/self-ref.rs
+tests/ui/sanitizer/cfi/sized-associated-ty.rs
+tests/ui/sanitizer/cfi/supertraits.rs
+tests/ui/sanitizer/cfi/virtual-auto.rs
 tests/ui/self/arbitrary_self_types_nested.rs
 tests/ui/self/arbitrary_self_types_pointers_and_wrappers.rs
 tests/ui/self/arbitrary_self_types_raw_pointer_struct.rs
@@ -2256,6 +2285,7 @@ tests/ui/std/fs-nul-byte-paths.rs
 tests/ui/std/issue-3563-3.rs
 tests/ui/std/stdio-from.rs
 tests/ui/std/thread-sleep-ms.rs
+tests/ui/std/windows-bat-args.rs
 tests/ui/stdlib-unit-tests/matches2021.rs
 tests/ui/stdlib-unit-tests/raw-fat-ptr.rs
 tests/ui/str/nul-char-equivalence.rs

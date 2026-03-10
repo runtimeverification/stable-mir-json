@@ -33,6 +33,7 @@ Options:
   --report    Print a human-readable report to stdout (default)
   --emit      Write effective test lists to tests/ui/overrides/<nightly>/
   --chain     Show incremental diffs between each consecutive nightly
+  --force     Regenerate even if cached overrides already exist (emit mode)
 
 Environment:
   BASE_COMMIT   Override the base commit (default: from base-nightly.txt)
@@ -46,6 +47,7 @@ die() { printf 'Error: %s\n' "$*" >&2; exit 1; }
 # Arg parsing
 # ---------------------------------------------------------------------------
 MODE="report"
+FORCE=0
 RUST_DIR=""
 NIGHTLY_ARGS=()
 
@@ -54,6 +56,7 @@ while (( $# > 0 )); do
     --report) MODE="report"; shift ;;
     --emit)   MODE="emit";   shift ;;
     --chain)  MODE="chain";  shift ;;
+    --force)  FORCE=1;       shift ;;
     --help|-h) usage ;;
     --*) die "unknown option: $1" ;;
     *)
@@ -227,23 +230,16 @@ build_effective_passing() {
     done < "$override_file"
   fi
 
-  # Filter out tests that the directive parser would skip (needs-subprocess,
-  # needs-sanitizer, arch/os mismatches, etc.). Uses git-show to read each
-  # test file at the target commit without a full checkout.
-  local host_os host_arch host_bits
-  host_os=$(uname -s | tr '[:upper:]' '[:lower:]')
-  case "$host_os" in darwin) host_os="macos" ;; esac
-  host_arch=$(uname -m)
-  case "$host_arch" in arm64) host_arch="aarch64" ;; esac
-  host_bits=$(getconf LONG_BIT 2>/dev/null || echo 64)
-
+  # Filter out tests that the directive parser would skip unconditionally
+  # (needs-subprocess, needs-sanitizer, extern crate libc). Uses universal
+  # mode so the output is platform-neutral; arch/os filtering happens at
+  # runtime in run_ui_tests.sh.
   local skip_count=0
   for path in "${!effective[@]}"; do
     [[ -n "${effective[$path]}" ]] || continue
     local result
     result=$(git -C "$RUST_DIR" show "${target_commit}:${path}" 2>/dev/null \
-      | awk -v host_os="$host_os" -v host_arch="$host_arch" -v host_bits="$host_bits" \
-            -f "$AWK_SCRIPT" 2>/dev/null || echo "FLAGS	")
+      | awk -v universal=1 -f "$AWK_SCRIPT" 2>/dev/null || echo "FLAGS	")
     if [[ "${result%%	*}" == "SKIP" ]]; then
       effective["$path"]=""
       (( ++skip_count ))
@@ -434,6 +430,13 @@ case "$MODE" in
       local_commit="${COMMITS[$i]}"
       out_dir="${OVERRIDES_DIR}/${local_label}"
       mkdir -p "$out_dir"
+
+      # Cache: skip if non-empty overrides already exist (use --force to regenerate)
+      if (( ! FORCE )) && [[ -s "${out_dir}/passing.tsv" ]]; then
+        p_count=$(wc -l < "${out_dir}/passing.tsv")
+        printf "  %s: cached (%d entries), skipping (use --force to regenerate)\n" "$local_label" "$p_count"
+        continue
+      fi
 
       echo "Generating effective lists for ${local_label}..."
 
