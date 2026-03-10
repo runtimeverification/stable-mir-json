@@ -908,7 +908,6 @@ tests/ui/enum/issue-42747.rs
 tests/ui/env-macro/env-env-overload.rs
 tests/ui/env-macro/env-env.rs
 tests/ui/env-macro/option_env-not-defined.rs
-tests/ui/errors/remap-path-prefix-macro.rs
 tests/ui/explicit-tail-calls/ctfe-collatz-multi-rec.rs
 tests/ui/expr/block-fn.rs
 tests/ui/expr/block-generic.rs
@@ -1996,8 +1995,6 @@ tests/ui/pattern/bindings-after-at/or-patterns-box-patterns.rs
 tests/ui/pattern/bindings-after-at/or-patterns-slice-patterns.rs
 tests/ui/pattern/bindings-after-at/or-patterns.rs
 tests/ui/pattern/bindings-after-at/slice-patterns.rs
-tests/ui/pattern/deref-patterns/bindings.rs
-tests/ui/pattern/deref-patterns/branch.rs
 tests/ui/pattern/deref-patterns/closure_capture.rs
 tests/ui/pattern/ignore-all-the-things.rs
 tests/ui/pattern/inc-range-pat.rs
@@ -2690,13 +2687,7 @@ tests/ui/unsafe/union-modification.rs
 tests/ui/unsafe/unsafe-fn-called-from-unsafe-blk.rs
 tests/ui/unsafe/unsafe-fn-called-from-unsafe-fn.rs
 tests/ui/unsafe/unsafe-pointer-assignability.rs
-tests/ui/unsized-locals/align.rs
-tests/ui/unsized-locals/autoderef.rs
 tests/ui/unsized-locals/box-fnonce.rs
-tests/ui/unsized-locals/by-value-trait-dyn-compatibility-rpass.rs
-tests/ui/unsized-locals/by-value-trait-dyn-compatibility-with-default.rs
-tests/ui/unsized-locals/reference-unsized-locals.rs
-tests/ui/unsized-locals/simple-unsized-locals.rs
 tests/ui/unsized-locals/unsized-exprs-rpass.rs
 tests/ui/unsized-locals/unsized-index.rs
 tests/ui/unsized-locals/unsized-parameters.rs

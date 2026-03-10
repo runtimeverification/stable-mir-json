@@ -142,6 +142,12 @@ else
   [[ -n "${RUN_SMIR_CMD[0]:-}" ]] || die "RUN_SMIR is set but empty"
   [[ -x "${RUN_SMIR_CMD[0]}" ]] || die "RUN_SMIR binary is not executable: ${RUN_SMIR_CMD[0]}"
   RUN_SMIR_CMD+=( -Zno-codegen )
+
+  # The binary needs rustc's dylibs on the library path.
+  SYSROOT_LIB="$(rustc --print sysroot)/lib"
+  DYLD_LIBRARY_PATH="${SYSROOT_LIB}${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="${SYSROOT_LIB}${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+  export DYLD_LIBRARY_PATH LD_LIBRARY_PATH
 fi
 
 # -------------------------
