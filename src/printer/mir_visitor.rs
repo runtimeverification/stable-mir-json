@@ -347,7 +347,20 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
 
         #[allow(clippy::single_match)] // TODO: Unsure if we need to fill these out
         match rval {
+            // ReifyFnPointer gained a Safety field in nightlies >= 2025-12-06; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_reify_fn_pointer_safety))]
             Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
+                let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false)
+                    .expect("ReifyFnPointer Cast operand type does not resolve to an instance");
+                let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));
+                update_link_map(self.link_map, fn_sym, ItemSource(FPTR));
+            }
+            #[cfg(smir_has_reify_fn_pointer_safety)]
+            Rvalue::Cast(
+                CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer(_)),
+                ref op,
+                _,
+            ) => {
                 let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false)
                     .expect("ReifyFnPointer Cast operand type does not resolve to an instance");
                 let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));

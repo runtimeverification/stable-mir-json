@@ -90,6 +90,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_no_nullop_offsetof",
         description: "NullOp::OffsetOf removed, NullaryOp loses Ty field",
     },
+    Breakpoint {
+        date: "2025-12-05",
+        cfg: "smir_has_reify_fn_pointer_safety",
+        description: "PointerCoercion::ReifyFnPointer gains Safety field",
+    },
 ];
 
 fn main() {
