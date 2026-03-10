@@ -1,0 +1,26 @@
+# Manual overrides for nightly-2025-11-19
+# Format: action<TAB>path[<TAB>extra]
+#
+# Actions:
+#   -      remove from passing list (use for behavior changes, not deletions;
+#          git deletions and renames are handled automatically)
+#   +      add to passing list
+#   skip   remove from passing list (alias for -, documents intent)
+#   fail   move to failing list (extra = expected exit code)
+#   pass   move from failing to passing list
+#
+# Upstream removed #![feature(unsized_locals)] from these tests; without the
+# feature gate the code no longer compiles (rustc exit 101, not a driver bug).
+skip	tests/ui/unsized-locals/align.rs
+skip	tests/ui/unsized-locals/autoderef.rs
+skip	tests/ui/unsized-locals/by-value-trait-dyn-compatibility-rpass.rs
+skip	tests/ui/unsized-locals/by-value-trait-dyn-compatibility-with-default.rs
+skip	tests/ui/unsized-locals/reference-unsized-locals.rs
+skip	tests/ui/unsized-locals/simple-unsized-locals.rs
+# Upstream reworked deref_patterns tests; new source references functions that
+# were removed, causing compile errors (rustc exit 101, not a driver bug).
+skip	tests/ui/pattern/deref-patterns/bindings.rs
+skip	tests/ui/pattern/deref-patterns/branch.rs
+# Upstream reworked remap-path-prefix-macro.rs; new source references a `file`
+# crate that requires auxiliary build setup we don't handle (rustc exit 101).
+skip	tests/ui/errors/remap-path-prefix-macro.rs
