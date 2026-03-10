@@ -115,7 +115,11 @@ impl GraphLabelString for Rvalue {
             Repeat(op, _ty_const) => format!("Repeat {}", op.label()),
             ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", op.label()),
             ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
+            // NullaryOp lost its Ty field in nightlies >= 2025-11-18; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_nullop_offsetof))]
             NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
+            #[cfg(smir_no_nullop_offsetof)]
+            NullaryOp(nullop) => format!("{:?}", nullop),
             UnaryOp(unop, op) => format!("{:?}({})", unop, op.label()),
             Use(op) => format!("Use({})", op.label()),
         }
@@ -125,6 +129,8 @@ impl GraphLabelString for Rvalue {
 impl GraphLabelString for NullOp {
     fn label(&self) -> String {
         match &self {
+            // OffsetOf removed in nightlies >= 2025-11-18; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_nullop_offsetof))]
             NullOp::OffsetOf(_vec) => "OffsetOf(..)".to_string(),
             other => format!("{other:?}"),
         }

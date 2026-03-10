@@ -212,7 +212,11 @@ impl GraphContext {
             Repeat(op, _ty_const) => format!("Repeat {}", self.render_operand(op)),
             ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", self.render_operand(op)),
             ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
+            // NullaryOp lost its Ty field in nightlies >= 2025-11-18; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_nullop_offsetof))]
             NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
+            #[cfg(smir_no_nullop_offsetof)]
+            NullaryOp(nullop) => format!("{:?}", nullop),
             UnaryOp(unop, op) => format!("{:?}({})", unop, self.render_operand(op)),
             Use(op) => format!("Use({})", self.render_operand(op)),
         }

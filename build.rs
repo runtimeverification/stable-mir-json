@@ -85,6 +85,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_no_deinit",
         description: "StatementKind::Deinit removed",
     },
+    Breakpoint {
+        date: "2025-11-18",
+        cfg: "smir_no_nullop_offsetof",
+        description: "NullOp::OffsetOf removed, NullaryOp loses Ty field",
+    },
 ];
 
 fn main() {
