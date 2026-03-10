@@ -80,6 +80,11 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_no_projection_subtype",
         description: "ProjectionElem::Subtype moved to CastKind::Subtype",
     },
+    Breakpoint {
+        date: "2025-10-11",
+        cfg: "smir_no_deinit",
+        description: "StatementKind::Deinit removed",
+    },
 ];
 
 fn main() {

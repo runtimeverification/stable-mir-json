@@ -144,6 +144,8 @@ impl GraphContext {
                 place.label(),
                 to_index(variant_index)
             ),
+            // Deinit removed in nightlies >= 2025-10-11; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_deinit))]
             Deinit(p) => format!("Deinit {}", p.label()),
             StorageLive(l) => format!("Storage Live _{}", &l),
             StorageDead(l) => format!("Storage Dead _{}", &l),
