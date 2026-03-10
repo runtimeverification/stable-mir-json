@@ -40,10 +40,10 @@ def strip_hashes:
     ( .types | map(select(.[0].FunType) | sort) )
   ] | flatten(1) )
 }
-# Strip interned index fields globally: def_id (AdtDef indices) and id
-# (MonoItemFn and const_ interned IDs). These are consistent within a
-# single rustc invocation but not stable across runs or platforms; the
-# same non-determinism that affects alloc_id, Ty indices, and adt_def
-# (see lines 5-6, 18-21 above). We only strip them here for golden-file
-# comparison.
-| walk(if type == "object" then del(.def_id) | del(.id) else . end)
+# Strip interned index fields globally: def_id (AdtDef indices), id
+# (MonoItemFn and const_ interned IDs), and span (interned Span indices).
+# These are consistent within a single rustc invocation but not stable
+# across runs or platforms; the same non-determinism that affects alloc_id,
+# Ty indices, and adt_def (see lines 5-6, 18-21 above). We only strip
+# them here for golden-file comparison.
+| walk(if type == "object" then del(.def_id) | del(.id) | del(.span) else . end)
