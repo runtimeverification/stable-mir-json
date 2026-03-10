@@ -2,9 +2,9 @@ name: 'Test All Nightlies'
 
 # Verifies that every breakpoint nightly (i.e., every nightly that has a
 # golden-file directory under tests/integration/expected/) builds and passes
-# integration tests.  This is the safety net that catches cfg-gating mistakes:
-# a conditional match arm that compiles on the pinned nightly but not on an
-# older (or newer) one in the supported range.
+# integration and UI tests.  This is the safety net that catches cfg-gating
+# mistakes: a conditional match arm that compiles on the pinned nightly but
+# not on an older (or newer) one in the supported range.
 #
 # Runs on:
 #   - Weekly (Sunday 04:00 UTC): keeps the matrix green even when the branch
@@ -55,7 +55,7 @@ jobs:
           echo "Discovered nightlies: ${nightlies}"
 
   # ---------------------------------------------------------------------------
-  # For each nightly: install the toolchain, build, run integration tests.
+  # For each nightly: install the toolchain, build, run integration + UI tests.
   # ---------------------------------------------------------------------------
   test-nightly:
     name: '${{ matrix.nightly }}'
@@ -86,3 +86,26 @@ jobs:
       - name: 'Run integration tests'
         run: |
           RUSTUP_TOOLCHAIN=${{ matrix.nightly }} make integration-test
+
+      - name: 'Derive rustc commit for UI tests'
+        id: rustc-meta
+        run: |
+          set -euo pipefail
+          COMMIT=$(RUSTUP_TOOLCHAIN=${{ matrix.nightly }} rustc -vV | grep 'commit-hash' | cut -d' ' -f2)
+          if [ -z "$COMMIT" ]; then
+            echo "::error::Could not determine rustc commit-hash for ${{ matrix.nightly }}"
+            exit 1
+          fi
+          echo "rustc-commit=$COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: 'Check out Rust repo'
+        uses: actions/checkout@v4
+        with:
+          repository: rust-lang/rust
+          ref: ${{ steps.rustc-meta.outputs.rustc-commit }}
+          path: rust
+          fetch-depth: 1
+
+      - name: 'Run UI tests'
+        run: |
+          RUSTUP_TOOLCHAIN=${{ matrix.nightly }} RUST_DIR_ROOT=rust make test-ui
