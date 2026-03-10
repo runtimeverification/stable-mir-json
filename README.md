@@ -1,7 +1,7 @@
 # Rust Stable MIR Pretty Printing
 
-> **Pinned nightly: `nightly-2025-10-12`**
-> (supported range: `nightly-2024-12-14` through `nightly-2025-10-12`)
+> **Pinned nightly: `nightly-2025-11-19`**
+> (supported range: `nightly-2024-12-14` through `nightly-2025-11-19`)
 
 This package provides a program that will emit a JSON serialisation of the Stable MIR of a Rust program
 
