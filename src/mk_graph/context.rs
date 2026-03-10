@@ -2,12 +2,15 @@
 
 use std::collections::HashMap;
 
+use crate::compat::indexed_val::to_index;
 use crate::compat::stable_mir;
+#[cfg(not(smir_has_raw_ptr_kind))]
+use stable_mir::mir::Mutability;
 use stable_mir::mir::{
-    BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue, Statement,
-    StatementKind, Terminator, TerminatorKind,
+    BorrowKind, ConstOperand, NonDivergingIntrinsic, Operand, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind,
 };
-use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
+use stable_mir::ty::{ConstantKind, MirConst, Ty};
 
 use crate::printer::SmirJson;
 
@@ -55,7 +58,7 @@ impl GraphContext {
                         .provenance
                         .ptrs
                         .iter()
-                        .map(|(_offset, prov)| self.allocs.describe(prov.0.to_index() as u64))
+                        .map(|(_offset, prov)| self.allocs.describe(to_index(&prov.0) as u64))
                         .collect();
                     format!("const [{}]", alloc_refs.join(", "))
                 } else {
@@ -70,7 +73,7 @@ impl GraphContext {
                             ty_name
                         )
                     } else {
-                        format!("const {}", ty_name)
+                        format!("const {ty_name}")
                     }
                 }
             }
@@ -80,15 +83,15 @@ impl GraphContext {
                     if let Some(name) = self.functions.get(&ty) {
                         format!("const fn {}", short_fn_name(name))
                     } else {
-                        format!("const {}", ty_name)
+                        format!("const {ty_name}")
                     }
                 } else {
-                    format!("const {}", ty_name)
+                    format!("const {ty_name}")
                 }
             }
-            ConstantKind::Ty(_) => format!("const {}", ty_name),
-            ConstantKind::Unevaluated(_) => format!("const unevaluated {}", ty_name),
-            ConstantKind::Param(_) => format!("const param {}", ty_name),
+            ConstantKind::Ty(_) => format!("const {ty_name}"),
+            ConstantKind::Unevaluated(_) => format!("const unevaluated {ty_name}"),
+            ConstantKind::Param(_) => format!("const param {ty_name}"),
         }
     }
 
@@ -98,6 +101,9 @@ impl GraphContext {
             Operand::Constant(ConstOperand { const_, .. }) => self.render_const(const_),
             Operand::Copy(place) => format!("cp({})", place.label()),
             Operand::Move(place) => format!("mv({})", place.label()),
+            // RuntimeChecks added to Operand in nightlies >= 2025-12-23; see build.rs.
+            #[cfg(smir_no_nullary_op)]
+            Operand::RuntimeChecks(rc) => format!("RuntimeChecks({:?})", rc),
         }
     }
 
@@ -139,8 +145,10 @@ impl GraphContext {
             } => format!(
                 "set discriminant {}({})",
                 place.label(),
-                variant_index.to_index()
+                to_index(variant_index)
             ),
+            // Deinit removed in nightlies >= 2025-10-11; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_deinit))]
             Deinit(p) => format!("Deinit {}", p.label()),
             StorageLive(l) => format!("Storage Live _{}", &l),
             StorageDead(l) => format!("Storage Dead _{}", &l),
@@ -153,8 +161,8 @@ impl GraphContext {
             } => format!("Ascribe {}.{}", place.label(), projections.base),
             Coverage(_) => "Coverage".to_string(),
             Intrinsic(intr) => format!("Intr: {}", self.render_intrinsic(intr)),
-            ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-            Nop {} => "Nop".to_string(),
+            ConstEvalCounter => "ConstEvalCounter".to_string(),
+            Nop => "Nop".to_string(),
         }
     }
 
@@ -162,10 +170,16 @@ impl GraphContext {
     pub fn render_rvalue(&self, v: &Rvalue) -> String {
         use Rvalue::*;
         match v {
+            // In nightlies >= 2025-01-28, AddressOf's first field changed from
+            // Mutability (Mut/Not) to RawPtrKind (Mut/Const/FakeForPtrMetadata).
+            // See build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_raw_ptr_kind))]
             AddressOf(mutability, p) => match mutability {
                 Mutability::Not => format!("&raw {}", p.label()),
                 Mutability::Mut => format!("&raw mut {}", p.label()),
             },
+            #[cfg(smir_has_raw_ptr_kind)]
+            AddressOf(kind, p) => format!("&raw {:?} {}", kind, p.label()),
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| self.render_operand(op)).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
@@ -201,7 +215,12 @@ impl GraphContext {
             Repeat(op, _ty_const) => format!("Repeat {}", self.render_operand(op)),
             ShallowInitBox(op, _ty) => format!("ShallowInitBox({})", self.render_operand(op)),
             ThreadLocalRef(_item) => "ThreadLocalRef".to_string(),
+            // NullaryOp lost its Ty field in nightlies >= 2025-11-18, then removed
+            // entirely in >= 2025-12-23; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_no_nullop_offsetof))]
             NullaryOp(nullop, ty) => format!("{} :: {}", nullop.label(), ty),
+            #[cfg(all(smir_no_nullop_offsetof, not(smir_no_nullary_op)))]
+            NullaryOp(nullop) => format!("{:?}", nullop),
             UnaryOp(unop, op) => format!("{:?}({})", unop, self.render_operand(op)),
             Use(op) => format!("Use({})", self.render_operand(op)),
         }
@@ -227,10 +246,10 @@ impl GraphContext {
         match &term.kind {
             Goto { .. } => "Goto".to_string(),
             SwitchInt { discr, .. } => format!("SwitchInt {}", self.render_operand(discr)),
-            Resume {} => "Resume".to_string(),
-            Abort {} => "Abort".to_string(),
-            Return {} => "Return".to_string(),
-            Unreachable {} => "Unreachable".to_string(),
+            Resume => "Resume".to_string(),
+            Abort => "Abort".to_string(),
+            Return => "Return".to_string(),
+            Unreachable => "Unreachable".to_string(),
             Drop { place, .. } => format!("Drop {}", place.label()),
             Call {
                 func,
@@ -283,7 +302,7 @@ impl GraphContext {
     pub fn render_type_detailed(&self, ty: Ty) -> String {
         match self.types.get(ty) {
             Some(entry) => entry.detailed_description(&self.types),
-            None => format!("{}", ty),
+            None => format!("{ty}"),
         }
     }
 
@@ -293,7 +312,7 @@ impl GraphContext {
         let entry = match self.types.get(ty) {
             Some(e) => e,
             None => {
-                lines.push(format!("{}", ty));
+                lines.push(format!("{ty}"));
                 return lines;
             }
         };
@@ -318,11 +337,10 @@ impl GraphContext {
                         .map(|l| format!(" ({} bytes)", l.size))
                         .unwrap_or_default();
                     match field.offset {
-                        Some(off) => lines.push(format!(
-                            "  @{:3}: field{}: {}{}",
-                            off, i, field_ty_name, size_str
-                        )),
-                        None => lines.push(format!("  field{}: {}{}", i, field_ty_name, size_str)),
+                        Some(off) => {
+                            lines.push(format!("  @{off:3}: field{i}: {field_ty_name}{size_str}"))
+                        }
+                        None => lines.push(format!("  field{i}: {field_ty_name}{size_str}")),
                     }
                 }
             }
@@ -334,7 +352,7 @@ impl GraphContext {
                     let size_str = field_layout
                         .map(|l| format!(" ({} bytes)", l.size))
                         .unwrap_or_default();
-                    lines.push(format!("  field{}: {}{}", i, field_ty_name, size_str));
+                    lines.push(format!("  field{i}: {field_ty_name}{size_str}"));
                 }
             }
             TypeKind::Enum { variants } => {
@@ -345,7 +363,7 @@ impl GraphContext {
                     ));
                     for (j, field) in variant.fields.iter().enumerate() {
                         let field_ty_name = self.types.get_name(field.ty);
-                        lines.push(format!("    field{}: {}", j, field_ty_name));
+                        lines.push(format!("    field{j}: {field_ty_name}"));
                     }
                 }
             }
@@ -354,15 +372,15 @@ impl GraphContext {
                     let field_ty_name = self.types.get_name(field_ty);
                     let offset = entry.layout.as_ref().and_then(|l| l.field_offset(i));
                     match offset {
-                        Some(off) => lines.push(format!("  @{:3}: .{}: {}", off, i, field_ty_name)),
-                        None => lines.push(format!("  .{}: {}", i, field_ty_name)),
+                        Some(off) => lines.push(format!("  @{off:3}: .{i}: {field_ty_name}")),
+                        None => lines.push(format!("  .{i}: {field_ty_name}")),
                     }
                 }
             }
             TypeKind::Array { elem_ty, len } => {
                 let elem_name = self.types.get_name(*elem_ty);
                 let len_str = len.map(|l| l.to_string()).unwrap_or("?".to_string());
-                lines.push(format!("  [{}; {}]", elem_name, len_str));
+                lines.push(format!("  [{elem_name}; {len_str}]"));
             }
             _ => {}
         }

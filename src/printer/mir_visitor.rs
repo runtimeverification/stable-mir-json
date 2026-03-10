@@ -15,12 +15,13 @@
 use crate::compat::middle::ty::TyCtxt;
 use crate::compat::stable_mir;
 
+use crate::compat::indexed_val::{to_index, to_val};
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::Instance;
 use stable_mir::mir::visit::MirVisitor;
 use stable_mir::mir::{LocalDecl, Rvalue, Terminator, TerminatorKind};
-use stable_mir::ty::{ConstDef, IndexedVal};
+use stable_mir::ty::ConstDef;
 use stable_mir::visitor::Visitable;
 use stable_mir::CrateDef;
 
@@ -115,7 +116,7 @@ fn field_containing_offset(l: &LayoutShape, offset: usize) -> Option<(usize, usi
 }
 
 fn opaque_placeholder_ty() -> stable_mir::ty::Ty {
-    stable_mir::ty::Ty::to_val(0)
+    to_val::<stable_mir::ty::Ty>(0)
 }
 
 fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty::Ty> {
@@ -126,8 +127,7 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
     if let Some(derefed) = ty_kind.builtin_deref(true) {
         if *offset != 0 {
             eprintln!(
-                "get_prov_ty: unexpected non-zero offset {} for builtin_deref type {:?}",
-                offset, ty_kind
+                "get_prov_ty: unexpected non-zero offset {offset} for builtin_deref type {ty_kind:?}"
             );
             return None;
         }
@@ -140,17 +140,14 @@ fn get_prov_ty(ty: stable_mir::ty::Ty, offset: &usize) -> Option<stable_mir::ty:
     let layout = match ty.layout().map(|l| l.shape()) {
         Ok(l) => l,
         Err(_) => {
-            eprintln!("get_prov_ty: unable to get layout for {:?}", ty_kind);
+            eprintln!("get_prov_ty: unable to get layout for {ty_kind:?}");
             return None;
         }
     };
     let rigid = match ty_kind.rigid() {
         Some(r) => r,
         None => {
-            eprintln!(
-                "get_prov_ty: non-rigid type in allocation: {:?} (offset={})",
-                ty_kind, offset
-            );
+            eprintln!("get_prov_ty: non-rigid type in allocation: {ty_kind:?} (offset={offset})");
             return None;
         }
     };
@@ -261,6 +258,13 @@ fn collect_alloc(
                     .insert(val, (opaque_placeholder_ty(), global_alloc.clone()));
             }
         }
+        // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+        #[cfg(smir_has_global_alloc_typeid)]
+        GlobalAlloc::TypeId { .. } => {
+            val_collector
+                .visited_allocs
+                .insert(val, (ty, global_alloc.clone()));
+        }
         GlobalAlloc::Static(_) | GlobalAlloc::VTable(_, _) | GlobalAlloc::Function(_) => {
             // Does the outer type need provenance recovery to find the real
             // pointee? Static/VTable pointers are usable directly when
@@ -305,7 +309,7 @@ fn collect_alloc(
 impl MirVisitor for BodyAnalyzer<'_, '_> {
     fn visit_span(&mut self, span: &stable_mir::ty::Span) {
         self.spans.insert(
-            span.to_index(),
+            to_index(span),
             crate::compat::spans::resolve_span(self.tcx, span),
         );
     }
@@ -343,7 +347,20 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
 
         #[allow(clippy::single_match)] // TODO: Unsure if we need to fill these out
         match rval {
+            // ReifyFnPointer gained a Safety field in nightlies >= 2025-12-06; see build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_reify_fn_pointer_safety))]
             Rvalue::Cast(CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer), ref op, _) => {
+                let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false)
+                    .expect("ReifyFnPointer Cast operand type does not resolve to an instance");
+                let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));
+                update_link_map(self.link_map, fn_sym, ItemSource(FPTR));
+            }
+            #[cfg(smir_has_reify_fn_pointer_safety)]
+            Rvalue::Cast(
+                CastKind::PointerCoercion(PointerCoercion::ReifyFnPointer(_)),
+                ref op,
+                _,
+            ) => {
                 let inst = fn_inst_for_ty(op.ty(self.locals).unwrap(), false)
                     .expect("ReifyFnPointer Cast operand type does not resolve to an instance");
                 let fn_sym = fn_inst_sym(self.tcx, None, Some(&inst));
@@ -416,7 +433,7 @@ impl MirVisitor for BodyAnalyzer<'_, '_> {
     }
 
     fn visit_ty(&mut self, ty: &stable_mir::ty::Ty, _location: stable_mir::mir::visit::Location) {
-        ty.visit(self.ty_visitor);
+        let _ = ty.visit(self.ty_visitor);
         self.super_ty(ty);
     }
 }

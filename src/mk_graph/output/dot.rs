@@ -83,7 +83,7 @@ impl SmirJson {
                         vector.push(String::from("LOCALS"));
                         for (index, decl) in body.clone().unwrap().local_decls() {
                             let ty_with_layout = ctx.render_type_with_layout(decl.ty);
-                            vector.push(format!("{index} = {}", ty_with_layout));
+                            vector.push(format!("{index} = {ty_with_layout}"));
                         }
                         vector.push("".to_string());
                         local_node.set_label(vector.join("\\l").to_string().as_str());
@@ -125,16 +125,16 @@ impl SmirJson {
                                             .attributes()
                                             .set_label("other");
                                     }
-                                    Resume {} => {
+                                    Resume => {
                                         label_strs.push("Resume".to_string());
                                     }
-                                    Abort {} => {
+                                    Abort => {
                                         label_strs.push("Abort".to_string());
                                     }
-                                    Return {} => {
+                                    Return => {
                                         label_strs.push("Return".to_string());
                                     }
-                                    Unreachable {} => {
+                                    Unreachable => {
                                         label_strs.push("Unreachable".to_string());
                                     }
                                     TerminatorKind::Drop {
@@ -272,6 +272,11 @@ impl SmirJson {
                                                     &this_block,
                                                     format!("{}: {}", &this_block, place.label()),
                                                 ),
+                                                // RuntimeChecks added in nightlies >= 2025-12-23; see build.rs.
+                                                #[cfg(smir_no_nullary_op)]
+                                                Operand::RuntimeChecks(_) => {
+                                                    graph.edge(&this_block, "RuntimeChecks")
+                                                }
                                             };
                                             let arg_str = args
                                                 .iter()

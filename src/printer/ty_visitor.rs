@@ -13,6 +13,7 @@ use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 use std::ops::ControlFlow;
+use std::panic::{catch_unwind, set_hook, take_hook, AssertUnwindSafe};
 
 use stable_mir::mir::mono::Instance;
 use stable_mir::ty::{RigidTy, TyKind};
@@ -20,23 +21,77 @@ use stable_mir::visitor::{Visitable, Visitor};
 
 use super::schema::TyMap;
 
+/// A layout computation that panicked inside rustc.
+pub(super) struct LayoutPanic {
+    pub ty: stable_mir::ty::Ty,
+    pub message: String,
+}
+
+/// Attempt to get a type's layout, catching any rustc-internal panics.
+///
+/// Some types (e.g., those involving `dyn Trait` in certain positions) cause
+/// rustc's layout computation to panic rather than returning an error. We
+/// catch those panics here so the visitor can continue; the caller gets
+/// `Ok(Some(shape))` on success, `Ok(None)` when layout returns `Err`, or
+/// `Err(message)` when rustc panicked.
+fn try_layout_shape(
+    ty: &stable_mir::ty::Ty,
+) -> Result<Option<stable_mir::abi::LayoutShape>, String> {
+    // Temporarily suppress the default panic hook so caught panics don't
+    // spray backtraces to stderr; we report them in our own summary.
+    let prev_hook = take_hook();
+    set_hook(Box::new(|_| {}));
+    let result = catch_unwind(AssertUnwindSafe(|| ty.layout().ok().map(|l| l.shape())));
+    set_hook(prev_hook);
+
+    match result {
+        Ok(shape) => Ok(shape),
+        Err(payload) => {
+            let message = if let Some(s) = payload.downcast_ref::<&str>() {
+                (*s).to_string()
+            } else if let Some(s) = payload.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "(non-string panic payload)".to_string()
+            };
+            Err(message)
+        }
+    }
+}
+
 pub(super) struct TyCollector<'tcx> {
     tcx: TyCtxt<'tcx>,
     pub types: TyMap,
+    pub layout_panics: Vec<LayoutPanic>,
     resolved: HashSet<stable_mir::ty::Ty>,
 }
 
 impl TyCollector<'_> {
-    pub fn new(tcx: TyCtxt<'_>) -> TyCollector {
+    pub fn new(tcx: TyCtxt<'_>) -> TyCollector<'_> {
         TyCollector {
             tcx,
             types: HashMap::new(),
+            layout_panics: Vec::new(),
             resolved: HashSet::new(),
         }
     }
 }
 
 impl TyCollector<'_> {
+    /// Get layout for `ty`, recording a [`LayoutPanic`] if rustc panics.
+    fn layout_shape_or_record(
+        &mut self,
+        ty: &stable_mir::ty::Ty,
+    ) -> Option<stable_mir::abi::LayoutShape> {
+        match try_layout_shape(ty) {
+            Ok(shape) => shape,
+            Err(message) => {
+                self.layout_panics.push(LayoutPanic { ty: *ty, message });
+                None
+            }
+        }
+    }
+
     #[inline(always)]
     fn visit_instance(&mut self, instance: Instance) -> ControlFlow<<Self as Visitor>::Break> {
         let fn_abi = instance.fn_abi().unwrap();
@@ -63,7 +118,7 @@ impl Visitor for TyCollector<'_> {
                 let control = self.visit_instance(instance);
                 // Mirror other branches: record closure Ty only when traversal succeeds.
                 if matches!(control, ControlFlow::Continue(_)) {
-                    let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                    let maybe_layout_shape = self.layout_shape_or_record(ty);
                     self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
                 }
                 control
@@ -97,7 +152,7 @@ impl Visitor for TyCollector<'_> {
 
                 let control = ty.super_visit(self);
                 if matches!(control, ControlFlow::Continue(_)) {
-                    let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                    let maybe_layout_shape = self.layout_shape_or_record(ty);
                     self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
                     fields.super_visit(self)
                 } else {
@@ -108,7 +163,7 @@ impl Visitor for TyCollector<'_> {
                 let control = ty.super_visit(self);
                 match control {
                     ControlFlow::Continue(_) => {
-                        let maybe_layout_shape = ty.layout().ok().map(|layout| layout.shape());
+                        let maybe_layout_shape = self.layout_shape_or_record(ty);
                         self.types.insert(*ty, (ty.kind(), maybe_layout_shape));
                         control
                     }

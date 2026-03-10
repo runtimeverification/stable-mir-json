@@ -22,7 +22,7 @@ pub fn generic_data(tcx: TyCtxt<'_>, id: DefId) -> Vec<(String, String)> {
         if params.parent != preds.parent {
             panic!("Generics and predicates parent ids are distinct");
         }
-        v.push((format!("{:#?}", params), format!("{:#?}", preds)));
+        v.push((format!("{params:#?}"), format!("{preds:#?}")));
         next_id = params.parent;
     }
     v.reverse();
@@ -47,7 +47,7 @@ where
     ) {
         Ok(res) => res,
         Err(err) => {
-            println!("{:?}", err);
+            println!("{err:?}");
             v_copy.skip_binder()
         }
     }
@@ -66,15 +66,15 @@ pub fn print_type<'tcx>(tcx: TyCtxt<'tcx>, id: DefId, ty: EarlyBinder<'tcx, Ty<'
         ) {
             Ok(res) => res,
             Err(err) => {
-                println!("{:?}", err);
+                println!("{err:?}");
                 sig0.skip_binder()
             }
         };
         let sig2: FnSig<'_> = tcx.instantiate_bound_regions_with_erased(sig1);
-        format!("\nTyKind(FnDef): {:#?}", sig2)
+        format!("\nTyKind(FnDef): {sig2:#?}")
     } else {
         let kind = default_unwrap_early_binder(tcx, id, ty);
-        format!("\nTyKind: {:#?}", kind)
+        format!("\nTyKind: {kind:#?}")
     }
 }
 

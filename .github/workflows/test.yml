@@ -22,10 +22,31 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          YQ_VERSION="v4.52.4"
+          mkdir -p "$HOME/.local/bin"
+          wget -qO "$HOME/.local/bin/yq" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          chmod +x "$HOME/.local/bin/yq"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 'Read nightly channel from rust-toolchain.toml'
+        id: toolchain-meta
+        run: |
+          set -euo pipefail
+          CHANNEL=$(yq -r '.toolchain.channel' rust-toolchain.toml)
+          if [ -z "$CHANNEL" ] || [ "$CHANNEL" = "null" ]; then
+            echo "::error::Could not read toolchain.channel from rust-toolchain.toml"
+            exit 1
+          fi
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+
       - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
+          toolchain: ${{ steps.toolchain-meta.outputs.channel }}
 
       - name: 'Build stable-mir-json' # rustfmt documentation claims it is unstable on code that doesn't build
         run: |
@@ -66,10 +87,31 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           submodules: recursive
 
+      - name: Install yq
+        run: |
+          set -euo pipefail
+          YQ_VERSION="v4.52.4"
+          mkdir -p "$HOME/.local/bin"
+          wget -qO "$HOME/.local/bin/yq" \
+            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          chmod +x "$HOME/.local/bin/yq"
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: 'Read nightly channel from rust-toolchain.toml'
+        id: toolchain-meta
+        run: |
+          set -euo pipefail
+          CHANNEL=$(yq -r '.toolchain.channel' rust-toolchain.toml)
+          if [ -z "$CHANNEL" ] || [ "$CHANNEL" = "null" ]; then
+            echo "::error::Could not read toolchain.channel from rust-toolchain.toml"
+            exit 1
+          fi
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+
       - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
+          toolchain: ${{ steps.toolchain-meta.outputs.channel }}
 
       - name: 'Build stable-mir-json'
         run: | # Warning check should be redundant since code-quality runs first
@@ -108,16 +150,30 @@ jobs:
             "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
           chmod +x "$HOME/.local/bin/yq"
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-          yq --version
 
+      - name: 'Read nightly channel from rust-toolchain.toml'
+        id: toolchain-meta
+        run: |
+          set -euo pipefail
+          CHANNEL=$(yq -r '.toolchain.channel' rust-toolchain.toml)
+          if [ -z "$CHANNEL" ] || [ "$CHANNEL" = "null" ]; then
+            echo "::error::Could not read toolchain.channel from rust-toolchain.toml"
+            exit 1
+          fi
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
 
-      - name: 'Read rustc commit from rust-toolchain.toml'
+      - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.toolchain-meta.outputs.channel }}
+
+      - name: 'Derive rustc commit and check out Rust repo'
         id: rustc-meta
         run: |
           set -euo pipefail
-          COMMIT=$(yq '.metadata.rustc-commit' rust-toolchain.toml)
-          if [ -z "$COMMIT" ] || [ "$COMMIT" = "null" ]; then
-            echo "::error::metadata.rustc-commit not found in rust-toolchain.toml"
+          COMMIT=$(rustc -vV | grep 'commit-hash' | cut -d' ' -f2)
+          if [ -z "$COMMIT" ]; then
+            echo "::error::Could not determine rustc commit-hash from 'rustc -vV'"
             exit 1
           fi
           echo "rustc-commit=$COMMIT" >> "$GITHUB_OUTPUT"
@@ -129,11 +185,6 @@ jobs:
           ref: ${{ steps.rustc-meta.outputs.rustc-commit }}
           path: rust
           fetch-depth: 1
-
-      - name: "Set up nightly Rust" # https://github.com/rust-lang/rustup/issues/3409
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly-2024-11-29 # Hardcoded version, same as is in the build.rs
 
       - name: 'Build stable-mir-json'
         run: | # Warning check should be redundant since code-quality runs first

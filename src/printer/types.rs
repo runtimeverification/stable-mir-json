@@ -8,6 +8,8 @@
 use crate::compat::middle::ty::TyCtxt;
 use crate::compat::stable_mir;
 
+#[cfg(feature = "debug_log")]
+use crate::compat::indexed_val::to_index;
 use stable_mir::abi::LayoutShape;
 use stable_mir::ty::TyKind;
 
@@ -138,23 +140,46 @@ pub(super) fn mk_type_metadata(
         // opaque function types (fun ptrs, closures, FnDef) are only provided to avoid dangling ty references
         T(FnDef(_, _)) | T(FnPtr(_)) | T(Closure(_, _)) => Some((k, FunType(name))),
         // other types are not provided either
+        // DynKind removed in nightlies >= 2025-09-18; see build.rs BREAKPOINTS table.
+        #[cfg(not(smir_no_dyn_kind))]
         T(Dynamic(_, _, _)) => Some((k, DynType { name, layout })),
-        T(Foreign(_)) | T(Pat(_, _)) | T(Coroutine(_, _, _)) | T(CoroutineWitness(_, _)) => {
+        #[cfg(smir_no_dyn_kind)]
+        T(Dynamic(_, _)) => Some((k, DynType { name, layout })),
+        T(Foreign(_)) | T(Pat(_, _)) | T(CoroutineWitness(_, _)) => {
             debug_log_println!(
                 "\nDEBUG: Skipping unsupported ty {}: {:?}",
-                k.to_index(),
+                to_index(&k),
+                k.kind()
+            );
+            None
+        }
+        // Movability removed in nightlies >= 2025-07-25; see build.rs BREAKPOINTS table.
+        #[cfg(not(smir_no_coroutine_movability))]
+        T(Coroutine(_, _, _)) => {
+            debug_log_println!(
+                "\nDEBUG: Skipping unsupported ty {}: {:?}",
+                to_index(&k),
+                k.kind()
+            );
+            None
+        }
+        #[cfg(smir_no_coroutine_movability)]
+        T(Coroutine(_, _)) => {
+            debug_log_println!(
+                "\nDEBUG: Skipping unsupported ty {}: {:?}",
+                to_index(&k),
                 k.kind()
             );
             None
         }
         T(Never) => Some((k, VoidType)),
         TyKind::Alias(_, _) | TyKind::Param(_) | TyKind::Bound(_, _) => {
-            debug_log_println!("\nSkipping undesired ty {}: {:?}", k.to_index(), k.kind());
+            debug_log_println!("\nSkipping undesired ty {}: {:?}", to_index(&k), k.kind());
             None
         }
         _ => {
             // redundant because of first 4 cases, but rustc does not understand that
-            debug_log_println!("\nDEBUG: Funny other Ty {}: {:?}", k.to_index(), k.kind());
+            debug_log_println!("\nDEBUG: Funny other Ty {}: {:?}", to_index(&k), k.kind());
             None
         }
     }

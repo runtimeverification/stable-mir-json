@@ -27,9 +27,15 @@
 
 pub extern crate rustc_middle;
 pub extern crate rustc_monomorphize;
+#[cfg(smir_crate_renamed)]
+pub extern crate rustc_public as stable_mir;
+#[cfg(smir_crate_renamed)]
+pub extern crate rustc_public_bridge as rustc_smir;
 pub extern crate rustc_session;
+#[cfg(not(smir_crate_renamed))]
 pub extern crate rustc_smir;
 pub extern crate rustc_span;
+#[cfg(not(smir_crate_renamed))]
 pub extern crate stable_mir;
 
 // We use rustc's vendored serde rather than pulling in our own copy.
@@ -43,15 +49,23 @@ pub use rustc_middle as middle;
 /// The compiler's typing context; threaded through most compat functions.
 pub use rustc_middle::ty::TyCtxt;
 /// Bridge between stable MIR types and rustc internals.
+/// In nightlies >= 2025-07-08, these moved from rustc_smir to stable_mir.
+#[cfg(not(smir_rustc_internal_moved))]
 pub use rustc_smir::rustc_internal;
 /// Convenience re-export: converts a stable MIR value to its internal rustc
 /// counterpart.
+#[cfg(not(smir_rustc_internal_moved))]
 pub use rustc_smir::rustc_internal::internal;
 /// Rustc's definition identifier. Re-exported so callers outside `compat`
 /// don't need to depend on `rustc_span` directly.
 pub use rustc_span::def_id::DefId;
+#[cfg(smir_rustc_internal_moved)]
+pub use stable_mir::rustc_internal;
+#[cfg(smir_rustc_internal_moved)]
+pub use stable_mir::rustc_internal::internal;
 
 pub mod bridge;
+pub mod indexed_val;
 pub mod mono_collect;
 pub mod output;
 pub mod spans;

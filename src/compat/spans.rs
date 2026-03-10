@@ -18,10 +18,20 @@ pub fn resolve_span(tcx: TyCtxt<'_>, span: &Span) -> SourceData {
     let (source_file, lo_line, lo_col, hi_line, hi_col) =
         tcx.sess.source_map().span_to_location_info(span_internal);
     let file_name = match source_file {
-        Some(sf) => sf
-            .name
-            .display(rustc_span::FileNameDisplayPreference::Remapped)
-            .to_string(),
+        Some(sf) => {
+            // FileNameDisplayPreference became private in nightlies >= 2025-12-14;
+            // display() now takes RemapPathScopeComponents instead.
+            // See build.rs BREAKPOINTS table (smir_no_filename_display_pref).
+            #[cfg(not(smir_no_filename_display_pref))]
+            let display = sf
+                .name
+                .display(rustc_span::FileNameDisplayPreference::Remapped);
+            #[cfg(smir_no_filename_display_pref)]
+            let display = sf
+                .name
+                .display(rustc_span::RemapPathScopeComponents::DIAGNOSTICS);
+            display.to_string()
+        }
         None => "no-location".to_string(),
     };
     (file_name, lo_line, lo_col, hi_line, hi_col)

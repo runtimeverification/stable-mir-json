@@ -16,10 +16,10 @@ use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 
+use crate::compat::indexed_val::to_index;
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
-use stable_mir::ty::IndexedVal;
 use stable_mir::CrateDef;
 
 use super::items::{get_foreign_module_details, mk_item};
@@ -142,6 +142,16 @@ fn collect_and_analyze_items(
         all_items.push(item);
     }
 
+    if !ty_visitor.layout_panics.is_empty() {
+        eprintln!(
+            "warning: {} type layout(s) could not be computed (rustc panicked):",
+            ty_visitor.layout_panics.len()
+        );
+        for panic in &ty_visitor.layout_panics {
+            eprintln!("  type {:?}: {}", panic.ty, panic.message);
+        }
+    }
+
     (
         CollectedCrate {
             items: all_items,
@@ -176,6 +186,9 @@ fn alloc_sort_tag(info: &AllocInfo) -> &'static str {
         GlobalAlloc::Static(_) => "1_Static",
         GlobalAlloc::VTable(..) => "2_VTable",
         GlobalAlloc::Function(_) => "3_Function",
+        // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+        #[cfg(smir_has_global_alloc_typeid)]
+        GlobalAlloc::TypeId { .. } => "4_TypeId",
     }
 }
 
@@ -185,6 +198,9 @@ fn alloc_content_key(info: &AllocInfo) -> String {
         GlobalAlloc::Static(def) => def.name(),
         GlobalAlloc::VTable(ty, _) => format!("{ty}"),
         GlobalAlloc::Function(inst) => inst.name(),
+        // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+        #[cfg(smir_has_global_alloc_typeid)]
+        GlobalAlloc::TypeId { ty } => format!("{ty}"),
     }
 }
 
@@ -264,13 +280,13 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
                 let b_kind = b.0 .1.as_ref().map(|k| format!("{k}"));
                 a_kind.cmp(&b_kind)
             })
-            .then_with(|| a.0 .0.to_index().cmp(&b.0 .0.to_index()))
+            .then_with(|| to_index(&a.0 .0).cmp(&to_index(&b.0 .0)))
     });
     items.sort();
     types.sort_by(|a, b| {
         format!("{}", a.0)
             .cmp(&format!("{}", b.0))
-            .then_with(|| a.0.to_index().cmp(&b.0.to_index()))
+            .then_with(|| to_index(&a.0).cmp(&to_index(&b.0)))
     });
     spans.sort_by(|a, b| a.1.cmp(&b.1));
 

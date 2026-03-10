@@ -2,10 +2,11 @@
 
 use std::collections::HashMap;
 
+use crate::compat::indexed_val::to_index;
 use crate::compat::stable_mir;
 use stable_mir::abi::{FieldsShape, LayoutShape};
 use stable_mir::mir::alloc::GlobalAlloc;
-use stable_mir::ty::{IndexedVal, Ty};
+use stable_mir::ty::Ty;
 use stable_mir::CrateDef;
 
 use crate::printer::{AllocInfo, TypeMetadata};
@@ -140,7 +141,7 @@ impl AllocIndex {
     pub fn describe(&self, id: u64) -> String {
         match self.get(id) {
             Some(entry) => entry.short_description(),
-            None => format!("alloc{}", id),
+            None => format!("alloc{id}"),
         }
     }
 }
@@ -151,7 +152,7 @@ impl AllocIndex {
 
 impl AllocEntry {
     pub fn from_alloc_info(info: &AllocInfo, type_index: &TypeIndex) -> Self {
-        let alloc_id = info.alloc_id().to_index() as u64;
+        let alloc_id = to_index(&info.alloc_id()) as u64;
         let ty = info.ty();
         let ty_name = type_index.get_name(ty);
 
@@ -174,7 +175,7 @@ impl AllocEntry {
                     if concrete_bytes.len() > 20 {
                         format!("\"{}...\" ({} bytes)", s, concrete_bytes.len())
                     } else {
-                        format!("\"{}\"", s)
+                        format!("\"{s}\"")
                     }
                 } else if concrete_bytes.len() <= 8 && !concrete_bytes.is_empty() {
                     format!(
@@ -198,23 +199,32 @@ impl AllocEntry {
                 let name = def.name();
                 (
                     AllocKind::Static { name: name.clone() },
-                    format!("static {}", name),
+                    format!("static {name}"),
                 )
             }
             GlobalAlloc::VTable(vty, _trait_ref) => {
-                let desc = format!("{}", vty);
+                let desc = format!("{vty}");
                 (
                     AllocKind::VTable {
                         ty_desc: desc.clone(),
                     },
-                    format!("vtable<{}>", desc),
+                    format!("vtable<{desc}>"),
                 )
             }
             GlobalAlloc::Function(instance) => {
                 let name = instance.name();
                 (
                     AllocKind::Function { name: name.clone() },
-                    format!("fn {}", name),
+                    format!("fn {name}"),
+                )
+            }
+            // Added in nightlies >= 2025-07-11; see build.rs BREAKPOINTS table.
+            #[cfg(smir_has_global_alloc_typeid)]
+            GlobalAlloc::TypeId { ty: tid_ty } => {
+                let desc = format!("{tid_ty}");
+                (
+                    AllocKind::Static { name: desc.clone() },
+                    format!("typeid<{desc}>"),
                 )
             }
         };
@@ -253,25 +263,25 @@ impl TypeIndex {
         let mut index = Self::new();
         for (ty, metadata) in types {
             let entry = TypeEntry::from_metadata(metadata, *ty);
-            index.by_id.insert(ty.to_index() as u64, entry);
+            index.by_id.insert(to_index(ty) as u64, entry);
         }
         index
     }
 
     pub fn get(&self, ty: Ty) -> Option<&TypeEntry> {
-        self.by_id.get(&(ty.to_index() as u64))
+        self.by_id.get(&(to_index(&ty) as u64))
     }
 
     pub fn get_name(&self, ty: Ty) -> String {
         self.by_id
-            .get(&(ty.to_index() as u64))
+            .get(&(to_index(&ty) as u64))
             .map(|e| e.name.clone())
-            .unwrap_or_else(|| format!("{}", ty))
+            .unwrap_or_else(|| format!("{ty}"))
     }
 
     pub fn get_layout(&self, ty: Ty) -> Option<&LayoutInfo> {
         self.by_id
-            .get(&(ty.to_index() as u64))
+            .get(&(to_index(&ty) as u64))
             .and_then(|e| e.layout.as_ref())
     }
 
@@ -288,9 +298,7 @@ impl TypeIndex {
 impl TypeEntry {
     pub fn from_metadata(metadata: &TypeMetadata, ty: Ty) -> Self {
         let (name, kind, layout) = match metadata {
-            TypeMetadata::PrimitiveType(rigid) => {
-                (format!("{:?}", rigid), TypeKind::Primitive, None)
-            }
+            TypeMetadata::PrimitiveType(rigid) => (format!("{rigid:?}"), TypeKind::Primitive, None),
             TypeMetadata::StructType {
                 name,
                 fields,
@@ -362,7 +370,7 @@ impl TypeEntry {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 let len = size.as_ref().and_then(|s| s.eval_target_usize().ok());
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Array {
                         elem_ty: *elem_type,
                         len,
@@ -373,7 +381,7 @@ impl TypeEntry {
             TypeMetadata::TupleType { types, layout } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Tuple {
                         fields: types.clone(),
                     },
@@ -387,7 +395,7 @@ impl TypeEntry {
             } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Ptr {
                         pointee: *pointee_type,
                         mutability: *mutability,
@@ -402,7 +410,7 @@ impl TypeEntry {
             } => {
                 let layout_info = layout.as_ref().map(LayoutInfo::from_shape);
                 (
-                    format!("{}", ty),
+                    format!("{ty}"),
                     TypeKind::Ref {
                         pointee: *pointee_type,
                         mutability: *mutability,
@@ -447,7 +455,7 @@ impl TypeEntry {
                         .map(|f| {
                             let ty_name = type_index.get_name(f.ty);
                             match f.offset {
-                                Some(off) => format!("@{}: {}", off, ty_name),
+                                Some(off) => format!("@{off}: {ty_name}"),
                                 None => ty_name,
                             }
                         })
