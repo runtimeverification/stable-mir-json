@@ -95,6 +95,12 @@ const BREAKPOINTS: &[Breakpoint] = &[
         cfg: "smir_has_reify_fn_pointer_safety",
         description: "PointerCoercion::ReifyFnPointer gains Safety field",
     },
+    Breakpoint {
+        date: "2025-12-13",
+        cfg: "smir_no_filename_display_pref",
+        description:
+            "FileNameDisplayPreference became private; display() takes RemapPathScopeComponents",
+    },
 ];
 
 fn main() {
