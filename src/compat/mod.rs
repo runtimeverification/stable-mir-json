@@ -27,16 +27,16 @@
 
 pub extern crate rustc_middle;
 pub extern crate rustc_monomorphize;
+#[cfg(smir_crate_renamed)]
+pub extern crate rustc_public as stable_mir;
+#[cfg(smir_crate_renamed)]
+pub extern crate rustc_public_bridge as rustc_smir;
 pub extern crate rustc_session;
 #[cfg(not(smir_crate_renamed))]
 pub extern crate rustc_smir;
-#[cfg(smir_crate_renamed)]
-pub extern crate rustc_public_bridge as rustc_smir;
 pub extern crate rustc_span;
 #[cfg(not(smir_crate_renamed))]
 pub extern crate stable_mir;
-#[cfg(smir_crate_renamed)]
-pub extern crate rustc_public as stable_mir;
 
 // We use rustc's vendored serde rather than pulling in our own copy.
 // Having two serde versions causes version-mismatch errors when

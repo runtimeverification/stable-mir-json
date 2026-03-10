@@ -20,11 +20,11 @@
 extern crate rustc_driver;
 extern crate rustc_interface;
 extern crate rustc_middle;
+#[cfg(smir_crate_renamed)]
+extern crate rustc_public_bridge as rustc_smir;
 extern crate rustc_session;
 #[cfg(not(smir_crate_renamed))]
 extern crate rustc_smir;
-#[cfg(smir_crate_renamed)]
-extern crate rustc_public_bridge as rustc_smir;
 use rustc_driver::Compilation;
 use rustc_interface::interface::Compiler;
 use rustc_middle::ty::TyCtxt;
