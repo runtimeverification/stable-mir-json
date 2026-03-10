@@ -33,7 +33,6 @@ const INTERNED_TYPES: &[&str] = &[
     "DefId",
     "AdtDef",
     "CrateNum",
-    "VariantIdx",
 ];
 
 // Interned key names that always need normalizing, regardless of whether
