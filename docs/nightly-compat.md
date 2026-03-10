@@ -73,15 +73,18 @@ canonical. If they ever diverge, trust `build.rs`.
 | 2025-07-07 | `smir_rustc_internal_moved` | `rustc_internal::{internal,stable,run}` moved from `rustc_smir` to `stable_mir` | `compat/mod.rs` (cfg-gated re-export), `driver.rs` (cfg-gated import) |
 | 2025-07-10 | `smir_has_global_alloc_typeid` | `GlobalAlloc::TypeId { ty }` variant added | `mk_graph/index.rs`, `printer/collect.rs`, `printer/mir_visitor.rs` (conditional match arms) |
 | 2025-07-14 | `smir_crate_renamed` | `stable_mir` -> `rustc_public`, `rustc_smir` -> `rustc_public_bridge` | `compat/mod.rs`, `driver.rs` (cfg-gated `extern crate` aliases) |
+| 2025-07-25 | `smir_no_coroutine_movability` | `Movability` removed from `RigidTy::Coroutine` and `AggregateKind::Coroutine` | `printer/types.rs`, `mk_graph/util.rs` (conditional match arms) |
+| 2025-09-18 | `smir_no_dyn_kind` | `DynKind` removed from `TyKind::Dynamic` (3 fields to 2) | `printer/types.rs` (conditional match arm) |
+| 2025-10-02 | `smir_no_projection_subtype` | `ProjectionElem::Subtype` moved to `CastKind::Subtype` | `mk_graph/util.rs` (conditional match arm) |
 
 ### Supported range
 
 ```
-  oldest tested                   pinned (CI)   newest tested
-       v                              v              v
-  2024-11-29  ------------------  2025-07-11  --  2025-07-15
-       |                                              |
-       +-- all 8 breakpoints covered ----------------+
+  oldest tested                                      pinned (CI)   newest tested
+       v                                                v              v
+  2024-11-29  ----------------------------------------  2025-10-03  --  2025-10-03
+       |                                                                |
+       +-- all 11 breakpoints covered ---------------------------------+
 ```
 
 The pinned nightly (the one CI actually runs) is whatever `rust-toolchain.toml`
