@@ -70,6 +70,7 @@ done
 [[ -d "$RUST_DIR" ]] || die "not a directory: $RUST_DIR"
 
 UI_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+AWK_SCRIPT="${UI_DIR}/parse_test_directives.awk"
 PASSING_TSV="${UI_DIR}/passing.tsv"
 FAILING_TSV="${UI_DIR}/failing.tsv"
 OVERRIDES_DIR="${UI_DIR}/overrides"
@@ -224,6 +225,32 @@ build_effective_passing() {
         skip) effective["$path"]="" ;;
       esac
     done < "$override_file"
+  fi
+
+  # Filter out tests that the directive parser would skip (needs-subprocess,
+  # needs-sanitizer, arch/os mismatches, etc.). Uses git-show to read each
+  # test file at the target commit without a full checkout.
+  local host_os host_arch host_bits
+  host_os=$(uname -s | tr '[:upper:]' '[:lower:]')
+  case "$host_os" in darwin) host_os="macos" ;; esac
+  host_arch=$(uname -m)
+  case "$host_arch" in arm64) host_arch="aarch64" ;; esac
+  host_bits=$(getconf LONG_BIT 2>/dev/null || echo 64)
+
+  local skip_count=0
+  for path in "${!effective[@]}"; do
+    [[ -n "${effective[$path]}" ]] || continue
+    local result
+    result=$(git -C "$RUST_DIR" show "${target_commit}:${path}" 2>/dev/null \
+      | awk -v host_os="$host_os" -v host_arch="$host_arch" -v host_bits="$host_bits" \
+            -f "$AWK_SCRIPT" 2>/dev/null || echo "FLAGS	")
+    if [[ "${result%%	*}" == "SKIP" ]]; then
+      effective["$path"]=""
+      (( ++skip_count ))
+    fi
+  done
+  if (( skip_count > 0 )); then
+    echo "  (filtered $skip_count tests via directive parser)" >&2
   fi
 
   # Output sorted (skip empty-value entries, which were deleted/skipped).
