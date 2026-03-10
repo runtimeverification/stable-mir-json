@@ -1,5 +1,8 @@
 # Rust Stable MIR Pretty Printing
 
+> **Pinned nightly: `nightly-2025-07-15`**
+> (supported range: `nightly-2024-12-14` through `nightly-2025-07-15`)
+
 This package provides a program that will emit a JSON serialisation of the Stable MIR of a Rust program
 
 ## Building
@@ -8,7 +11,7 @@ This package provides a program that will emit a JSON serialisation of the Stabl
 cargo build
 ```
 
-NOTE: requries [rustup](https://www.rust-lang.org/tools/install)
+NOTE: requires [rustup](https://www.rust-lang.org/tools/install)
 
 ## Usage
 
