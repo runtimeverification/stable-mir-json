@@ -33,7 +33,7 @@ clean: rustup-clear-toolchain clean-graphs
 rustup-clear-toolchain:
 	rustup override unset
 	rustup override unset --nonexistent
-	rustup toolchain uninstall "$(TOOLCHAIN_NAME)"
+	if [ -n "$(TOOLCHAIN_NAME)" ]; then rustup toolchain uninstall "$(TOOLCHAIN_NAME)"; fi
 
 ### Test
 
