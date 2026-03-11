@@ -13,7 +13,7 @@ use crate::compat::stable_mir;
 
 use std::collections::{HashMap, HashSet};
 use std::ops::ControlFlow;
-use std::panic::{catch_unwind, set_hook, take_hook, AssertUnwindSafe};
+use std::panic::{catch_unwind, AssertUnwindSafe};
 
 use stable_mir::mir::mono::Instance;
 use stable_mir::ty::{RigidTy, TyKind};
@@ -37,12 +37,13 @@ pub(super) struct LayoutPanic {
 fn try_layout_shape(
     ty: &stable_mir::ty::Ty,
 ) -> Result<Option<stable_mir::abi::LayoutShape>, String> {
-    // Temporarily suppress the default panic hook so caught panics don't
-    // spray backtraces to stderr; we report them in our own summary.
-    let prev_hook = take_hook();
-    set_hook(Box::new(|_| {}));
+    // catch_unwind keeps the process alive when rustc's layout engine panics
+    // (e.g. on certain `dyn Trait` types). The default panic hook will still
+    // print a backtrace to stderr for each caught panic; that's noisy but
+    // harmless, and avoids the thread-safety issues of swapping the global
+    // hook per-call. We collect the messages and report them in our own
+    // summary at the end.
     let result = catch_unwind(AssertUnwindSafe(|| ty.layout().ok().map(|l| l.shape())));
-    set_hook(prev_hook);
 
     match result {
         Ok(shape) => Ok(shape),
