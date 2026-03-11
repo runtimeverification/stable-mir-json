@@ -142,6 +142,16 @@ fn collect_and_analyze_items(
         all_items.push(item);
     }
 
+    if !ty_visitor.layout_panics.is_empty() {
+        eprintln!(
+            "warning: {} type layout(s) could not be computed (rustc panicked):",
+            ty_visitor.layout_panics.len()
+        );
+        for panic in &ty_visitor.layout_panics {
+            eprintln!("  type {:?}: {}", panic.ty, panic.message);
+        }
+    }
+
     (
         CollectedCrate {
             items: all_items,

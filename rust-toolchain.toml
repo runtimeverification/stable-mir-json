@@ -1,9 +1,3 @@
 [toolchain]
 channel = "nightly-2024-11-29"
 components = ["llvm-tools", "rustc-dev", "rust-src", "rust-analyzer"]
-
-# Ignored by rustup; used by our test scripts.
-# This is the rustc commit that backs the nightly above.
-# UI test scripts automatically checkout this commit in RUST_DIR_ROOT.
-[metadata]
-rustc-commit = "a2545fd6fc66b4323f555223a860c451885d1d2b"
