@@ -23,14 +23,7 @@ jobs:
           submodules: recursive
 
       - name: Install yq
-        run: |
-          set -euo pipefail
-          YQ_VERSION="v4.52.4"
-          mkdir -p "$HOME/.local/bin"
-          wget -qO "$HOME/.local/bin/yq" \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-          chmod +x "$HOME/.local/bin/yq"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: .github/scripts/install-yq.sh
 
       - name: 'Read nightly channel from rust-toolchain.toml'
         id: toolchain-meta
@@ -88,14 +81,7 @@ jobs:
           submodules: recursive
 
       - name: Install yq
-        run: |
-          set -euo pipefail
-          YQ_VERSION="v4.52.4"
-          mkdir -p "$HOME/.local/bin"
-          wget -qO "$HOME/.local/bin/yq" \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-          chmod +x "$HOME/.local/bin/yq"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: .github/scripts/install-yq.sh
 
       - name: 'Read nightly channel from rust-toolchain.toml'
         id: toolchain-meta
@@ -142,14 +128,7 @@ jobs:
           submodules: recursive
 
       - name: Install yq
-        run: |
-          set -euo pipefail
-          YQ_VERSION="v4.52.4"
-          mkdir -p "$HOME/.local/bin"
-          wget -qO "$HOME/.local/bin/yq" \
-            "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-          chmod +x "$HOME/.local/bin/yq"
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: .github/scripts/install-yq.sh
 
       - name: 'Read nightly channel from rust-toolchain.toml'
         id: toolchain-meta
