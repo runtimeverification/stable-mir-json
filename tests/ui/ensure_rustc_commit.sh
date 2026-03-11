@@ -13,7 +13,11 @@ set -u
 
 # Derive the rustc commit from the active toolchain; rust-toolchain.toml
 # selects the nightly, so this stays in sync automatically.
-RUSTC_COMMIT=$(rustc -vV | grep 'commit-hash' | cut -d' ' -f2)
+# Run from the repo root so rustup picks up rust-toolchain.toml even when
+# the caller's CWD is outside the repository.
+_SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+_REPO_ROOT=$(cd -- "$_SCRIPT_DIR/../.." &>/dev/null && pwd)
+RUSTC_COMMIT=$(cd "$_REPO_ROOT" && rustc -vV | grep 'commit-hash' | cut -d' ' -f2)
 if [ -z "$RUSTC_COMMIT" ]; then
     echo "Error: Could not determine rustc commit-hash from 'rustc -vV'"
     exit 1
