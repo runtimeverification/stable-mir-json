@@ -11,6 +11,8 @@ use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
 
 use crate::printer::SmirJson;
 
+use crate::compat::rustc_demangle::demangle;
+
 use super::index::{AllocIndex, LayoutInfo, TypeEntry, TypeIndex, TypeKind};
 use super::util::{function_string, short_fn_name, GraphLabelString};
 
@@ -23,23 +25,48 @@ pub struct GraphContext {
     pub allocs: AllocIndex,
     pub types: TypeIndex,
     pub functions: HashMap<Ty, String>,
+    /// When `GRAPH_UNMANGLE=1`, maps mangled symbol names to demangled
+    /// display names. Empty otherwise. Renderers should call
+    /// `display_name()` for labels rather than using `functions` values
+    /// directly.
+    display_names: HashMap<String, String>,
 }
 
 impl GraphContext {
     pub fn from_smir(smir: &SmirJson) -> Self {
         let types = TypeIndex::from_types(&smir.types);
         let allocs = AllocIndex::from_alloc_infos(&smir.allocs, &types);
+        let unmangle = std::env::var("GRAPH_UNMANGLE").is_ok();
         let functions: HashMap<Ty, String> = smir
             .functions
             .iter()
             .map(|(k, v)| (k.0, function_string(v.clone())))
             .collect();
+        let display_names: HashMap<String, String> = if unmangle {
+            functions
+                .values()
+                .map(|name| (name.clone(), demangle(name).to_string()))
+                .collect()
+        } else {
+            HashMap::new()
+        };
 
         Self {
             allocs,
             types,
             functions,
+            display_names,
         }
+    }
+
+    /// Return the display-friendly name for a symbol. When
+    /// `GRAPH_UNMANGLE=1` is set this is the demangled form;
+    /// otherwise it's the original (mangled) name.
+    pub fn display_name<'a>(&'a self, name: &'a str) -> &'a str {
+        self.display_names
+            .get(name)
+            .map(|s| s.as_str())
+            .unwrap_or(name)
     }
 
     /// Render a constant operand with alloc information
@@ -78,7 +105,7 @@ impl GraphContext {
                 // Function pointers, unit type, etc.
                 if ty.kind().is_fn() {
                     if let Some(name) = self.functions.get(&ty) {
-                        format!("const fn {}", short_fn_name(name))
+                        format!("const fn {}", short_fn_name(self.display_name(name)))
                     } else {
                         format!("const {}", ty_name)
                     }
@@ -240,7 +267,7 @@ impl GraphContext {
             } => {
                 let fn_name = self
                     .resolve_call_target(func)
-                    .map(|n| short_fn_name(&n))
+                    .map(|n| short_fn_name(self.display_name(&n)))
                     .unwrap_or_else(|| "?".to_string());
                 let arg_str = args
                     .iter()

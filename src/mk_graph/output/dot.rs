@@ -12,14 +12,15 @@ use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
+use crate::mk_graph::ItemFilter;
 
 impl SmirJson {
     /// Convert the MIR to DOT (Graphviz) format
-    pub fn to_dot_file(self) -> String {
+    pub fn to_dot_file(mut self) -> String {
         let mut bytes = Vec::new();
 
-        // Build context BEFORE consuming self
-        let ctx = GraphContext::from_smir(&self);
+        let mut ctx = GraphContext::from_smir(&self);
+        ItemFilter::apply_all(&mut self.items, &mut ctx);
 
         {
             let mut writer = DotWriter::from(&mut bytes);
@@ -56,13 +57,17 @@ impl SmirJson {
             }
 
             // first create all nodes for functions not in the items list
-            for f in ctx.functions.values() {
-                if !item_names.contains(f) {
-                    graph
-                        .node_named(block_name(f, 0))
-                        .set_label(&name_lines(f))
-                        .set_color(Color::Red);
-                }
+            let mut external_fns: Vec<&String> = ctx
+                .functions
+                .values()
+                .filter(|f| !item_names.contains(*f))
+                .collect();
+            external_fns.sort();
+            for f in external_fns {
+                graph
+                    .node_named(block_name(f, 0))
+                    .set_label(&name_lines(ctx.display_name(f)))
+                    .set_color(Color::Red);
             }
 
             for item in self.items {

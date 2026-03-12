@@ -37,6 +37,14 @@ make png   # Generate .png files in output-png/ (requires graphviz)
 make d2    # Generate .d2 files in output-d2/
 ```
 
+These targets accept optional flags that compose freely:
+
+```shell
+make svg UNMANGLE=1                       # Demangle symbol names in labels
+make svg SKIPLANGSTART=1                  # Filter out std::rt::lang_start items
+make svg UNMANGLE=1 SKIPLANGSTART=1       # Both
+```
+
 There are a few environment variables that can be set to control the tools output:
 
 1.  `LINK_ITEMS` - add entries to the link-time `functions` map for each monomorphic item in the crate;
@@ -71,7 +79,8 @@ These tests are stored [in `src/tests/integration/failing`](./src/tests/integrat
 To run the tests, do the following:
 
 ```shell
-make integration-test
+make integration-test          # Golden-file JSON tests
+make test-skip-lang-start      # Verify SKIP_LANG_START filtering works
 ```
 
 ## Integration with `cargo`

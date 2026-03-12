@@ -26,7 +26,7 @@ integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
 integration-test: DIFF      ?= | diff -
 integration-test:
 	errors=""; \
-	report() { echo "$$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
+	report() { printf "%s: %s\n" "$$1" "$$2"; errors="$$errors\n$$1: $$2"; }; \
 	for rust in ${TESTS}; do \
 		target=$${rust%.rs}.smir.json; \
 		dir=$$(dirname $${rust}); \
@@ -37,11 +37,28 @@ integration-test:
 			&& rm $${target} \
 			|| report "$$rust" "Unexpected json output"; \
 		done; \
-	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
+	[ -z "$$errors" ] || (printf "===============\nFAILING TESTS:%s\n" "$$errors"; exit 1)
 
 
 golden:
 	make integration-test DIFF=">"
+
+.PHONY: test-skip-lang-start
+test-skip-lang-start: TESTS ?= $(shell find $(TESTDIR) -type f -name "*.rs")
+test-skip-lang-start: SMIR  ?= cargo run -- --d2 "-Zno-codegen"
+test-skip-lang-start:
+	errors=""; \
+	report() { printf "FAIL: %s: %s\n" "$$1" "$$2"; errors="$$errors\n$$1: $$2"; }; \
+	for rust in ${TESTS}; do \
+		dir=$$(dirname $${rust}); \
+		name=$$(basename $${rust} .rs); \
+		d2=$${dir}/$${name}.smir.d2; \
+		echo "$$rust"; \
+		SKIP_LANG_START=1 ASSERT_FILTER=1 ${SMIR} --out-dir $${dir} $${rust} \
+			|| { report "$$rust" "Conversion failed"; continue; }; \
+		rm -f $${d2}; \
+	done; \
+	[ -z "$$errors" ] || (printf "===============\nFAILING TESTS:%s\n" "$$errors"; exit 1)
 
 format: 
 	cargo fmt
@@ -72,6 +89,10 @@ OUTDIR_SVG=output-svg
 OUTDIR_PNG=output-png
 OUTDIR_D2=output-d2
 
+# Pass UNMANGLE=1 to demangle symbol names in graph output.
+# Pass SKIPLANGSTART=1 to filter out std::rt::lang_start items.
+GRAPH_ENV := $(if $(UNMANGLE),GRAPH_UNMANGLE=1) $(if $(SKIPLANGSTART),SKIP_LANG_START=1)
+
 clean-graphs:
 	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
 
@@ -88,7 +109,7 @@ dot:
 	@for rs in $(TESTDIR)/*.rs; do \
 		name=$$(basename $$rs .rs); \
 		echo "Generating $$name.smir.dot"; \
-		cargo run --release -- --dot -Zno-codegen $$rs 2>/dev/null; \
+		$(GRAPH_ENV) cargo run --release -- --dot -Zno-codegen $$rs 2>/dev/null; \
 		mv $$name.smir.dot $(OUTDIR_DOT)/ 2>/dev/null || true; \
 	done
 
@@ -113,6 +134,6 @@ d2:
 	@for rs in $(TESTDIR)/*.rs; do \
 		name=$$(basename $$rs .rs); \
 		echo "Generating $$name.smir.d2"; \
-		cargo run --release -- --d2 -Zno-codegen $$rs 2>/dev/null; \
+		$(GRAPH_ENV) cargo run --release -- --d2 -Zno-codegen $$rs 2>/dev/null; \
 		mv $$name.smir.d2 $(OUTDIR_D2)/ 2>/dev/null || true; \
 	done
