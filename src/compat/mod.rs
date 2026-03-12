@@ -25,6 +25,7 @@
 //! `DefId`, etc.) without requiring them to know which rustc crate the
 //! type actually lives in.
 
+pub extern crate rustc_demangle;
 pub extern crate rustc_middle;
 pub extern crate rustc_monomorphize;
 pub extern crate rustc_session;

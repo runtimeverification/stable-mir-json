@@ -66,7 +66,7 @@ fn render_d2_function(
     out: &mut String,
 ) {
     let fn_id = short_name(name);
-    let display_name = escape_d2(&name_lines(name));
+    let display_name = name_lines(&escape_d2(name));
 
     // Function container
     out.push_str(&format!("{}: {{\n", fn_id));
@@ -131,7 +131,8 @@ fn render_d2_call_edges(
         }
 
         let target_id = short_name(&callee_name);
-        out.push_str(&format!("{}: \"{}\"\n", target_id, escape_d2(&callee_name)));
+        let display = ctx.display_name(&callee_name);
+        out.push_str(&format!("{}: \"{}\"\n", target_id, escape_d2(display)));
         out.push_str(&format!("{}.style.fill: \"#ffe0e0\"\n", target_id));
         out.push_str(&format!("{}.bb{} -> {}: call\n", fn_id, idx, target_id));
     }

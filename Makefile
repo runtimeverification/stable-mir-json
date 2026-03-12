@@ -89,6 +89,10 @@ OUTDIR_SVG=output-svg
 OUTDIR_PNG=output-png
 OUTDIR_D2=output-d2
 
+# Pass UNMANGLE=1 to demangle symbol names in graph output.
+# Pass SKIPLANGSTART=1 to filter out std::rt::lang_start items.
+GRAPH_ENV := $(if $(UNMANGLE),GRAPH_UNMANGLE=1) $(if $(SKIPLANGSTART),SKIP_LANG_START=1)
+
 clean-graphs:
 	@rm -rf $(OUTDIR_DOT) $(OUTDIR_SVG) $(OUTDIR_PNG) $(OUTDIR_D2)
 
@@ -105,7 +109,7 @@ dot:
 	@for rs in $(TESTDIR)/*.rs; do \
 		name=$$(basename $$rs .rs); \
 		echo "Generating $$name.smir.dot"; \
-		cargo run --release -- --dot -Zno-codegen $$rs 2>/dev/null; \
+		$(GRAPH_ENV) cargo run --release -- --dot -Zno-codegen $$rs 2>/dev/null; \
 		mv $$name.smir.dot $(OUTDIR_DOT)/ 2>/dev/null || true; \
 	done
 
@@ -130,6 +134,6 @@ d2:
 	@for rs in $(TESTDIR)/*.rs; do \
 		name=$$(basename $$rs .rs); \
 		echo "Generating $$name.smir.d2"; \
-		cargo run --release -- --d2 -Zno-codegen $$rs 2>/dev/null; \
+		$(GRAPH_ENV) cargo run --release -- --d2 -Zno-codegen $$rs 2>/dev/null; \
 		mv $$name.smir.d2 $(OUTDIR_D2)/ 2>/dev/null || true; \
 	done
