@@ -19,7 +19,7 @@ use std::collections::{HashMap, HashSet};
 use stable_mir::mir::alloc::GlobalAlloc;
 use stable_mir::mir::mono::MonoItem;
 use stable_mir::mir::visit::MirVisitor;
-use stable_mir::ty::IndexedVal;
+use crate::compat::indexed_val::to_index;
 use stable_mir::CrateDef;
 
 use super::items::{get_foreign_module_details, mk_item};
@@ -274,13 +274,13 @@ fn assemble_smir(tcx: TyCtxt<'_>, collected: CollectedCrate, derived: DerivedInf
                 let b_kind = b.0 .1.as_ref().map(|k| format!("{k}"));
                 a_kind.cmp(&b_kind)
             })
-            .then_with(|| a.0 .0.to_index().cmp(&b.0 .0.to_index()))
+            .then_with(|| to_index(&a.0 .0).cmp(&to_index(&b.0 .0)))
     });
     items.sort();
     types.sort_by(|a, b| {
         format!("{}", a.0)
             .cmp(&format!("{}", b.0))
-            .then_with(|| a.0.to_index().cmp(&b.0.to_index()))
+            .then_with(|| to_index(&a.0).cmp(&to_index(&b.0)))
     });
     spans.sort_by(|a, b| a.1.cmp(&b.1));
 
