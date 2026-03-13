@@ -3,9 +3,11 @@
 use std::collections::HashMap;
 
 use crate::compat::stable_mir;
+#[cfg(not(smir_has_raw_ptr_kind))]
+use stable_mir::mir::Mutability;
 use stable_mir::mir::{
-    BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, Operand, Rvalue, Statement,
-    StatementKind, Terminator, TerminatorKind,
+    BorrowKind, ConstOperand, NonDivergingIntrinsic, Operand, Rvalue, Statement, StatementKind,
+    Terminator, TerminatorKind,
 };
 use stable_mir::ty::{ConstantKind, IndexedVal, MirConst, Ty};
 
@@ -153,8 +155,8 @@ impl GraphContext {
             } => format!("Ascribe {}.{}", place.label(), projections.base),
             Coverage(_) => "Coverage".to_string(),
             Intrinsic(intr) => format!("Intr: {}", self.render_intrinsic(intr)),
-            ConstEvalCounter {} => "ConstEvalCounter".to_string(),
-            Nop {} => "Nop".to_string(),
+            ConstEvalCounter => "ConstEvalCounter".to_string(),
+            Nop => "Nop".to_string(),
         }
     }
 
@@ -162,10 +164,16 @@ impl GraphContext {
     pub fn render_rvalue(&self, v: &Rvalue) -> String {
         use Rvalue::*;
         match v {
+            // In nightlies >= 2025-01-28, AddressOf's first field changed from
+            // Mutability (Mut/Not) to RawPtrKind (Mut/Const/FakeForPtrMetadata).
+            // See build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_raw_ptr_kind))]
             AddressOf(mutability, p) => match mutability {
                 Mutability::Not => format!("&raw {}", p.label()),
                 Mutability::Mut => format!("&raw mut {}", p.label()),
             },
+            #[cfg(smir_has_raw_ptr_kind)]
+            AddressOf(kind, p) => format!("&raw {:?} {}", kind, p.label()),
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| self.render_operand(op)).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
@@ -227,10 +235,10 @@ impl GraphContext {
         match &term.kind {
             Goto { .. } => "Goto".to_string(),
             SwitchInt { discr, .. } => format!("SwitchInt {}", self.render_operand(discr)),
-            Resume {} => "Resume".to_string(),
-            Abort {} => "Abort".to_string(),
-            Return {} => "Return".to_string(),
-            Unreachable {} => "Unreachable".to_string(),
+            Resume => "Resume".to_string(),
+            Abort => "Abort".to_string(),
+            Return => "Return".to_string(),
+            Unreachable => "Unreachable".to_string(),
             Drop { place, .. } => format!("Drop {}", place.label()),
             Call {
                 func,
