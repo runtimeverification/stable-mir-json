@@ -44,5 +44,10 @@ pub fn stable_mir_driver(args_outer: &[String], callback_fn: fn(TyCtxt) -> ()) {
     let early_dcx =
         rustc_session::EarlyDiagCtxt::new(rustc_session::config::ErrorOutputType::default());
     rustc_driver::init_rustc_env_logger(&early_dcx);
+    // In nightlies >= 2025-01-24, RunCompiler was replaced with a free
+    // function run_compiler(). See build.rs BREAKPOINTS table.
+    #[cfg(not(smir_has_run_compiler_fn))]
     let _ = rustc_driver::RunCompiler::new(args_outer, &mut callbacks).run();
+    #[cfg(smir_has_run_compiler_fn)]
+    rustc_driver::run_compiler(args_outer, &mut callbacks);
 }
