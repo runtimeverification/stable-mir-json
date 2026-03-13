@@ -11,7 +11,12 @@ use stable_mir::mir::mono::MonoItem;
 
 /// Collect all monomorphized items from the compiler.
 pub fn mono_collect(tcx: TyCtxt<'_>) -> Vec<MonoItem> {
+    // In nightlies >= 2025-01-27, MonoItemPartitions changed from a tuple
+    // to named fields. See build.rs BREAKPOINTS table.
+    #[cfg(not(smir_has_named_mono_item_partitions))]
     let units = tcx.collect_and_partition_mono_items(()).1;
+    #[cfg(smir_has_named_mono_item_partitions)]
+    let units = tcx.collect_and_partition_mono_items(()).codegen_units;
     units
         .iter()
         .flat_map(|unit| {

@@ -44,16 +44,27 @@ impl GraphLabelString for Operand {
         }
     }
 }
-
+/// Some `AggregateKind` variants only exist on certain nightlies (the
+/// stable MIR API evolves across compiler versions). Arms gated with
+/// `#[cfg(smir_has_*)]` are toggled by `build.rs`, which inspects the
+/// active rustc's commit-date and emits the appropriate cfg flags.
+/// This keeps the match exhaustive on every supported nightly: without
+/// the flag the variant doesn't exist in the enum, so the arm is
+/// excluded; with the flag the arm is included to cover the new variant.
 impl GraphLabelString for AggregateKind {
     fn label(&self) -> String {
         use AggregateKind::*;
         match &self {
             Array(_ty) => "Array".to_string(),
-            Tuple {} => "Tuple".to_string(),
+            Tuple => "Tuple".to_string(),
             Adt(_, idx, _, _, _) => format!("Adt{{{}}}", idx.to_index()),
             Closure(_, _) => "Closure".to_string(),
             Coroutine(_, _, _) => "Coroutine".to_string(),
+
+            // Added in nightlies >= 2024-12-14; see build.rs BREAKPOINTS table.
+            #[cfg(smir_has_coroutine_closure)]
+            CoroutineClosure(_, _) => "CoroutineClosure".to_string(),
+
             RawPtr(ty, Mutability::Mut) => format!("*mut ({})", ty),
             RawPtr(ty, Mutability::Not) => format!("*({})", ty),
         }
@@ -64,10 +75,16 @@ impl GraphLabelString for Rvalue {
     fn label(&self) -> String {
         use Rvalue::*;
         match &self {
+            // In nightlies >= 2025-01-28, AddressOf's first field changed from
+            // Mutability (Mut/Not) to RawPtrKind (Mut/Const/FakeForPtrMetadata).
+            // See build.rs BREAKPOINTS table.
+            #[cfg(not(smir_has_raw_ptr_kind))]
             AddressOf(mutability, p) => match mutability {
                 Mutability::Not => format!("&raw {}", p.label()),
                 Mutability::Mut => format!("&raw mut {}", p.label()),
             },
+            #[cfg(smir_has_raw_ptr_kind)]
+            AddressOf(kind, p) => format!("&raw {:?} {}", kind, p.label()),
             Aggregate(kind, operands) => {
                 let os: Vec<String> = operands.iter().map(|op| op.label()).collect();
                 format!("{} ({})", kind.label(), os.join(", "))
@@ -239,7 +256,7 @@ pub fn terminator_targets(term: &Terminator) -> Vec<usize> {
             result.push(targets.otherwise());
             result
         }
-        Resume {} | Abort {} | Return {} | Unreachable {} => vec![],
+        Resume | Abort | Return | Unreachable => vec![],
         Drop { target, unwind, .. } => {
             let mut result = vec![*target];
             if let UnwindAction::Cleanup(t) = unwind {
