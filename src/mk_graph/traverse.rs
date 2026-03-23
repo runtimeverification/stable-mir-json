@@ -2,7 +2,7 @@
 //!
 //! This module owns the traversal order and graph semantics.
 extern crate stable_mir;
-use stable_mir::mir::{Body, Statement, Terminator, TerminatorKind};
+use stable_mir::mir::{Body, TerminatorKind};
 
 use crate::printer::SmirJson;
 use crate::MonoItemKind;
@@ -28,15 +28,10 @@ pub struct CallEdge {
 /// `stmts` and `terminator` are pre-rendered strings produced using
 /// `GraphContext`. Builders are free to format or escape them according
 /// to their output format.
-///
-/// `raw_stmts` and `raw_terminator` are escape hatches for renderers
-/// that need to inspect the underlying MIR structure.
-pub struct RenderedBlock<'a> {
+pub struct RenderedBlock {
     pub idx: usize,
     pub stmts: Vec<String>,
-    pub raw_stmts: &'a [Statement],
     pub terminator: String,
-    pub raw_terminator: &'a Terminator,
     pub cfg_edges: Vec<(usize, Option<String>)>,
 }
 
@@ -46,11 +41,11 @@ pub struct RenderedBlock<'a> {
 /// terminators, and computes the control-flow edges. Builders receive
 /// this structure and are responsible only for formatting it into a
 /// specific graph representation.
-pub struct RenderedFunction<'a> {
+pub struct RenderedFunction {
     pub id: String,
     pub display_name: String,
     pub locals: Vec<(usize, String)>,
-    pub blocks: Vec<RenderedBlock<'a>>,
+    pub blocks: Vec<RenderedBlock>,
     pub call_edges: Vec<CallEdge>,
 }
 
@@ -123,7 +118,7 @@ fn render_function<'a>(
     ctx: &GraphContext,
     name: &str,
     body: Option<&'a Body>,
-) -> RenderedFunction<'a> {
+) -> RenderedFunction {
     let id = match body {
         Some(b) => format!("fn_{}_{}", short_name(name), hash_body(b)),
         None => format!("fn_{}_no_body", short_name(name)),
@@ -157,9 +152,7 @@ fn render_function<'a>(
             blocks.push(RenderedBlock {
                 idx,
                 stmts,
-                raw_stmts: &block.statements,
                 terminator,
-                raw_terminator: &block.terminator,
                 cfg_edges,
             });
 
