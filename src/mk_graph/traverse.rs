@@ -2,15 +2,17 @@
 //!
 //! This module owns the traversal order and graph semantics.
 extern crate stable_mir;
-use stable_mir::mir::{Body, TerminatorKind};
+use stable_mir::mir::{Body, TerminatorKind, UnwindAction};
 
 use crate::printer::SmirJson;
 use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{
-    hash_body, is_unqualified, name_lines, short_name, terminator_targets,
+    hash_body, is_unqualified, name_lines, short_name, GraphLabelString,
 };
+
+use std::collections::{HashMap, HashSet};
 
 /// Represents a call from a block to another function.
 ///
@@ -92,10 +94,27 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
     builder.alloc_legend(&ctx.allocs_legend_lines());
     builder.type_legend(&ctx.types_legend_lines());
 
+    let mut defined: HashSet<String> = HashSet::new();
+    for item in &smir.items {
+        if let MonoItemKind::MonoItemFn { name, .. } = &item.mono_item_kind {
+            defined.insert(short_name(name));
+        }
+    }
+
+    let mut called: HashMap<String, String> = HashMap::new();
+
     for item in &smir.items {
         match &item.mono_item_kind {
             MonoItemKind::MonoItemFn { name, body, .. } => {
                 let func = render_function(&ctx, name, body.as_ref());
+
+                // collect callees
+                for edge in &func.call_edges {
+                    called
+                        .entry(edge.callee_id.clone())
+                        .or_insert(edge.callee_name.clone());
+                }
+
                 builder.render_function(&func);
             }
             MonoItemKind::MonoItemStatic { name, .. } => {
@@ -106,6 +125,12 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
                 let id = short_name(asm);
                 builder.asm_item(&id, asm);
             }
+        }
+    }
+
+    for (id, name) in called {
+        if !defined.contains(&id) {
+            builder.external_function(&id, &name);
         }
     }
 
@@ -144,10 +169,76 @@ fn render_function<'a>(
 
             let terminator = ctx.render_terminator(&block.terminator);
 
-            let cfg_edges = terminator_targets(&block.terminator)
-                .into_iter()
-                .map(|t| (t, None))
-                .collect();
+            let mut cfg_edges = Vec::new();
+
+            match &block.terminator.kind {
+                TerminatorKind::Goto { target } => {
+                    cfg_edges.push((*target, None));
+                }
+
+                TerminatorKind::SwitchInt { targets, .. } => {
+                    for (value, target) in targets.branches() {
+                        cfg_edges.push((target, Some(value.to_string())));
+                    }
+                    cfg_edges.push((targets.otherwise(), Some("other".into())));
+                }
+
+                TerminatorKind::Return
+                | TerminatorKind::Abort
+                | TerminatorKind::Resume
+                | TerminatorKind::Unreachable => {
+                    // no outgoing edges
+                }
+
+                TerminatorKind::Drop { target, unwind, .. } => {
+                    cfg_edges.push((*target, None));
+
+                    if let UnwindAction::Cleanup(t) = unwind {
+                        cfg_edges.push((*t, Some("cleanup".into())));
+                    }
+                }
+
+                TerminatorKind::Call {
+                    destination,
+                    target,
+                    unwind,
+                    ..
+                } => {
+                    if let Some(t) = target {
+                        cfg_edges.push((*t, Some(destination.label())));
+                    }
+
+                    if let UnwindAction::Cleanup(t) = unwind {
+                        cfg_edges.push((*t, Some("cleanup".into())));
+                    }
+                }
+
+                TerminatorKind::Assert {
+                    target,
+                    unwind,
+                    ..
+                } => {
+                    cfg_edges.push((*target, None));
+
+                    if let UnwindAction::Cleanup(t) = unwind {
+                        cfg_edges.push((*t, Some("cleanup".into())));
+                    }
+                }
+
+                TerminatorKind::InlineAsm {
+                    destination,
+                    unwind,
+                    ..
+                } => {
+                    if let Some(t) = destination {
+                        cfg_edges.push((*t, None));
+                    }
+
+                    if let UnwindAction::Cleanup(t) = unwind {
+                        cfg_edges.push((*t, Some("cleanup".into())));
+                    }
+                }
+            }
 
             blocks.push(RenderedBlock {
                 idx,
