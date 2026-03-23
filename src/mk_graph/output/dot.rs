@@ -13,6 +13,9 @@ use crate::MonoItemKind;
 use crate::mk_graph::context::GraphContext;
 use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
 
+use crate::mk_graph::traverse::render_graph;
+use crate::mk_graph::traverse::{GraphBuilder, RenderedFunction};
+
 impl SmirJson {
     /// Convert the MIR to DOT (Graphviz) format
     pub fn to_dot_file(self) -> String {
@@ -304,5 +307,58 @@ impl SmirJson {
         }
 
         String::from_utf8(bytes).expect("Error converting dot file")
+    }
+}
+
+// =============================================================================
+// DOT Builder
+// =============================================================================
+
+pub struct DOTBuilder {
+    buf: String,
+}
+
+impl DOTBuilder {
+    pub fn new() -> Self {
+        Self { buf: String::new() }
+    }
+}
+
+impl Default for DOTBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl GraphBuilder for DOTBuilder {
+    type Output = String;
+
+    fn begin_graph(&mut self, _name: &str) {}
+
+    fn alloc_legend(&mut self, _lines: &[String]) {}
+
+    fn type_legend(&mut self, _lines: &[String]) {}
+
+    fn external_function(&mut self, _id: &str, _name: &str) {}
+
+    fn render_function(&mut self, _func: &RenderedFunction) {}
+
+    fn static_item(&mut self, _id: &str, _name: &str) {}
+
+    fn asm_item(&mut self, _id: &str, _content: &str) {}
+
+    fn finish(self) -> Self::Output {
+        self.buf
+    }
+}
+
+// =============================================================================
+// Public entry point (new)
+// =============================================================================
+
+impl SmirJson {
+    /// Convert the MIR to DOT using GraphBuilder traversal
+    pub fn to_dot_file_new(&self) -> String {
+        render_graph(self, DOTBuilder::new())
     }
 }

@@ -28,7 +28,13 @@ pub use util::GraphLabelString;
 
 /// Entry point to write the DOT file
 pub fn emit_dotfile(tcx: TyCtxt<'_>) {
-    let smir_dot = collect_smir(tcx).to_dot_file();
+    let smir = collect_smir(tcx);
+
+    let smir_dot = if std::env::var("SMIR_DOT_NEW").is_ok() {
+        smir.to_dot_file_new()
+    } else {
+        smir.to_dot_file()
+    };
 
     match mir_output_path(tcx, "smir.dot") {
         OutputDest::Stdout => {
