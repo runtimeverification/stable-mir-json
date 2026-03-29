@@ -1,0 +1,23 @@
+# Manual overrides for nightly-2025-07-08
+# Format: action<TAB>path[<TAB>extra]
+#
+# Actions:
+#   -      remove from passing list (use for behavior changes, not deletions;
+#          git deletions and renames are handled automatically)
+#   +      add to passing list
+#   skip   remove from passing list (alias for -, documents intent)
+#   fail   move to failing list (extra = expected exit code)
+#   pass   move from failing to passing list
+#
+# Same 9 compiler-change regressions as nightly-2025-07-11 (these tests
+# changed upstream between the base nightly and here; the failures are
+# compile errors in the test source, not driver bugs).
+skip	tests/ui/unsized-locals/align.rs
+skip	tests/ui/unsized-locals/autoderef.rs
+skip	tests/ui/unsized-locals/by-value-trait-dyn-compatibility-rpass.rs
+skip	tests/ui/unsized-locals/by-value-trait-dyn-compatibility-with-default.rs
+skip	tests/ui/unsized-locals/reference-unsized-locals.rs
+skip	tests/ui/unsized-locals/simple-unsized-locals.rs
+skip	tests/ui/pattern/deref-patterns/bindings.rs
+skip	tests/ui/pattern/deref-patterns/branch.rs
+skip	tests/ui/errors/remap-path-prefix-macro.rs
