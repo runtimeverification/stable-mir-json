@@ -213,6 +213,13 @@ pub fn escape_d2(s: &str) -> String {
         .replace('$', "\\$")
 }
 
+/// Escape special characters for DOT string labels
+pub fn escape_dot(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+}
+
 // =============================================================================
 // Byte Helpers
 // =============================================================================

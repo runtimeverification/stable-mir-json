@@ -8,9 +8,7 @@ use crate::printer::SmirJson;
 use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{
-    hash_body, is_unqualified, name_lines, short_name, GraphLabelString,
-};
+use crate::mk_graph::util::{hash_body, is_unqualified, name_lines, short_name, GraphLabelString};
 
 use std::collections::{HashMap, HashSet};
 
@@ -20,7 +18,6 @@ use std::collections::{HashMap, HashSet};
 /// rendered as a string. Builders may choose how to visualize this edge.
 pub struct CallEdge {
     pub block_idx: usize,
-    pub callee_id: String,
     pub callee_name: String,
     pub rendered_args: String,
 }
@@ -45,6 +42,8 @@ pub struct RenderedBlock {
 /// specific graph representation.
 pub struct RenderedFunction {
     pub id: String,
+    pub symbol_name: String,
+    pub is_unqualified: bool,
     pub display_name: String,
     pub locals: Vec<(usize, String)>,
     pub blocks: Vec<RenderedBlock>,
@@ -70,7 +69,7 @@ pub trait GraphBuilder {
 
     fn type_legend(&mut self, lines: &[String]);
 
-    fn external_function(&mut self, id: &str, name: &str);
+    fn external_function(&mut self, name: &str);
 
     fn render_function(&mut self, func: &RenderedFunction);
 
@@ -90,47 +89,43 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
     let ctx = GraphContext::from_smir(smir);
 
     builder.begin_graph(&smir.name);
-
     builder.alloc_legend(&ctx.allocs_legend_lines());
     builder.type_legend(&ctx.types_legend_lines());
 
-    let mut defined: HashSet<String> = HashSet::new();
-    for item in &smir.items {
-        if let MonoItemKind::MonoItemFn { name, .. } = &item.mono_item_kind {
-            defined.insert(short_name(name));
-        }
-    }
+    // Full symbol names of all defined mono items. Used to suppress
+    // external_function calls for callees that have a defined body.
+    let defined_symbol_names: HashSet<String> =
+        smir.items.iter().map(|i| i.symbol_name.clone()).collect();
 
+    // Accumulates all reachable callees: full symbol name -> full symbol name.
     let mut called: HashMap<String, String> = HashMap::new();
 
     for item in &smir.items {
         match &item.mono_item_kind {
             MonoItemKind::MonoItemFn { name, body, .. } => {
-                let func = render_function(&ctx, name, body.as_ref());
+                let func = render_function(&ctx, name, &item.symbol_name, body.as_ref());
 
-                // collect callees
                 for edge in &func.call_edges {
                     called
-                        .entry(edge.callee_id.clone())
+                        .entry(edge.callee_name.clone())
                         .or_insert(edge.callee_name.clone());
                 }
 
                 builder.render_function(&func);
             }
             MonoItemKind::MonoItemStatic { name, .. } => {
-                let id = short_name(name);
-                builder.static_item(&id, name);
+                builder.static_item(&short_name(name), name);
             }
             MonoItemKind::MonoItemGlobalAsm { asm } => {
-                let id = short_name(asm);
-                builder.asm_item(&id, asm);
+                builder.asm_item(&short_name(asm), asm);
             }
         }
     }
 
-    for (id, name) in called {
-        if !defined.contains(&id) {
-            builder.external_function(&id, &name);
+    // Emit external nodes only for callees with no defined body.
+    for (name, _) in called {
+        if !defined_symbol_names.contains(&name) {
+            builder.external_function(&name);
         }
     }
 
@@ -142,6 +137,7 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
 fn render_function<'a>(
     ctx: &GraphContext,
     name: &str,
+    symbol_name: &str,
     body: Option<&'a Body>,
 ) -> RenderedFunction {
     let id = match body {
@@ -150,6 +146,7 @@ fn render_function<'a>(
     };
 
     let display_name = name_lines(name);
+    let unqualified = is_unqualified(name);
 
     let mut blocks = Vec::new();
     let mut call_edges = Vec::new();
@@ -186,13 +183,10 @@ fn render_function<'a>(
                 TerminatorKind::Return
                 | TerminatorKind::Abort
                 | TerminatorKind::Resume
-                | TerminatorKind::Unreachable => {
-                    // no outgoing edges
-                }
+                | TerminatorKind::Unreachable => {}
 
                 TerminatorKind::Drop { target, unwind, .. } => {
                     cfg_edges.push((*target, None));
-
                     if let UnwindAction::Cleanup(t) = unwind {
                         cfg_edges.push((*t, Some("cleanup".into())));
                     }
@@ -207,19 +201,13 @@ fn render_function<'a>(
                     if let Some(t) = target {
                         cfg_edges.push((*t, Some(destination.label())));
                     }
-
                     if let UnwindAction::Cleanup(t) = unwind {
                         cfg_edges.push((*t, Some("cleanup".into())));
                     }
                 }
 
-                TerminatorKind::Assert {
-                    target,
-                    unwind,
-                    ..
-                } => {
+                TerminatorKind::Assert { target, unwind, .. } => {
                     cfg_edges.push((*target, None));
-
                     if let UnwindAction::Cleanup(t) = unwind {
                         cfg_edges.push((*t, Some("cleanup".into())));
                     }
@@ -233,7 +221,6 @@ fn render_function<'a>(
                     if let Some(t) = destination {
                         cfg_edges.push((*t, None));
                     }
-
                     if let UnwindAction::Cleanup(t) = unwind {
                         cfg_edges.push((*t, Some("cleanup".into())));
                     }
@@ -247,22 +234,21 @@ fn render_function<'a>(
                 cfg_edges,
             });
 
+            // Collect call edges for all resolvable call targets.
+            // No is_unqualified guard here
             if let TerminatorKind::Call { func, args, .. } = &block.terminator.kind {
                 if let Some(callee) = ctx.resolve_call_target(func) {
-                    if is_unqualified(&callee) {
-                        let rendered_args = args
-                            .iter()
-                            .map(|a| ctx.render_operand(a))
-                            .collect::<Vec<_>>()
-                            .join(", ");
+                    let rendered_args = args
+                        .iter()
+                        .map(|a| ctx.render_operand(a))
+                        .collect::<Vec<_>>()
+                        .join(", ");
 
-                        call_edges.push(CallEdge {
-                            block_idx: idx,
-                            callee_id: short_name(&callee),
-                            callee_name: callee,
-                            rendered_args,
-                        });
-                    }
+                    call_edges.push(CallEdge {
+                        block_idx: idx,
+                        callee_name: callee,
+                        rendered_args,
+                    });
                 }
             }
         }
@@ -270,6 +256,8 @@ fn render_function<'a>(
 
     RenderedFunction {
         id,
+        symbol_name: symbol_name.to_string(),
+        is_unqualified: unqualified,
         display_name,
         locals,
         blocks,

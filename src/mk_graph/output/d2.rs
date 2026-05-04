@@ -2,7 +2,7 @@
 
 use crate::printer::SmirJson;
 
-use crate::mk_graph::util::escape_d2;
+use crate::mk_graph::util::{escape_d2, short_name};
 
 use crate::mk_graph::traverse::render_graph;
 use crate::mk_graph::traverse::{GraphBuilder, RenderedFunction};
@@ -51,7 +51,8 @@ impl GraphBuilder for D2Builder {
 
     fn type_legend(&mut self, _lines: &[String]) {}
 
-    fn external_function(&mut self, id: &str, name: &str) {
+    fn external_function(&mut self, name: &str) {
+        let id = short_name(name);
         self.buf
             .push_str(&format!("{}: \"{}\"\n", id, escape_d2(name)));
     }
@@ -85,18 +86,19 @@ impl GraphBuilder for D2Builder {
         self.buf.push_str("}\n\n");
 
         for edge in &func.call_edges {
+            let callee_id = short_name(&edge.callee_name);
             self.buf.push_str(&format!(
                 "{}: \"{}\"\n",
-                edge.callee_id,
+                callee_id,
                 escape_d2(&edge.callee_name)
             ));
 
             self.buf
-                .push_str(&format!("{}.style.fill: \"#ffe0e0\"\n", edge.callee_id));
+                .push_str(&format!("{}.style.fill: \"#ffe0e0\"\n", callee_id));
 
             self.buf.push_str(&format!(
                 "{}.bb{} -> {}: call\n",
-                func.id, edge.block_idx, edge.callee_id
+                func.id, edge.block_idx, callee_id
             ));
         }
     }
