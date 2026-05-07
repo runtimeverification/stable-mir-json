@@ -134,11 +134,11 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
 
 /// Emit graph events for a single function body.
 /// Traverses blocks, CFG edges, and call edges without renderer-specific logic.
-fn render_function<'a>(
+fn render_function(
     ctx: &GraphContext,
     name: &str,
     symbol_name: &str,
-    body: Option<&'a Body>,
+    body: Option<&Body>,
 ) -> RenderedFunction {
     let id = match body {
         Some(b) => format!("fn_{}_{}", short_name(name), hash_body(b)),
