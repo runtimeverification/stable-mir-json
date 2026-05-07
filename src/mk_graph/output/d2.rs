@@ -51,8 +51,7 @@ impl GraphBuilder for D2Builder {
 
     fn type_legend(&mut self, _lines: &[String]) {}
 
-    fn external_function(&mut self, name: &str) {
-        let id = short_name(name);
+    fn external_function(&mut self, id: &str, name: &str) {
         self.buf
             .push_str(&format!("{}: \"{}\"\n", id, escape_d2(name)));
     }

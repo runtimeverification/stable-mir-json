@@ -18,6 +18,7 @@ use std::collections::{HashMap, HashSet};
 /// rendered as a string. Builders may choose how to visualize this edge.
 pub struct CallEdge {
     pub block_idx: usize,
+    pub callee_id: String,
     pub callee_name: String,
     pub rendered_args: String,
 }
@@ -69,7 +70,7 @@ pub trait GraphBuilder {
 
     fn type_legend(&mut self, lines: &[String]);
 
-    fn external_function(&mut self, name: &str);
+    fn external_function(&mut self, id: &str, name: &str);
 
     fn render_function(&mut self, func: &RenderedFunction);
 
@@ -97,13 +98,32 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
     let defined_symbol_names: HashSet<String> =
         smir.items.iter().map(|i| i.symbol_name.clone()).collect();
 
+    // Full symbol name -> graph function ID.
+    let mut function_ids: HashMap<String, String> = HashMap::new();
+
+    for item in &smir.items {
+        if let MonoItemKind::MonoItemFn { name, body, .. } = &item.mono_item_kind {
+            let id = match body {
+                Some(body) => {
+                    format!("fn_{}_{}", short_name(name), hash_body(body))
+                }
+                None => {
+                    format!("fn_{}_no_body", short_name(name))
+                }
+            };
+
+            function_ids.insert(item.symbol_name.clone(), id);
+        }
+    }
+
     // Accumulates all reachable callees: full symbol name -> full symbol name.
     let mut called: HashMap<String, String> = HashMap::new();
 
     for item in &smir.items {
         match &item.mono_item_kind {
             MonoItemKind::MonoItemFn { name, body, .. } => {
-                let func = render_function(&ctx, name, &item.symbol_name, body.as_ref());
+                let func =
+                    render_function(&ctx, name, &item.symbol_name, body.as_ref(), &function_ids);
 
                 for edge in &func.call_edges {
                     called
@@ -125,7 +145,8 @@ pub fn render_graph<B: GraphBuilder>(smir: &SmirJson, mut builder: B) -> B::Outp
     // Emit external nodes only for callees with no defined body.
     for (name, _) in called {
         if !defined_symbol_names.contains(&name) {
-            builder.external_function(&name);
+            let id = format!("fn_{}_external", short_name(&name));
+            builder.external_function(&id, &name);
         }
     }
 
@@ -139,11 +160,12 @@ fn render_function(
     name: &str,
     symbol_name: &str,
     body: Option<&Body>,
+    function_ids: &HashMap<String, String>,
 ) -> RenderedFunction {
-    let id = match body {
-        Some(b) => format!("fn_{}_{}", short_name(name), hash_body(b)),
-        None => format!("fn_{}_no_body", short_name(name)),
-    };
+    let id = function_ids
+        .get(symbol_name)
+        .expect("missing function id")
+        .clone();
 
     let display_name = name_lines(name);
     let unqualified = is_unqualified(name);
@@ -244,8 +266,14 @@ fn render_function(
                         .collect::<Vec<_>>()
                         .join(", ");
 
+                    let callee_id = function_ids
+                        .get(&callee)
+                        .cloned()
+                        .unwrap_or_else(|| format!("fn_{}_external", short_name(&callee)));
+
                     call_edges.push(CallEdge {
                         block_idx: idx,
+                        callee_id,
                         callee_name: callee,
                         rendered_args,
                     });

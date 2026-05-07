@@ -390,8 +390,8 @@ impl GraphBuilder for DOTBuilder {
     /// Emit a red external node for a callee that has no defined body.
     /// `name` is the full resolved symbol name; block_name(name, 0) gives
     /// the node ID, matching the target IDs used in deferred call edges.
-    fn external_function(&mut self, name: &str) {
-        let node_id = block_name(name, 0);
+    fn external_function(&mut self, id: &str, name: &str) {
+        let node_id = block_name(id, 0);
         let label = escape_dot(&name_lines(name));
         self.line(&format!("  {} [label=\"{}\", color=red];", node_id, label));
     }
@@ -403,10 +403,7 @@ impl GraphBuilder for DOTBuilder {
             "lightgray"
         };
 
-        self.line(&format!(
-            "  subgraph cluster_{} {{",
-            short_name(&func.symbol_name)
-        ));
+        self.line(&format!("  subgraph cluster_{} {{", &func.id));
         self.line(&format!(
             "    label=\"{}\";",
             escape_dot(&func.display_name)
@@ -428,14 +425,13 @@ impl GraphBuilder for DOTBuilder {
                 .join("\\l");
             self.line(&format!(
                 "    {}_locals [label=\"{}\", style=\"filled\", color=palegreen3];",
-                short_name(&func.symbol_name),
-                label
+                &func.id, label
             ));
         }
 
         // Block nodes
         for block in &func.blocks {
-            let node_id = block_name(&func.symbol_name, block.idx);
+            let node_id = block_name(&func.id, block.idx);
             let mut parts: Vec<String> = block.stmts.clone();
             parts.push(block.terminator.clone());
             parts.push(String::new());
@@ -449,9 +445,9 @@ impl GraphBuilder for DOTBuilder {
 
         // Intra-cluster CFG edges
         for block in &func.blocks {
-            let from = block_name(&func.symbol_name, block.idx);
+            let from = block_name(&func.id, block.idx);
             for (target, label_opt) in &block.cfg_edges {
-                let to = block_name(&func.symbol_name, *target);
+                let to = block_name(&func.id, *target);
                 match label_opt {
                     Some(lbl) => self.line(&format!(
                         "    {} -> {} [label=\"{}\"];",
@@ -471,8 +467,8 @@ impl GraphBuilder for DOTBuilder {
         // matches the node ID emitted by external_function or by another
         // cluster's block 0.
         for edge in &func.call_edges {
-            let from = block_name(&func.symbol_name, edge.block_idx);
-            let to = block_name(&edge.callee_name, 0);
+            let from = block_name(&func.id, edge.block_idx);
+            let to = block_name(&edge.callee_id, 0);
             self.deferred_call_edges
                 .push((from, to, edge.rendered_args.clone()));
         }

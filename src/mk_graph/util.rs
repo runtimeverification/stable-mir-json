@@ -196,10 +196,8 @@ pub fn short_name(function_name: &str) -> String {
 }
 
 /// Generate a consistent block name within a function
-pub fn block_name(function_name: &str, id: usize) -> String {
-    let mut h = DefaultHasher::new();
-    function_name.hash(&mut h);
-    format!("X{:x}_{}", h.finish(), id)
+pub fn block_name(function_id: &str, block_idx: usize) -> String {
+    format!("{}_{}", function_id, block_idx)
 }
 
 // =============================================================================
