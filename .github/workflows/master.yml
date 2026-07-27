@@ -16,7 +16,7 @@ jobs:
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.push.head.sha }}
           fetch-depth: 0
@@ -40,13 +40,13 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.push.head.sha }}
           fetch-depth: 0
 
       - name: 'Build and cache stable-mir-json'
-        uses: workflow/nix-shell-action@v3
+        uses: workflow/nix-shell-action@v4.0.0
         env:
           GC_DONT_GC: 1
           CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_PUBLIC_TOKEN }}
@@ -65,13 +65,13 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.push.head.sha }}
           fetch-depth: 0
 
       - name: 'Publish stable-mir-json to k-framework-binary cache'
-        uses: workflow/nix-shell-action@v3
+        uses: workflow/nix-shell-action@v4.0.0
         env:
           CACHIX_AUTH_TOKEN: '${{ secrets.CACHIX_PRIVATE_KFB_TOKEN }}'
           GC_DONT_GC: '1'

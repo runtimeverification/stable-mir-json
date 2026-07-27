@@ -16,7 +16,7 @@ jobs:
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Check out pull request HEAD instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
@@ -56,7 +56,7 @@ jobs:
           cargo fmt --check
 
       - name: 'Install Nix'
-        uses: cachix/install-nix-action@v31.5.1
+        uses: cachix/install-nix-action@v31.11.0
         with:
           install_url: https://releases.nixos.org/nix/nix-2.30.1/install
           extra_nix_config: |
@@ -74,7 +74,7 @@ jobs:
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Check out pull request HEAD instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
@@ -104,7 +104,7 @@ jobs:
           RUSTFLAGS='--deny warnings' cargo build -vv
 
       - name: 'Install a good-enough jq version'
-        uses: dcarbone/install-jq-action@v3
+        uses: dcarbone/install-jq-action@v4
         with:
           version: 1.7.1
           force: true
@@ -121,7 +121,7 @@ jobs:
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Check out pull request HEAD instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
@@ -158,7 +158,7 @@ jobs:
           echo "rustc-commit=$COMMIT" >> "$GITHUB_OUTPUT"
 
       - name: 'Check out Rust repo'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: rust-lang/rust
           ref: ${{ steps.rustc-meta.outputs.rustc-commit }}
@@ -184,7 +184,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Check out pull request HEAD instead of merge commit.
           ref: ${{ github.event.pull_request.head.sha }}
@@ -192,7 +192,7 @@ jobs:
 
       - name: 'Install Nix'
         if: ${{ matrix.runner != 'MacM1' }}
-        uses: cachix/install-nix-action@v31.5.1
+        uses: cachix/install-nix-action@v31.11.0
         with:
           install_url: https://releases.nixos.org/nix/nix-2.30.1/install
           extra_nix_config: |
@@ -201,7 +201,7 @@ jobs:
 
       - name: 'Install Cachix'
         if: ${{ matrix.runner != 'MacM1' }}
-        uses: cachix/cachix-action@v16
+        uses: cachix/cachix-action@v17
         with:
           name: k-framework
 

@@ -14,10 +14,10 @@ jobs:
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 'Verify cachix publish and pin'
-        uses: workflow/nix-shell-action@v3
+        uses: workflow/nix-shell-action@v4.0.0
         env:
           CACHIX_AUTH_TOKEN: '${{ secrets.CACHIX_PRIVATE_KFB_TOKEN }}'
           GC_DONT_GC: '1'
