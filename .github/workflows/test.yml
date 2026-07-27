@@ -13,7 +13,7 @@ env:
 jobs:
   code-quality:
     name: "Code Quality"
-    runs-on: [self-hosted, linux, normal]
+    runs-on: ubuntu-latest
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v7
@@ -71,7 +71,7 @@ jobs:
   integration-tests:
     needs: code-quality
     name: "Integration Tests"
-    runs-on: [self-hosted, linux, normal]
+    runs-on: ubuntu-latest
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v7
@@ -118,7 +118,7 @@ jobs:
   ui-tests:
     needs: code-quality
     name: "UI Tests"
-    runs-on: [self-hosted, linux, normal]
+    runs-on: ubuntu-latest
     steps:
       - name: 'Check out code'
         uses: actions/checkout@v7
