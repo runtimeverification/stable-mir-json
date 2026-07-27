@@ -117,7 +117,7 @@ jobs:
 
   ui-tests:
     needs: code-quality
-    name: "ui-tests"
+    name: "UI Tests"
     runs-on: [self-hosted, linux, normal]
     steps:
       - name: 'Check out code'
@@ -169,7 +169,7 @@ jobs:
         run: | # Warning check should be redundant since code-quality runs first
           RUSTFLAGS='--deny warnings' cargo build -vv
 
-      - name: 'Run smir integration tests'
+      - name: 'Run smir UI tests'
         run: |
           RUST_DIR_ROOT='rust' VERBOSE=1 make test-ui
 
