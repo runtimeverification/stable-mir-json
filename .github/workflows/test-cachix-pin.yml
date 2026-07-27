@@ -19,7 +19,9 @@ jobs:
       - name: 'Verify cachix publish and pin'
         uses: workflow/nix-shell-action@v4.0.0
         env:
-          CACHIX_AUTH_TOKEN: '${{ secrets.CACHIX_PRIVATE_KFB_TOKEN }}'
+          # No CACHIX_AUTH_TOKEN: check-cachix-pin.sh reads neither it nor any
+          # other credential. It only curls the pin API and <hash>.narinfo, both
+          # of which serve k-framework-binary unauthenticated.
           GC_DONT_GC: '1'
           OWNER_REPO: '${{ github.repository }}'
           REV: '${{ inputs.ref }}'
