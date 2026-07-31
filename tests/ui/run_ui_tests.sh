@@ -7,7 +7,8 @@ Usage: run_ui_tests.sh [--verbose] [--save-generated-output] [--save-debug-outpu
 
 Options:
   --verbose                Print passing and skipped tests.
-  --save-generated-output   Do not delete generated *.smir.json files.
+  --save-generated-output   Do not delete generated *.smir.json or
+                           *.smir.receipts.json files.
   --save-debug-output      On failure, print stderr snippet inline and save
                            full stderr to <UI_DIR>/debug/<test_name>.stderr.
   --help, -h               Show this help.
@@ -190,7 +191,8 @@ while IFS= read -r test; do
 
   test_path="${RUST_SRC_DIR}/${test}"
   test_name="$(basename "$test" .rs)"
-  json_file="${PWD}/${test_name}.smir.json"
+  smir_file="${PWD}/${test_name}.smir.json"
+  receipts_file="${PWD}/${test_name}.smir.receipts.json"
 
   (( ++total ))
 
@@ -240,9 +242,8 @@ while IFS= read -r test; do
   fi
   (( SAVE_DEBUG_OUTPUT )) && rm -f -- "$test_stderr"
 
-  # Clean up generated JSON
-  if (( ! SAVE_GENERATED_OUTPUT )) && [[ -f "$json_file" ]]; then
-    rm -f -- "$json_file"
+  if (( ! SAVE_GENERATED_OUTPUT )); then
+    rm -f -- "$smir_file" "$receipts_file"
   fi
 done <"$PASSING_TSV"
 
