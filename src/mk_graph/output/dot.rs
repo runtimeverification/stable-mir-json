@@ -11,7 +11,9 @@ use crate::printer::SmirJson;
 use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
+use crate::mk_graph::util::{
+    block_name, escape_dot, is_unqualified, name_lines, short_name, GraphLabelString,
+};
 
 impl SmirJson {
     /// Convert the MIR to DOT (Graphviz) format
@@ -36,7 +38,11 @@ impl SmirJson {
             // Add allocs legend node if there are any allocs
             if !ctx.allocs.by_id.is_empty() {
                 let mut alloc_node = graph.node_auto();
-                let mut lines = ctx.allocs_legend_lines();
+                let mut lines: Vec<String> = ctx
+                    .allocs_legend_lines()
+                    .iter()
+                    .map(|s| escape_dot(s))
+                    .collect();
                 lines.push("".to_string());
                 alloc_node.set_label(&lines.join("\\l"));
                 alloc_node.set_style(Style::Filled);
@@ -48,7 +54,7 @@ impl SmirJson {
             if type_lines.len() > 1 {
                 // Only show if there are actual types (more than just "TYPES" header)
                 let mut type_node = graph.node_auto();
-                let mut lines = type_lines;
+                let mut lines: Vec<String> = type_lines.iter().map(|s| escape_dot(s)).collect();
                 lines.push("".to_string());
                 type_node.set_label(&lines.join("\\l"));
                 type_node.set_style(Style::Filled);
@@ -83,7 +89,7 @@ impl SmirJson {
                         vector.push(String::from("LOCALS"));
                         for (index, decl) in body.clone().unwrap().local_decls() {
                             let ty_with_layout = ctx.render_type_with_layout(decl.ty);
-                            vector.push(format!("{index} = {}", ty_with_layout));
+                            vector.push(escape_dot(&format!("{index} = {}", ty_with_layout)));
                         }
                         vector.push("".to_string());
                         local_node.set_label(vector.join("\\l").to_string().as_str());
@@ -170,7 +176,7 @@ impl SmirJson {
                                             cluster
                                                 .edge(&this_block, block_name(name, *t))
                                                 .attributes()
-                                                .set_label(&dest);
+                                                .set_label(&escape_dot(&dest));
                                         }
 
                                         // The call edge has to be drawn outside the cluster, outside this function (cluster borrows &mut graph)!
@@ -215,7 +221,9 @@ impl SmirJson {
                                 }
                                 let mut n = cluster.node_named(&this_block);
                                 label_strs.push("".to_string());
-                                n.set_label(&label_strs.join("\\l"));
+                                let escaped: Vec<String> =
+                                    label_strs.iter().map(|s| escape_dot(s)).collect();
+                                n.set_label(&escaped.join("\\l"));
                             };
 
                         let process_blocks =
@@ -278,7 +286,7 @@ impl SmirJson {
                                                 .map(|op| ctx.render_operand(op))
                                                 .collect::<Vec<String>>()
                                                 .join(",");
-                                            e.attributes().set_label(&arg_str);
+                                            e.attributes().set_label(&escape_dot(&arg_str));
                                         }
                                         _other => {
                                             // nothing to do
@@ -293,11 +301,11 @@ impl SmirJson {
                     }
                     MonoItemKind::MonoItemGlobalAsm { asm } => {
                         let mut n = graph.node_named(short_name(&asm));
-                        n.set_label(&asm.lines().collect::<String>()[..]);
+                        n.set_label(&escape_dot(&asm.lines().collect::<String>()));
                     }
                     MonoItemKind::MonoItemStatic { name, .. } => {
                         let mut n = graph.node_named(short_name(&name));
-                        n.set_label(&name[..]);
+                        n.set_label(&escape_dot(&name));
                     }
                 }
             }

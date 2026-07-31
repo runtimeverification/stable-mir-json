@@ -213,6 +213,13 @@ pub fn escape_d2(s: &str) -> String {
         .replace('$', "\\$")
 }
 
+/// Escape special characters for a DOT label's per-line content. Apply to each
+/// line BEFORE joining with the `\l` line separator, otherwise the separators
+/// themselves get escaped.
+pub fn escape_dot(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
 // =============================================================================
 // Byte Helpers
 // =============================================================================
