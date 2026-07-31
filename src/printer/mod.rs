@@ -67,9 +67,12 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
 
     // Run the spy serializer to discover which JSON paths carry interned
     // indices, then serialize the receipts alongside the main output.
-    let receipt = receipts::collect_receipts(&collected);
-    let receipt_json =
-        serde_json::to_string(&receipt).expect("serde_json failed to write receipts");
+    // Gated on SMIR_EMIT_RECEIPTS (on by default); when disabled we skip the
+    // spy pass entirely rather than just suppressing the write.
+    let receipt_json = receipts::enabled().then(|| {
+        let receipt = receipts::collect_receipts(&collected);
+        serde_json::to_string(&receipt).expect("serde_json failed to write receipts")
+    });
 
     let smir_json = serde_json::to_string(&collected).expect("serde_json failed to write result");
 
@@ -78,7 +81,9 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
             write!(&io::stdout(), "{smir_json}").expect("Failed to write smir.json");
             // Receipts go to stderr when main output goes to stdout,
             // so they can be captured separately.
-            eprintln!("{receipt_json}");
+            if let Some(receipt_json) = &receipt_json {
+                eprintln!("{receipt_json}");
+            }
         }
         crate::compat::output::OutputDest::File(path) => {
             let mut b = io::BufWriter::new(
@@ -89,12 +94,14 @@ pub fn emit_smir(tcx: TyCtxt<'_>) {
 
             // Write the receipts file alongside the JSON output:
             // foo.smir.json → foo.smir.receipts.json
-            let receipts_path = path.with_extension("receipts.json");
-            let mut rb =
-                io::BufWriter::new(File::create(&receipts_path).unwrap_or_else(|e| {
-                    panic!("Failed to create {}: {}", receipts_path.display(), e)
-                }));
-            write!(rb, "{receipt_json}").expect("Failed to write receipts");
+            if let Some(receipt_json) = &receipt_json {
+                let receipts_path = path.with_extension("receipts.json");
+                let mut rb =
+                    io::BufWriter::new(File::create(&receipts_path).unwrap_or_else(|e| {
+                        panic!("Failed to create {}: {}", receipts_path.display(), e)
+                    }));
+                write!(rb, "{receipt_json}").expect("Failed to write receipts");
+            }
         }
     }
 }

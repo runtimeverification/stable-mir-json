@@ -538,6 +538,23 @@ impl ser::SerializeStructVariant for SpyCompound {
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
+/// Environment variable controlling receipt emission.
+pub const EMIT_ENV: &str = "SMIR_EMIT_RECEIPTS";
+
+/// Whether to emit the companion `*.smir.receipts.json`.
+///
+/// Set `SMIR_EMIT_RECEIPTS` to `0`, `false`, `no`, or `off` (case-insensitive)
+/// to skip both the spy pass and the output. Otherwise the pass is enabled.
+pub fn enabled() -> bool {
+    match std::env::var(EMIT_ENV) {
+        Ok(v) => !matches!(
+            v.trim().to_ascii_lowercase().as_str(),
+            "0" | "false" | "no" | "off"
+        ),
+        Err(_) => true,
+    }
+}
+
 /// Serialize `value` through the spy serializer to discover which JSON paths
 /// carry interned indices.  Returns a [`Receipts`] describing the findings.
 pub fn collect_receipts<T: Serialize>(value: &T) -> Receipts {
