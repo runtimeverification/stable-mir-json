@@ -3,7 +3,7 @@
 set -u
 
 USAGE="Usage: $0 RUST_DIR_ROOT [y|n]\n
-'RUST_DIR_ROOT' is the Rust directory to take ui tests from. Optional arg 'y|n' is whether to keep *.smir.json and source files for analysis (default 'n')."
+'RUST_DIR_ROOT' is the Rust directory to take ui tests from. Optional arg 'y|n' is whether to keep *.smir.json, *.smir.receipts.json and source files for analysis (default 'n')."
 
 if [ $# -lt 1 ]; then
     echo -e "$USAGE"
@@ -90,7 +90,8 @@ while read -r test; do
     cargo run -- -Zno-codegen ${test_flags} "$full_path" > tmp.stdout 2> tmp.stderr
     status=$?
     base_test="$(basename "$test")"
-    json_file="${PWD}/$(basename "$test" .rs).smir.json"
+    smir_file="${PWD}/$(basename "$test" .rs).smir.json"
+    receipts_file="${PWD}/$(basename "$test" .rs).smir.receipts.json"
 
     if [ "$status" -ne 0 ]; then
         echo "Test $test FAILED with exit code $status"
@@ -100,18 +101,21 @@ while read -r test; do
             cp tmp.stdout "$FAILING_DIR/$base_test.stdout"
             cp tmp.stderr "$FAILING_DIR/$base_test.stderr"
         else
-            rm -f tmp.stdout tmp.stderr
+            rm -f "$smir_file" "$receipts_file" tmp.stderr tmp.stdout
         fi
     else
         echo "Test $test PASSED"
         echo "$test" >> "$PASSING_TSV"
         if [ -n "${KEEP_OUTPUT}" ]; then
             cp "$full_path" "$PASSING_DIR/$base_test"
-            if [ -f "$json_file" ]; then
-                mv "$json_file" "$PASSING_DIR/$(basename "$json_file")"
+            if [ -f "$smir_file" ]; then
+                mv "$smir_file" "$PASSING_DIR/$(basename "$smir_file")"
+            fi
+            if [ -f "$receipts_file" ]; then
+                mv "$receipts_file" "$PASSING_DIR/$(basename "$receipts_file")"
             fi
         else
-            rm -f "$json_file" tmp.stderr tmp.stdout
+            rm -f "$smir_file" "$receipts_file" tmp.stderr tmp.stdout
         fi
     fi
 done < "$UI_SOURCES"
