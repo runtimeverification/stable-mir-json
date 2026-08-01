@@ -53,28 +53,43 @@ NIGHTLY_DATE := $(shell \
 	fi)
 ACTIVE_NIGHTLY := nightly-$(NIGHTLY_DATE)
 
+# Per-nightly golden file directory.  Falls back to the pinned nightly
+# (from rust-toolchain.toml) when no directory matches the active nightly.
+PINNED_NIGHTLY := $(shell awk '/^channel/{gsub(/[" ]/, "", $$3); print $$3}' rust-toolchain.toml)
+EXPECTED_BASE  := tests/integration/expected
+EXPECTED_DIR   := $(shell \
+	if [ -d "$(EXPECTED_BASE)/$(ACTIVE_NIGHTLY)" ]; then \
+		echo "$(EXPECTED_BASE)/$(ACTIVE_NIGHTLY)"; \
+	else \
+		echo "$(EXPECTED_BASE)/$(PINNED_NIGHTLY)"; \
+	fi)
+
 .PHONY: integration-test
 integration-test: TESTS     ?= $(shell find $(TESTDIR) -type f -name "*.rs")
 integration-test: SMIR      ?= cargo run -- "-Zno-codegen"
 # override this to tweak how expectations are formatted
-integration-test: NORMALIZE ?= jq -S -e -f $(TESTDIR)/../normalise-filter.jq
+integration-test: JQ_FILTER ?= $(TESTDIR)/../normalise-filter.jq
 # override this to re-make golden files
 integration-test: DIFF      ?= | diff -
 ## Run integration tests against expected outputs
 integration-test:
+	@echo "Golden files: $(EXPECTED_DIR)"
 	errors=""; \
-	report() { echo "$$1: $$2"; errors="$$errors\n$$1: $$2"; }; \
+	report() { printf "%s: %s\n" "$$1" "$$2"; errors="$$errors\n$$1: $$2"; }; \
 	for rust in ${TESTS}; do \
 		target=$${rust%.rs}.smir.json; \
+		receipts=$${rust%.rs}.smir.receipts.json; \
+		base=$$(basename $${target}).expected; \
+		expected=$(EXPECTED_DIR)/$${base}; \
 		dir=$$(dirname $${rust}); \
 		echo "$$rust"; \
 		${SMIR} --out-dir $${dir} $${rust} || report "$$rust" "Conversion failed"; \
 		[ -f $${target} ] \
-			&& ${NORMALIZE} $${target} ${DIFF} $${target}.expected \
-			&& rm $${target} \
+			&& jq -S -e --slurpfile receipts $${receipts} -f $(JQ_FILTER) $${target} ${DIFF} $${expected} \
+			&& rm $${target} $${receipts} \
 			|| report "$$rust" "Unexpected json output"; \
 		done; \
-	[ -z "$$errors" ] || (echo "===============\nFAILING TESTS:$$errors"; exit 1)
+	[ -z "$$errors" ] || (printf "===============\nFAILING TESTS:%s\n" "$$errors"; exit 1)
 
 .PHONY: golden
 golden:
