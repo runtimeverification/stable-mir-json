@@ -1162,89 +1162,118 @@
       "mono_item_kind": {
         "MonoItemFn": {
           "body": {
-            "arg_count": 0,
+            "arg_count": 4,
             "blocks": [
               {
                 "statements": [
                   {
                     "kind": {
-                      "Assign": [
-                        {
-                          "local": 2,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Constant": {
-                              "const_": {
-                                "id": 42,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      42,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                }
-                              },
-                              "span": 163,
-                              "user_ty": null
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 164
+                      "StorageLive": 5
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageLive": 7
+                    }
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
-                          "local": 3,
+                          "local": 7,
                           "projection": []
                         },
                         {
-                          "Use": {
-                            "Constant": {
-                              "const_": {
-                                "id": 43,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 4,
-                                    "bytes": [
-                                      10,
-                                      0,
-                                      0,
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
+                          "Aggregate": [
+                            {
+                              "Closure": [
+                                0,
+                                [
+                                  {
+                                    "Type": 0
+                                  },
+                                  {
+                                    "Type": 0
+                                  },
+                                  {
+                                    "Type": 0
+                                  },
+                                  {
+                                    "Type": 0
                                   }
+                                ]
+                              ]
+                            },
+                            [
+                              {
+                                "Copy": {
+                                  "local": 1,
+                                  "projection": []
                                 }
-                              },
-                              "span": 165,
-                              "user_ty": null
-                            }
-                          }
+                              }
+                            ]
+                          ]
                         }
                       ]
-                    },
-                    "span": 166
+                    }
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 6,
+                          "projection": []
+                        },
+                        {
+                          "Ref": [
+                            {
+                              "kind": "ReErased"
+                            },
+                            "Shared",
+                            {
+                              "local": 7,
+                              "projection": []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 5,
+                          "projection": []
+                        },
+                        {
+                          "Cast": [
+                            {
+                              "PointerCoercion": "Unsize"
+                            },
+                            {
+                              "Copy": {
+                                "local": 6,
+                                "projection": []
+                              }
+                            },
+                            0
+                          ]
+                        }
+                      ]
+                    }
                   }
                 ],
                 "terminator": {
                   "kind": {
                     "Call": {
                       "args": [
+                        {
+                          "Move": {
+                            "local": 5,
+                            "projection": []
+                          }
+                        },
                         {
                           "Move": {
                             "local": 2,
@@ -1256,131 +1285,140 @@
                             "local": 3,
                             "projection": []
                           }
+                        },
+                        {
+                          "Move": {
+                            "local": 4,
+                            "projection": []
+                          }
                         }
                       ],
                       "destination": {
-                        "local": 1,
+                        "local": 0,
                         "projection": []
                       },
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 41,
                             "kind": "ZeroSized"
                           },
-                          "span": 161,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 162
+                  }
                 }
               },
               {
-                "statements": [],
+                "statements": [
+                  {
+                    "kind": {
+                      "StorageDead": 5
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageDead": 7
+                    }
+                  }
+                ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 167
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 168
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 162
+                "mutability": "Not"
               },
               {
-                "mutability": "Mut",
-                "span": 164
+                "mutability": "Not"
               },
               {
-                "mutability": "Mut",
-                "span": 166
+                "mutability": "Not"
+              },
+              {
+                "mutability": "Not"
+              },
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Not"
+              },
+              {
+                "mutability": "Not"
               }
             ],
-            "span": 171,
             "spread_arg": null,
             "var_debug_info": [
               {
-                "argument_index": null,
+                "argument_index": 1,
                 "composite": null,
-                "name": "x",
+                "name": "main",
                 "source_info": {
-                  "scope": 1,
-                  "span": 169
+                  "scope": 0
                 },
                 "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 42,
-                      "kind": {
-                        "Allocated": {
-                          "align": 4,
-                          "bytes": [
-                            42,
-                            0,
-                            0,
-                            0
-                          ],
-                          "mutability": "Mut",
-                          "provenance": {
-                            "ptrs": []
-                          }
-                        }
-                      }
-                    },
-                    "span": 163,
-                    "user_ty": null
+                  "Place": {
+                    "local": 1,
+                    "projection": []
                   }
                 }
               },
               {
-                "argument_index": null,
+                "argument_index": 2,
                 "composite": null,
-                "name": "y",
+                "name": "argc",
                 "source_info": {
-                  "scope": 2,
-                  "span": 170
+                  "scope": 0
                 },
                 "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 43,
-                      "kind": {
-                        "Allocated": {
-                          "align": 4,
-                          "bytes": [
-                            10,
-                            0,
-                            0,
-                            0
-                          ],
-                          "mutability": "Mut",
-                          "provenance": {
-                            "ptrs": []
-                          }
-                        }
-                      }
-                    },
-                    "span": 165,
-                    "user_ty": null
+                  "Place": {
+                    "local": 2,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": 3,
+                "composite": null,
+                "name": "argv",
+                "source_info": {
+                  "scope": 0
+                },
+                "value": {
+                  "Place": {
+                    "local": 3,
+                    "projection": []
+                  }
+                }
+              },
+              {
+                "argument_index": 4,
+                "composite": null,
+                "name": "sigpipe",
+                "source_info": {
+                  "scope": 0
+                },
+                "value": {
+                  "Place": {
+                    "local": 4,
+                    "projection": []
                   }
                 }
               }
             ]
           },
-          "id": 7,
-          "name": "main"
+          "name": "std::rt::lang_start::<()>"
         }
       },
-      "symbol_name": "_ZN5binop4main17h"
+      "symbol_name": "_ZN3std2rt10lang_start17h"
     },
     {
       "details": null,
@@ -1390,32 +1428,260 @@
             "arg_count": 1,
             "blocks": [
               {
-                "statements": [],
+                "statements": [
+                  {
+                    "kind": {
+                      "StorageLive": 2
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageLive": 3
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageLive": 4
+                    }
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 4,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Copy": {
+                              "local": 1,
+                              "projection": [
+                                "Deref",
+                                {
+                                  "Field": [
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 44
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Move": {
+                            "local": 4,
+                            "projection": []
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 3,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "kind": "ZeroSized"
+                          },
+                          "user_ty": null
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  }
+                }
+              },
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "StorageDead": 4
+                    }
+                  }
+                ],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [
+                        {
+                          "Move": {
+                            "local": 3,
+                            "projection": []
+                          }
+                        }
+                      ],
+                      "destination": {
+                        "local": 2,
+                        "projection": []
+                      },
+                      "func": {
+                        "Constant": {
+                          "const_": {
+                            "kind": "ZeroSized"
+                          },
+                          "user_ty": null
+                        }
+                      },
+                      "target": 2,
+                      "unwind": "Continue"
+                    }
+                  }
+                }
+              },
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "StorageDead": 3
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageLive": 5
+                    }
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 5,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Copy": {
+                              "local": 2,
+                              "projection": [
+                                {
+                                  "Field": [
+                                    0,
+                                    0
+                                  ]
+                                },
+                                {
+                                  "Field": [
+                                    0,
+                                    0
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 0,
+                          "projection": []
+                        },
+                        {
+                          "Cast": [
+                            "IntToInt",
+                            {
+                              "Move": {
+                                "local": 5,
+                                "projection": []
+                              }
+                            },
+                            0
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageDead": 5
+                    }
+                  },
+                  {
+                    "kind": {
+                      "StorageDead": 2
+                    }
+                  }
+                ],
+                "terminator": {
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 44
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 44
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Mut"
               }
             ],
-            "span": 44,
             "spread_arg": null,
-            "var_debug_info": []
+            "var_debug_info": [
+              {
+                "argument_index": null,
+                "composite": null,
+                "name": "main",
+                "source_info": {
+                  "scope": 0
+                },
+                "value": {
+                  "Place": {
+                    "local": 1,
+                    "projection": [
+                      "Deref",
+                      {
+                        "Field": [
+                          0,
+                          0
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "argument_index": 1,
+                "composite": null,
+                "name": "self",
+                "source_info": {
+                  "scope": 1
+                },
+                "value": {
+                  "Place": {
+                    "local": 2,
+                    "projection": []
+                  }
+                }
+              }
+            ]
           },
-          "id": 4,
-          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
+          "name": "std::rt::lang_start::<()>::{closure#0}"
         }
       },
-      "symbol_name": "_ZN4core3ptr85drop_in_place$LT$std..rt..lang_start$LT$$LP$$RP$$GT$..$u7b$$u7b$closure$u7d$$u7d$$GT$17h"
+      "symbol_name": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
     },
     {
       "details": null,
@@ -1439,10 +1705,8 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 4,
                               "kind": "ZeroSized"
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -1454,18 +1718,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 3,
                             "kind": "ZeroSized"
                           },
-                          "span": 31,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 33
+                  }
                 }
               },
               {
@@ -1477,10 +1738,8 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 4,
                               "kind": "ZeroSized"
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -1492,43 +1751,35 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 5,
                             "kind": "ZeroSized"
                           },
-                          "span": 34,
                           "user_ty": null
                         }
                       },
                       "target": 2,
                       "unwind": "Unreachable"
                     }
-                  },
-                  "span": 35
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 36
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 37
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 38
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 39
+                "mutability": "Not"
               }
             ],
-            "span": 42,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -1536,8 +1787,7 @@
                 "composite": null,
                 "name": "f",
                 "source_info": {
-                  "scope": 0,
-                  "span": 38
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -1551,8 +1801,7 @@
                 "composite": null,
                 "name": "result",
                 "source_info": {
-                  "scope": 1,
-                  "span": 40
+                  "scope": 1
                 },
                 "value": {
                   "Place": {
@@ -1566,531 +1815,23 @@
                 "composite": null,
                 "name": "dummy",
                 "source_info": {
-                  "scope": 2,
-                  "span": 41
+                  "scope": 2
                 },
                 "value": {
                   "Const": {
                     "const_": {
-                      "id": 4,
                       "kind": "ZeroSized"
                     },
-                    "span": 32,
                     "user_ty": null
                   }
                 }
               }
             ]
           },
-          "id": 2,
           "name": "std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>"
         }
       },
       "symbol_name": "_ZN3std3sys9backtrace28__rust_begin_short_backtrace17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Constant": {
-                              "const_": {
-                                "id": 8,
-                                "kind": {
-                                  "Allocated": {
-                                    "align": 1,
-                                    "bytes": [
-                                      0
-                                    ],
-                                    "mutability": "Mut",
-                                    "provenance": {
-                                      "ptrs": []
-                                    }
-                                  }
-                                }
-                              },
-                              "span": 46,
-                              "user_ty": null
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 46
-                  }
-                ],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 45
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 47
-              },
-              {
-                "mutability": "Not",
-                "span": 48
-              }
-            ],
-            "span": 49,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 0,
-                  "span": 48
-                },
-                "value": {
-                  "Const": {
-                    "const_": {
-                      "id": 4,
-                      "kind": "ZeroSized"
-                    },
-                    "span": 32,
-                    "user_ty": null
-                  }
-                }
-              }
-            ]
-          },
-          "id": 5,
-          "name": "<() as std::process::Termination>::report"
-        }
-      },
-      "symbol_name": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 1,
-            "blocks": [
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageLive": 2
-                    },
-                    "span": 16
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 3
-                    },
-                    "span": 15
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 4
-                    },
-                    "span": 17
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 4,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 1,
-                              "projection": [
-                                "Deref",
-                                {
-                                  "Field": [
-                                    0,
-                                    7
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 17
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 4,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 3,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 1,
-                            "kind": "ZeroSized"
-                          },
-                          "span": 14,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 15
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 4
-                    },
-                    "span": 19
-                  }
-                ],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [
-                        {
-                          "Move": {
-                            "local": 3,
-                            "projection": []
-                          }
-                        }
-                      ],
-                      "destination": {
-                        "local": 2,
-                        "projection": []
-                      },
-                      "func": {
-                        "Constant": {
-                          "const_": {
-                            "id": 2,
-                            "kind": "ZeroSized"
-                          },
-                          "span": 18,
-                          "user_ty": null
-                        }
-                      },
-                      "target": 2,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 16
-                }
-              },
-              {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 3
-                    },
-                    "span": 21
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 5
-                    },
-                    "span": 22
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 5,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 2,
-                              "projection": [
-                                {
-                                  "Field": [
-                                    0,
-                                    15
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 22
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 23
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 6,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 2,
-                              "projection": [
-                                {
-                                  "Field": [
-                                    0,
-                                    15
-                                  ]
-                                },
-                                {
-                                  "Field": [
-                                    0,
-                                    9
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 23
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Cast": [
-                            "IntToInt",
-                            {
-                              "Move": {
-                                "local": 6,
-                                "projection": []
-                              }
-                            },
-                            16
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 24
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 25
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 5
-                    },
-                    "span": 26
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 2
-                    },
-                    "span": 27
-                  }
-                ],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 20
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 28
-              },
-              {
-                "mutability": "Mut",
-                "span": 3
-              },
-              {
-                "mutability": "Mut",
-                "span": 16
-              },
-              {
-                "mutability": "Mut",
-                "span": 15
-              },
-              {
-                "mutability": "Mut",
-                "span": 17
-              },
-              {
-                "mutability": "Mut",
-                "span": 22
-              },
-              {
-                "mutability": "Mut",
-                "span": 23
-              }
-            ],
-            "span": 3,
-            "spread_arg": null,
-            "var_debug_info": [
-              {
-                "argument_index": null,
-                "composite": null,
-                "name": "main",
-                "source_info": {
-                  "scope": 0,
-                  "span": 9
-                },
-                "value": {
-                  "Place": {
-                    "local": 1,
-                    "projection": [
-                      "Deref",
-                      {
-                        "Field": [
-                          0,
-                          7
-                        ]
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 1,
-                  "span": 29
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 1,
-                "composite": null,
-                "name": "self",
-                "source_info": {
-                  "scope": 2,
-                  "span": 30
-                },
-                "value": {
-                  "Place": {
-                    "local": 5,
-                    "projection": []
-                  }
-                }
-              }
-            ]
-          },
-          "id": 1,
-          "name": "std::rt::lang_start::<()>::{closure#0}"
-        }
-      },
-      "symbol_name": "_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$17h"
-    },
-    {
-      "details": null,
-      "mono_item_kind": {
-        "MonoItemFn": {
-          "body": {
-            "arg_count": 2,
-            "blocks": [
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": {
-                    "Call": {
-                      "args": [],
-                      "destination": {
-                        "local": 0,
-                        "projection": []
-                      },
-                      "func": {
-                        "Move": {
-                          "local": 1,
-                          "projection": []
-                        }
-                      },
-                      "target": 1,
-                      "unwind": "Continue"
-                    }
-                  },
-                  "span": 43
-                }
-              },
-              {
-                "statements": [],
-                "terminator": {
-                  "kind": "Return",
-                  "span": 43
-                }
-              }
-            ],
-            "locals": [
-              {
-                "mutability": "Mut",
-                "span": 43
-              },
-              {
-                "mutability": "Not",
-                "span": 43
-              },
-              {
-                "mutability": "Not",
-                "span": 43
-              }
-            ],
-            "span": 43,
-            "spread_arg": 2,
-            "var_debug_info": []
-          },
-          "id": 3,
-          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
-        }
-      },
-      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
     },
     {
       "details": null,
@@ -2127,51 +1868,97 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 6,
                             "kind": "ZeroSized"
                           },
-                          "span": 43,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 43
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 43
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 43
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 43
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 43
+                "mutability": "Not"
               }
             ],
-            "span": 43,
             "spread_arg": 2,
             "var_debug_info": []
           },
-          "id": 3,
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
       "symbol_name": "_ZN4core3ops8function6FnOnce40call_once$u7b$$u7b$vtable.shim$u7d$$u7d$17h"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 2,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": {
+                    "Call": {
+                      "args": [],
+                      "destination": {
+                        "local": 0,
+                        "projection": []
+                      },
+                      "func": {
+                        "Move": {
+                          "local": 1,
+                          "projection": []
+                        }
+                      },
+                      "target": 1,
+                      "unwind": "Continue"
+                    }
+                  }
+                }
+              },
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return"
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Not"
+              },
+              {
+                "mutability": "Not"
+              }
+            ],
+            "spread_arg": 2,
+            "var_debug_info": []
+          },
+          "name": "<fn() as std::ops::FnOnce<()>>::call_once"
+        }
+      },
+      "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
     },
     {
       "details": null,
@@ -2206,8 +1993,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 43
+                    }
                   }
                 ],
                 "terminator": {
@@ -2234,10 +2020,8 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 7,
                             "kind": "ZeroSized"
                           },
-                          "span": 43,
                           "user_ty": null
                         }
                       },
@@ -2246,8 +2030,7 @@
                         "Cleanup": 3
                       }
                     }
-                  },
-                  "span": 43
+                  }
                 }
               },
               {
@@ -2262,15 +2045,13 @@
                       "target": 2,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 43
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 43
+                  "kind": "Return"
                 }
               },
               {
@@ -2285,45 +2066,129 @@
                       "target": 4,
                       "unwind": "Terminate"
                     }
-                  },
-                  "span": 43
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Resume",
-                  "span": 43
+                  "kind": "Resume"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 43
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 43
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 43
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 43
+                "mutability": "Not"
               }
             ],
-            "span": 43,
             "spread_arg": 2,
             "var_debug_info": []
           },
-          "id": 3,
           "name": "<{closure@std::rt::lang_start<()>::{closure#0}} as std::ops::FnOnce<()>>::call_once"
         }
       },
       "symbol_name": "_ZN4core3ops8function6FnOnce9call_once17h"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 1,
+            "blocks": [
+              {
+                "statements": [],
+                "terminator": {
+                  "kind": "Return"
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Not"
+              }
+            ],
+            "spread_arg": null,
+            "var_debug_info": []
+          },
+          "name": "std::ptr::drop_in_place::<{closure@std::rt::lang_start<()>::{closure#0}}>"
+        }
+      },
+      "symbol_name": "_ZN4core3ptr85drop_in_place$LT$std..rt..lang_start$LT$$LP$$RP$$GT$..$u7b$$u7b$closure$u7d$$u7d$$GT$17h"
+    },
+    {
+      "details": null,
+      "mono_item_kind": {
+        "MonoItemFn": {
+          "body": {
+            "arg_count": 1,
+            "blocks": [
+              {
+                "statements": [
+                  {
+                    "kind": {
+                      "Assign": [
+                        {
+                          "local": 0,
+                          "projection": []
+                        },
+                        {
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 1,
+                                    "bytes": [
+                                      0
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
+                                    }
+                                  }
+                                }
+                              },
+                              "user_ty": null
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "terminator": {
+                  "kind": "Return"
+                }
+              }
+            ],
+            "locals": [
+              {
+                "mutability": "Mut"
+              },
+              {
+                "mutability": "Not"
+              }
+            ],
+            "spread_arg": null,
+            "var_debug_info": []
+          },
+          "name": "<() as std::process::Termination>::report"
+        }
+      },
+      "symbol_name": "_ZN54_$LT$$LP$$RP$$u20$as$u20$std..process..Termination$GT$6report17h"
     },
     {
       "details": null,
@@ -2359,8 +2224,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 50
+                    }
                   }
                 ],
                 "terminator": {
@@ -2373,7 +2237,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -2400,8 +2264,7 @@
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 50
+                  }
                 }
               },
               {
@@ -2421,7 +2284,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -2429,8 +2292,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 50
+                    }
                   }
                 ],
                 "terminator": {
@@ -2452,8 +2314,7 @@
                         "otherwise": 3
                       }
                     }
-                  },
-                  "span": 51
+                  }
                 }
               },
               {
@@ -2483,8 +2344,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 52
+                    }
                   }
                 ],
                 "terminator": {
@@ -2497,7 +2357,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -2524,8 +2384,7 @@
                       "target": 4,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 52
+                  }
                 }
               },
               {
@@ -2537,7 +2396,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 10,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -2571,7 +2429,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -2583,18 +2440,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 53,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 53
+                  }
                 }
               },
               {
@@ -2614,7 +2468,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -2622,8 +2476,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 52
+                    }
                   }
                 ],
                 "terminator": {
@@ -2645,8 +2498,7 @@
                         "otherwise": 6
                       }
                     }
-                  },
-                  "span": 54
+                  }
                 }
               },
               {
@@ -2676,8 +2528,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 55
+                    }
                   }
                 ],
                 "terminator": {
@@ -2690,7 +2541,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -2717,8 +2568,7 @@
                       "target": 7,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 55
+                  }
                 }
               },
               {
@@ -2730,7 +2580,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 11,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -2764,7 +2613,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -2776,18 +2624,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 56,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 56
+                  }
                 }
               },
               {
@@ -2807,7 +2652,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -2815,8 +2660,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 55
+                    }
                   },
                   {
                     "kind": {
@@ -2843,8 +2687,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 57
+                    }
                   }
                 ],
                 "terminator": {
@@ -2857,7 +2700,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -2884,8 +2727,7 @@
                       "target": 8,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 57
+                  }
                 }
               },
               {
@@ -2905,7 +2747,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -2913,8 +2755,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 57
+                    }
                   },
                   {
                     "kind": {
@@ -2941,8 +2782,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 58
+                    }
                   }
                 ],
                 "terminator": {
@@ -2964,8 +2804,7 @@
                         "otherwise": 9
                       }
                     }
-                  },
-                  "span": 58
+                  }
                 }
               },
               {
@@ -2995,8 +2834,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 59
+                    }
                   }
                 ],
                 "terminator": {
@@ -3009,7 +2847,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -3036,8 +2874,7 @@
                       "target": 11,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 59
+                  }
                 }
               },
               {
@@ -3049,7 +2886,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 12,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3083,7 +2919,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -3095,18 +2930,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 60,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 60
+                  }
                 }
               },
               {
@@ -3126,7 +2958,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -3134,8 +2966,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 59
+                    }
                   }
                 ],
                 "terminator": {
@@ -3157,8 +2988,7 @@
                         "otherwise": 13
                       }
                     }
-                  },
-                  "span": 61
+                  }
                 }
               },
               {
@@ -3188,8 +3018,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 62
+                    }
                   }
                 ],
                 "terminator": {
@@ -3202,7 +3031,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -3229,8 +3058,7 @@
                       "target": 14,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 62
+                  }
                 }
               },
               {
@@ -3242,7 +3070,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 13,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3276,7 +3103,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -3288,18 +3114,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 63,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 63
+                  }
                 }
               },
               {
@@ -3319,7 +3142,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -3327,8 +3150,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 62
+                    }
                   }
                 ],
                 "terminator": {
@@ -3350,8 +3172,7 @@
                         "otherwise": 16
                       }
                     }
-                  },
-                  "span": 64
+                  }
                 }
               },
               {
@@ -3381,8 +3202,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 65
+                    }
                   }
                 ],
                 "terminator": {
@@ -3395,7 +3215,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -3422,8 +3242,7 @@
                       "target": 17,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 65
+                  }
                 }
               },
               {
@@ -3435,7 +3254,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 14,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3469,7 +3287,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -3481,18 +3298,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 66,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 66
+                  }
                 }
               },
               {
@@ -3512,7 +3326,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -3520,8 +3334,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 65
+                    }
                   },
                   {
                     "kind": {
@@ -3548,8 +3361,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 67
+                    }
                   }
                 ],
                 "terminator": {
@@ -3562,7 +3374,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -3589,8 +3401,7 @@
                       "target": 18,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 67
+                  }
                 }
               },
               {
@@ -3610,7 +3421,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -3618,8 +3429,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 67
+                    }
                   },
                   {
                     "kind": {
@@ -3646,8 +3456,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 68
+                    }
                   }
                 ],
                 "terminator": {
@@ -3669,8 +3478,7 @@
                         "otherwise": 19
                       }
                     }
-                  },
-                  "span": 68
+                  }
                 }
               },
               {
@@ -3700,8 +3508,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 69
+                    }
                   }
                 ],
                 "terminator": {
@@ -3714,7 +3521,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -3741,8 +3548,7 @@
                       "target": 21,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 69
+                  }
                 }
               },
               {
@@ -3754,7 +3560,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 15,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3788,7 +3593,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -3800,18 +3604,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 70,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 70
+                  }
                 }
               },
               {
@@ -3831,7 +3632,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -3839,8 +3640,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 69
+                    }
                   }
                 ],
                 "terminator": {
@@ -3862,8 +3662,7 @@
                         "otherwise": 23
                       }
                     }
-                  },
-                  "span": 71
+                  }
                 }
               },
               {
@@ -3887,7 +3686,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 16,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -3904,15 +3702,13 @@
                                     }
                                   }
                                 },
-                                "span": 72,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 72
+                    }
                   }
                 ],
                 "terminator": {
@@ -3936,8 +3732,7 @@
                       "target": 24,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 72
+                  }
                 }
               },
               {
@@ -3949,7 +3744,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 17,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -3983,7 +3777,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -3995,18 +3788,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 73,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 73
+                  }
                 }
               },
               {
@@ -4030,8 +3820,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 72
+                    }
                   },
                   {
                     "kind": {
@@ -4058,8 +3847,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 74
+                    }
                   }
                 ],
                 "terminator": {
@@ -4072,7 +3860,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -4099,8 +3887,7 @@
                       "target": 25,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 74
+                  }
                 }
               },
               {
@@ -4120,7 +3907,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -4128,8 +3915,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 74
+                    }
                   }
                 ],
                 "terminator": {
@@ -4151,8 +3937,7 @@
                         "otherwise": 27
                       }
                     }
-                  },
-                  "span": 75
+                  }
                 }
               },
               {
@@ -4176,7 +3961,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 16,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -4193,15 +3977,13 @@
                                     }
                                   }
                                 },
-                                "span": 76,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 76
+                    }
                   }
                 ],
                 "terminator": {
@@ -4225,8 +4007,7 @@
                       "target": 28,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 76
+                  }
                 }
               },
               {
@@ -4238,7 +4019,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 18,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -4272,7 +4052,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -4284,18 +4063,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 77,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 77
+                  }
                 }
               },
               {
@@ -4319,8 +4095,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 76
+                    }
                   },
                   {
                     "kind": {
@@ -4347,8 +4122,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 78
+                    }
                   }
                 ],
                 "terminator": {
@@ -4361,7 +4135,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -4388,8 +4162,7 @@
                       "target": 29,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 78
+                  }
                 }
               },
               {
@@ -4409,7 +4182,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -4417,8 +4190,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 78
+                    }
                   }
                 ],
                 "terminator": {
@@ -4440,8 +4212,7 @@
                         "otherwise": 31
                       }
                     }
-                  },
-                  "span": 79
+                  }
                 }
               },
               {
@@ -4465,7 +4236,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 16,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -4482,15 +4252,13 @@
                                     }
                                   }
                                 },
-                                "span": 80,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 80
+                    }
                   }
                 ],
                 "terminator": {
@@ -4514,8 +4282,7 @@
                       "target": 32,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 80
+                  }
                 }
               },
               {
@@ -4527,7 +4294,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 19,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -4561,7 +4327,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -4573,18 +4338,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 81,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 81
+                  }
                 }
               },
               {
@@ -4608,8 +4370,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 80
+                    }
                   },
                   {
                     "kind": {
@@ -4630,7 +4391,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 16,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -4647,15 +4407,13 @@
                                     }
                                   }
                                 },
-                                "span": 82,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 82
+                    }
                   }
                 ],
                 "terminator": {
@@ -4679,8 +4437,7 @@
                       "target": 33,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 82
+                  }
                 }
               },
               {
@@ -4704,8 +4461,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 82
+                    }
                   },
                   {
                     "kind": {
@@ -4732,8 +4488,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 83
+                    }
                   }
                 ],
                 "terminator": {
@@ -4746,7 +4501,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -4773,8 +4528,7 @@
                       "target": 34,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 83
+                  }
                 }
               },
               {
@@ -4794,7 +4548,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -4802,8 +4556,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 83
+                    }
                   }
                 ],
                 "terminator": {
@@ -4825,8 +4578,7 @@
                         "otherwise": 36
                       }
                     }
-                  },
-                  "span": 84
+                  }
                 }
               },
               {
@@ -4844,7 +4596,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -4861,14 +4612,12 @@
                                     }
                                   }
                                 },
-                                "span": 86,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 21,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -4885,15 +4634,13 @@
                                     }
                                   }
                                 },
-                                "span": 87,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 88
+                    }
                   }
                 ],
                 "terminator": {
@@ -4915,8 +4662,7 @@
                         "otherwise": 38
                       }
                     }
-                  },
-                  "span": 85
+                  }
                 }
               },
               {
@@ -4928,7 +4674,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 22,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -4962,7 +4707,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -4974,18 +4718,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 89,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 89
+                  }
                 }
               },
               {
@@ -5003,7 +4744,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5020,14 +4760,12 @@
                                     }
                                   }
                                 },
-                                "span": 91,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 23,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5044,15 +4782,13 @@
                                     }
                                   }
                                 },
-                                "span": 92,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 93
+                    }
                   }
                 ],
                 "terminator": {
@@ -5074,8 +4810,7 @@
                         "otherwise": 40
                       }
                     }
-                  },
-                  "span": 90
+                  }
                 }
               },
               {
@@ -5087,7 +4822,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 24,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -5121,7 +4855,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -5133,18 +4866,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 94,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 94
+                  }
                 }
               },
               {
@@ -5162,7 +4892,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5179,14 +4908,12 @@
                                     }
                                   }
                                 },
-                                "span": 96,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 21,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5203,15 +4930,13 @@
                                     }
                                   }
                                 },
-                                "span": 97,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 98
+                    }
                   }
                 ],
                 "terminator": {
@@ -5233,8 +4958,7 @@
                         "otherwise": 42
                       }
                     }
-                  },
-                  "span": 95
+                  }
                 }
               },
               {
@@ -5246,7 +4970,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 25,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -5280,7 +5003,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -5292,18 +5014,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 99,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 99
+                  }
                 }
               },
               {
@@ -5321,7 +5040,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5338,14 +5056,12 @@
                                     }
                                   }
                                 },
-                                "span": 101,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 23,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5362,15 +5078,13 @@
                                     }
                                   }
                                 },
-                                "span": 102,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 103
+                    }
                   }
                 ],
                 "terminator": {
@@ -5392,8 +5106,7 @@
                         "otherwise": 44
                       }
                     }
-                  },
-                  "span": 100
+                  }
                 }
               },
               {
@@ -5405,7 +5118,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 26,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -5439,7 +5151,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -5451,18 +5162,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 104,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 104
+                  }
                 }
               },
               {
@@ -5480,7 +5188,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5497,14 +5204,12 @@
                                     }
                                   }
                                 },
-                                "span": 106,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 21,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5521,15 +5226,13 @@
                                     }
                                   }
                                 },
-                                "span": 107,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 108
+                    }
                   }
                 ],
                 "terminator": {
@@ -5551,8 +5254,7 @@
                         "otherwise": 46
                       }
                     }
-                  },
-                  "span": 105
+                  }
                 }
               },
               {
@@ -5564,7 +5266,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 27,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -5598,7 +5299,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -5610,18 +5310,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 109,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 109
+                  }
                 }
               },
               {
@@ -5639,7 +5336,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5656,14 +5352,12 @@
                                     }
                                   }
                                 },
-                                "span": 111,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 23,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5680,15 +5374,13 @@
                                     }
                                   }
                                 },
-                                "span": 112,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 113
+                    }
                   }
                 ],
                 "terminator": {
@@ -5710,8 +5402,7 @@
                         "otherwise": 48
                       }
                     }
-                  },
-                  "span": 110
+                  }
                 }
               },
               {
@@ -5723,7 +5414,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 28,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -5757,7 +5447,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -5769,18 +5458,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 114,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 114
+                  }
                 }
               },
               {
@@ -5798,7 +5484,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5815,16 +5500,14 @@
                                     }
                                   }
                                 },
-                                "span": 116,
                                 "user_ty": null
                               }
                             },
-                            28
+                            0
                           ]
                         }
                       ]
-                    },
-                    "span": 117
+                    }
                   },
                   {
                     "kind": {
@@ -5845,7 +5528,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 29,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -5862,15 +5544,13 @@
                                     }
                                   }
                                 },
-                                "span": 117,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 117
+                    }
                   }
                 ],
                 "terminator": {
@@ -5889,7 +5569,6 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 21,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -5906,14 +5585,12 @@
                                   }
                                 }
                               },
-                              "span": 115,
                               "user_ty": null
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 20,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -5930,7 +5607,6 @@
                                   }
                                 }
                               },
-                              "span": 116,
                               "user_ty": null
                             }
                           }
@@ -5939,8 +5615,7 @@
                       "target": 49,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 117
+                  }
                 }
               },
               {
@@ -5952,7 +5627,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 30,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -5986,7 +5660,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -5998,18 +5671,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 118,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 118
+                  }
                 }
               },
               {
@@ -6027,7 +5697,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 21,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6044,14 +5713,12 @@
                                     }
                                   }
                                 },
-                                "span": 115,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6068,15 +5735,13 @@
                                     }
                                   }
                                 },
-                                "span": 116,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 117
+                    }
                   }
                 ],
                 "terminator": {
@@ -6098,8 +5763,7 @@
                         "otherwise": 51
                       }
                     }
-                  },
-                  "span": 119
+                  }
                 }
               },
               {
@@ -6117,7 +5781,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6134,16 +5797,14 @@
                                     }
                                   }
                                 },
-                                "span": 121,
                                 "user_ty": null
                               }
                             },
-                            28
+                            0
                           ]
                         }
                       ]
-                    },
-                    "span": 122
+                    }
                   },
                   {
                     "kind": {
@@ -6164,7 +5825,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 29,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6181,15 +5841,13 @@
                                     }
                                   }
                                 },
-                                "span": 122,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 122
+                    }
                   }
                 ],
                 "terminator": {
@@ -6208,7 +5866,6 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 21,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -6225,14 +5882,12 @@
                                   }
                                 }
                               },
-                              "span": 120,
                               "user_ty": null
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 20,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -6249,7 +5904,6 @@
                                   }
                                 }
                               },
-                              "span": 121,
                               "user_ty": null
                             }
                           }
@@ -6258,8 +5912,7 @@
                       "target": 52,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 122
+                  }
                 }
               },
               {
@@ -6271,7 +5924,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 31,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -6305,7 +5957,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -6317,18 +5968,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 123,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 123
+                  }
                 }
               },
               {
@@ -6346,7 +5994,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 21,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6363,14 +6010,12 @@
                                     }
                                   }
                                 },
-                                "span": 120,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6387,15 +6032,13 @@
                                     }
                                   }
                                 },
-                                "span": 121,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 122
+                    }
                   }
                 ],
                 "terminator": {
@@ -6417,8 +6060,7 @@
                         "otherwise": 54
                       }
                     }
-                  },
-                  "span": 124
+                  }
                 }
               },
               {
@@ -6436,7 +6078,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6453,16 +6094,14 @@
                                     }
                                   }
                                 },
-                                "span": 126,
                                 "user_ty": null
                               }
                             },
-                            28
+                            0
                           ]
                         }
                       ]
-                    },
-                    "span": 127
+                    }
                   },
                   {
                     "kind": {
@@ -6483,7 +6122,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 29,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6500,15 +6138,13 @@
                                     }
                                   }
                                 },
-                                "span": 127,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 127
+                    }
                   }
                 ],
                 "terminator": {
@@ -6527,7 +6163,6 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 23,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -6544,14 +6179,12 @@
                                   }
                                 }
                               },
-                              "span": 125,
                               "user_ty": null
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 20,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -6568,7 +6201,6 @@
                                   }
                                 }
                               },
-                              "span": 126,
                               "user_ty": null
                             }
                           }
@@ -6577,8 +6209,7 @@
                       "target": 55,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 127
+                  }
                 }
               },
               {
@@ -6590,7 +6221,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 32,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -6624,7 +6254,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -6636,18 +6265,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 128,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 128
+                  }
                 }
               },
               {
@@ -6665,7 +6291,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 23,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6682,14 +6307,12 @@
                                     }
                                   }
                                 },
-                                "span": 125,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6706,15 +6329,13 @@
                                     }
                                   }
                                 },
-                                "span": 126,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 127
+                    }
                   }
                 ],
                 "terminator": {
@@ -6736,8 +6357,7 @@
                         "otherwise": 57
                       }
                     }
-                  },
-                  "span": 129
+                  }
                 }
               },
               {
@@ -6755,7 +6375,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6772,16 +6391,14 @@
                                     }
                                   }
                                 },
-                                "span": 131,
                                 "user_ty": null
                               }
                             },
-                            28
+                            0
                           ]
                         }
                       ]
-                    },
-                    "span": 132
+                    }
                   },
                   {
                     "kind": {
@@ -6802,7 +6419,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 29,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -6819,15 +6435,13 @@
                                     }
                                   }
                                 },
-                                "span": 132,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 132
+                    }
                   }
                 ],
                 "terminator": {
@@ -6846,7 +6460,6 @@
                           {
                             "Constant": {
                               "const_": {
-                                "id": 20,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -6863,14 +6476,12 @@
                                   }
                                 }
                               },
-                              "span": 130,
                               "user_ty": null
                             }
                           },
                           {
                             "Constant": {
                               "const_": {
-                                "id": 20,
                                 "kind": {
                                   "Allocated": {
                                     "align": 4,
@@ -6887,7 +6498,6 @@
                                   }
                                 }
                               },
-                              "span": 131,
                               "user_ty": null
                             }
                           }
@@ -6896,8 +6506,7 @@
                       "target": 58,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 132
+                  }
                 }
               },
               {
@@ -6909,7 +6518,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 33,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -6943,7 +6551,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -6955,18 +6562,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 133,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 133
+                  }
                 }
               },
               {
@@ -6984,7 +6588,6 @@
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -7001,14 +6604,12 @@
                                     }
                                   }
                                 },
-                                "span": 130,
                                 "user_ty": null
                               }
                             },
                             {
                               "Constant": {
                                 "const_": {
-                                  "id": 20,
                                   "kind": {
                                     "Allocated": {
                                       "align": 4,
@@ -7025,15 +6626,13 @@
                                     }
                                   }
                                 },
-                                "span": 131,
                                 "user_ty": null
                               }
                             }
                           ]
                         }
                       ]
-                    },
-                    "span": 132
+                    }
                   }
                 ],
                 "terminator": {
@@ -7055,8 +6654,7 @@
                         "otherwise": 60
                       }
                     }
-                  },
-                  "span": 134
+                  }
                 }
               },
               {
@@ -7086,8 +6684,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 135
+                    }
                   }
                 ],
                 "terminator": {
@@ -7100,7 +6697,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -7127,8 +6724,7 @@
                       "target": 61,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 135
+                  }
                 }
               },
               {
@@ -7140,7 +6736,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 34,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -7174,7 +6769,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -7186,18 +6780,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 136,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 136
+                  }
                 }
               },
               {
@@ -7217,7 +6808,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -7225,8 +6816,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 135
+                    }
                   },
                   {
                     "kind": {
@@ -7253,8 +6843,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 137
+                    }
                   }
                 ],
                 "terminator": {
@@ -7276,8 +6865,7 @@
                         "otherwise": 62
                       }
                     }
-                  },
-                  "span": 137
+                  }
                 }
               },
               {
@@ -7307,8 +6895,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 138
+                    }
                   }
                 ],
                 "terminator": {
@@ -7321,7 +6908,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -7348,8 +6935,7 @@
                       "target": 64,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 138
+                  }
                 }
               },
               {
@@ -7361,7 +6947,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 35,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -7395,7 +6980,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -7407,18 +6991,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 139,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 139
+                  }
                 }
               },
               {
@@ -7438,7 +7019,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -7446,8 +7027,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 138
+                    }
                   },
                   {
                     "kind": {
@@ -7474,8 +7054,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 140
+                    }
                   }
                 ],
                 "terminator": {
@@ -7497,8 +7076,7 @@
                         "otherwise": 65
                       }
                     }
-                  },
-                  "span": 140
+                  }
                 }
               },
               {
@@ -7528,8 +7106,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 141
+                    }
                   }
                 ],
                 "terminator": {
@@ -7542,7 +7119,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -7569,8 +7146,7 @@
                       "target": 67,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 141
+                  }
                 }
               },
               {
@@ -7582,7 +7158,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 36,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -7616,7 +7191,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -7628,18 +7202,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 142,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 142
+                  }
                 }
               },
               {
@@ -7659,7 +7230,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -7667,8 +7238,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 141
+                    }
                   },
                   {
                     "kind": {
@@ -7695,8 +7265,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 143
+                    }
                   }
                 ],
                 "terminator": {
@@ -7709,7 +7278,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -7736,8 +7305,7 @@
                       "target": 68,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 143
+                  }
                 }
               },
               {
@@ -7757,7 +7325,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -7765,8 +7333,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 143
+                    }
                   },
                   {
                     "kind": {
@@ -7793,8 +7360,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 144
+                    }
                   }
                 ],
                 "terminator": {
@@ -7816,8 +7382,7 @@
                         "otherwise": 69
                       }
                     }
-                  },
-                  "span": 144
+                  }
                 }
               },
               {
@@ -7847,8 +7412,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 145
+                    }
                   }
                 ],
                 "terminator": {
@@ -7861,7 +7425,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -7888,8 +7452,7 @@
                       "target": 71,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 145
+                  }
                 }
               },
               {
@@ -7901,7 +7464,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 37,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -7935,7 +7497,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -7947,18 +7508,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 146,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 146
+                  }
                 }
               },
               {
@@ -7978,7 +7536,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -7986,8 +7544,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 145
+                    }
                   },
                   {
                     "kind": {
@@ -8014,8 +7571,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 147
+                    }
                   }
                 ],
                 "terminator": {
@@ -8037,8 +7593,7 @@
                         "otherwise": 72
                       }
                     }
-                  },
-                  "span": 147
+                  }
                 }
               },
               {
@@ -8068,8 +7623,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 148
+                    }
                   }
                 ],
                 "terminator": {
@@ -8082,7 +7636,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -8109,8 +7663,7 @@
                       "target": 74,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 148
+                  }
                 }
               },
               {
@@ -8122,7 +7675,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 38,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -8156,7 +7708,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -8168,18 +7719,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 149,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 149
+                  }
                 }
               },
               {
@@ -8199,7 +7747,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -8207,8 +7755,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 148
+                    }
                   },
                   {
                     "kind": {
@@ -8235,8 +7782,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 150
+                    }
                   }
                 ],
                 "terminator": {
@@ -8258,8 +7804,7 @@
                         "otherwise": 75
                       }
                     }
-                  },
-                  "span": 150
+                  }
                 }
               },
               {
@@ -8289,8 +7834,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 151
+                    }
                   }
                 ],
                 "terminator": {
@@ -8303,7 +7847,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -8330,8 +7874,7 @@
                       "target": 77,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 151
+                  }
                 }
               },
               {
@@ -8343,7 +7886,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 39,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -8377,7 +7919,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -8389,18 +7930,15 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 152,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 152
+                  }
                 }
               },
               {
@@ -8420,7 +7958,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -8428,8 +7966,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 151
+                    }
                   },
                   {
                     "kind": {
@@ -8456,8 +7993,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 153
+                    }
                   }
                 ],
                 "terminator": {
@@ -8470,7 +8006,7 @@
                             {
                               "Field": [
                                 1,
-                                25
+                                0
                               ]
                             }
                           ]
@@ -8497,8 +8033,7 @@
                       "target": 78,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 153
+                  }
                 }
               },
               {
@@ -8518,7 +8053,7 @@
                                 {
                                   "Field": [
                                     0,
-                                    16
+                                    0
                                   ]
                                 }
                               ]
@@ -8526,8 +8061,7 @@
                           }
                         }
                       ]
-                    },
-                    "span": 153
+                    }
                   },
                   {
                     "kind": {
@@ -8554,8 +8088,7 @@
                           ]
                         }
                       ]
-                    },
-                    "span": 154
+                    }
                   }
                 ],
                 "terminator": {
@@ -8577,15 +8110,13 @@
                         "otherwise": 79
                       }
                     }
-                  },
-                  "span": 154
+                  }
                 }
               },
               {
                 "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 155
+                  "kind": "Return"
                 }
               },
               {
@@ -8597,7 +8128,6 @@
                         {
                           "Constant": {
                             "const_": {
-                              "id": 40,
                               "kind": {
                                 "Allocated": {
                                   "align": 8,
@@ -8631,7 +8161,6 @@
                                 }
                               }
                             },
-                            "span": 32,
                             "user_ty": null
                           }
                         }
@@ -8643,436 +8172,329 @@
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 9,
                             "kind": "ZeroSized"
                           },
-                          "span": 156,
                           "user_ty": null
                         }
                       },
                       "target": null,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 156
+                  }
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 157
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 158
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 159
+                "mutability": "Not"
               },
               {
-                "mutability": "Mut",
-                "span": 50
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 50
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 53
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 52
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 52
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 56
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 58
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 55
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 55
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 57
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 57
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 60
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 59
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 59
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 63
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 62
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 62
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 66
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 68
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 65
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 65
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 67
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 67
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 70
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 69
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 69
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 73
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 74
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 72
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 72
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 74
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 77
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 78
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 76
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 76
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 78
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 81
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 83
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 80
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 80
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 82
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 82
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 83
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 89
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 88
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 94
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 93
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 99
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 98
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 104
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 103
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 109
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 108
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 114
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 113
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 118
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 117
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 117
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 117
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 123
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 122
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 122
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 122
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 128
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 127
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 127
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 127
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 133
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 132
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 132
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 132
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 136
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 137
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 135
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 135
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 139
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 140
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 138
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 138
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 142
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 144
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 143
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 141
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 141
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 143
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 146
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 147
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 145
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 145
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 149
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 150
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 148
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 148
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 152
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 154
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 153
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 151
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 151
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 153
+                "mutability": "Mut"
               },
               {
-                "mutability": "Mut",
-                "span": 156
+                "mutability": "Mut"
               }
             ],
-            "span": 160,
             "spread_arg": null,
             "var_debug_info": [
               {
@@ -9080,8 +8502,7 @@
                 "composite": null,
                 "name": "x",
                 "source_info": {
-                  "scope": 0,
-                  "span": 158
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -9095,8 +8516,7 @@
                 "composite": null,
                 "name": "y",
                 "source_info": {
-                  "scope": 0,
-                  "span": 159
+                  "scope": 0
                 },
                 "value": {
                   "Place": {
@@ -9107,7 +8527,6 @@
               }
             ]
           },
-          "id": 6,
           "name": "test_binop"
         }
       },
@@ -9118,129 +8537,83 @@
       "mono_item_kind": {
         "MonoItemFn": {
           "body": {
-            "arg_count": 4,
+            "arg_count": 0,
             "blocks": [
               {
                 "statements": [
                   {
                     "kind": {
-                      "StorageLive": 5
-                    },
-                    "span": 1
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 6
-                    },
-                    "span": 2
-                  },
-                  {
-                    "kind": {
-                      "StorageLive": 8
-                    },
-                    "span": 3
-                  },
-                  {
-                    "kind": {
                       "Assign": [
                         {
-                          "local": 8,
+                          "local": 2,
                           "projection": []
                         },
                         {
-                          "Aggregate": [
-                            {
-                              "Closure": [
-                                1,
-                                [
-                                  {
-                                    "Type": 1
-                                  },
-                                  {
-                                    "Type": 2
-                                  },
-                                  {
-                                    "Type": 3
-                                  },
-                                  {
-                                    "Type": 4
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 4,
+                                    "bytes": [
+                                      42,
+                                      0,
+                                      0,
+                                      0
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
+                                    }
                                   }
-                                ]
-                              ]
-                            },
-                            [
-                              {
-                                "Copy": {
-                                  "local": 1,
-                                  "projection": []
                                 }
-                              }
-                            ]
-                          ]
-                        }
-                      ]
-                    },
-                    "span": 3
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 7,
-                          "projection": []
-                        },
-                        {
-                          "Ref": [
-                            {
-                              "kind": "ReErased"
-                            },
-                            "Shared",
-                            {
-                              "local": 8,
-                              "projection": []
+                              },
+                              "user_ty": null
                             }
-                          ]
+                          }
                         }
                       ]
-                    },
-                    "span": 2
+                    }
                   },
                   {
                     "kind": {
                       "Assign": [
                         {
-                          "local": 6,
+                          "local": 3,
                           "projection": []
                         },
                         {
-                          "Cast": [
-                            {
-                              "PointerCoercion": "Unsize"
-                            },
-                            {
-                              "Copy": {
-                                "local": 7,
-                                "projection": []
-                              }
-                            },
-                            5
-                          ]
+                          "Use": {
+                            "Constant": {
+                              "const_": {
+                                "kind": {
+                                  "Allocated": {
+                                    "align": 4,
+                                    "bytes": [
+                                      10,
+                                      0,
+                                      0,
+                                      0
+                                    ],
+                                    "mutability": "Mut",
+                                    "provenance": {
+                                      "ptrs": []
+                                    }
+                                  }
+                                }
+                              },
+                              "user_ty": null
+                            }
+                          }
                         }
                       ]
-                    },
-                    "span": 2
+                    }
                   }
                 ],
                 "terminator": {
                   "kind": {
                     "Call": {
                       "args": [
-                        {
-                          "Move": {
-                            "local": 6,
-                            "projection": []
-                          }
-                        },
                         {
                           "Move": {
                             "local": 2,
@@ -9252,214 +8625,115 @@
                             "local": 3,
                             "projection": []
                           }
-                        },
-                        {
-                          "Move": {
-                            "local": 4,
-                            "projection": []
-                          }
                         }
                       ],
                       "destination": {
-                        "local": 5,
+                        "local": 1,
                         "projection": []
                       },
                       "func": {
                         "Constant": {
                           "const_": {
-                            "id": 0,
                             "kind": "ZeroSized"
                           },
-                          "span": 0,
                           "user_ty": null
                         }
                       },
                       "target": 1,
                       "unwind": "Continue"
                     }
-                  },
-                  "span": 1
+                  }
                 }
               },
               {
-                "statements": [
-                  {
-                    "kind": {
-                      "StorageDead": 6
-                    },
-                    "span": 5
-                  },
-                  {
-                    "kind": {
-                      "Assign": [
-                        {
-                          "local": 0,
-                          "projection": []
-                        },
-                        {
-                          "Use": {
-                            "Copy": {
-                              "local": 5,
-                              "projection": [
-                                {
-                                  "Downcast": 0
-                                },
-                                {
-                                  "Field": [
-                                    0,
-                                    6
-                                  ]
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    "span": 6
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 8
-                    },
-                    "span": 7
-                  },
-                  {
-                    "kind": {
-                      "StorageDead": 5
-                    },
-                    "span": 7
-                  }
-                ],
+                "statements": [],
                 "terminator": {
-                  "kind": "Return",
-                  "span": 4
+                  "kind": "Return"
                 }
               }
             ],
             "locals": [
               {
-                "mutability": "Mut",
-                "span": 8
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 9
+                "mutability": "Not"
               },
               {
-                "mutability": "Not",
-                "span": 10
+                "mutability": "Mut"
               },
               {
-                "mutability": "Not",
-                "span": 11
-              },
-              {
-                "mutability": "Not",
-                "span": 12
-              },
-              {
-                "mutability": "Mut",
-                "span": 1
-              },
-              {
-                "mutability": "Mut",
-                "span": 2
-              },
-              {
-                "mutability": "Not",
-                "span": 2
-              },
-              {
-                "mutability": "Not",
-                "span": 3
+                "mutability": "Mut"
               }
             ],
-            "span": 13,
             "spread_arg": null,
             "var_debug_info": [
               {
-                "argument_index": 1,
+                "argument_index": null,
                 "composite": null,
-                "name": "main",
+                "name": "x",
                 "source_info": {
-                  "scope": 0,
-                  "span": 9
+                  "scope": 1
                 },
                 "value": {
-                  "Place": {
-                    "local": 1,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 2,
-                "composite": null,
-                "name": "argc",
-                "source_info": {
-                  "scope": 0,
-                  "span": 10
-                },
-                "value": {
-                  "Place": {
-                    "local": 2,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 3,
-                "composite": null,
-                "name": "argv",
-                "source_info": {
-                  "scope": 0,
-                  "span": 11
-                },
-                "value": {
-                  "Place": {
-                    "local": 3,
-                    "projection": []
-                  }
-                }
-              },
-              {
-                "argument_index": 4,
-                "composite": null,
-                "name": "sigpipe",
-                "source_info": {
-                  "scope": 0,
-                  "span": 12
-                },
-                "value": {
-                  "Place": {
-                    "local": 4,
-                    "projection": []
+                  "Const": {
+                    "const_": {
+                      "kind": {
+                        "Allocated": {
+                          "align": 4,
+                          "bytes": [
+                            42,
+                            0,
+                            0,
+                            0
+                          ],
+                          "mutability": "Mut",
+                          "provenance": {
+                            "ptrs": []
+                          }
+                        }
+                      }
+                    },
+                    "user_ty": null
                   }
                 }
               },
               {
                 "argument_index": null,
                 "composite": null,
-                "name": "v",
+                "name": "y",
                 "source_info": {
-                  "scope": 1,
-                  "span": 6
+                  "scope": 2
                 },
                 "value": {
-                  "Place": {
-                    "local": 0,
-                    "projection": []
+                  "Const": {
+                    "const_": {
+                      "kind": {
+                        "Allocated": {
+                          "align": 4,
+                          "bytes": [
+                            10,
+                            0,
+                            0,
+                            0
+                          ],
+                          "mutability": "Mut",
+                          "provenance": {
+                            "ptrs": []
+                          }
+                        }
+                      }
+                    },
+                    "user_ty": null
                   }
                 }
               }
             ]
           },
-          "id": 0,
-          "name": "std::rt::lang_start::<()>"
+          "name": "main"
         }
       },
-      "symbol_name": "_ZN3std2rt10lang_start17h"
+      "symbol_name": "_ZN5binop4main17h"
     }
   ],
   "types": [
@@ -9498,54 +8772,6 @@
       {
         "PrimitiveType": {
           "Uint": "U8"
-        }
-      }
-    ],
-    [
-      {
-        "EnumType": {
-          "discriminants": [
-            0,
-            1
-          ],
-          "fields": "elided",
-          "layout": {
-            "abi": {
-              "Scalar": {
-                "Initialized": {
-                  "valid_range": {
-                    "end": 18446744073709551615,
-                    "start": 0
-                  },
-                  "value": {
-                    "Int": {
-                      "length": "I64",
-                      "signed": true
-                    }
-                  }
-                }
-              }
-            },
-            "abi_align": 8,
-            "fields": {
-              "Arbitrary": {
-                "offsets": [
-                  {
-                    "num_bits": 0
-                  }
-                ]
-              }
-            },
-            "size": {
-              "num_bits": 64
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "name": "std::result::Result<isize, !>"
         }
       }
     ],
@@ -9894,39 +9120,6 @@
             }
           },
           "mutability": "Mut",
-          "pointee_type": "elided"
-        }
-      }
-    ],
-    [
-      {
-        "RefType": {
-          "layout": {
-            "abi": {
-              "Scalar": {
-                "Initialized": {
-                  "valid_range": {
-                    "end": 18446744073709551615,
-                    "start": 1
-                  },
-                  "value": {
-                    "Pointer": 0
-                  }
-                }
-              }
-            },
-            "abi_align": 8,
-            "fields": "Primitive",
-            "size": {
-              "num_bits": 64
-            },
-            "variants": {
-              "Single": {
-                "index": 0
-              }
-            }
-          },
-          "mutability": "Not",
           "pointee_type": "elided"
         }
       }
