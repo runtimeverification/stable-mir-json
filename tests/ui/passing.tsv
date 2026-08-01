@@ -41,7 +41,6 @@ tests/ui/abi/struct-enums/struct-return.rs
 tests/ui/abi/union/union-c-interop.rs
 tests/ui/abi/variadic-ffi.rs
 tests/ui/abi/x86stdcall2.rs
-tests/ui/alias-uninit-value.rs
 tests/ui/alloc-error/default-alloc-error-hook.rs
 tests/ui/allocator/dyn-compatible.rs
 tests/ui/array-slice-vec/array_const_index-2.rs
@@ -92,8 +91,6 @@ tests/ui/array-slice-vec/vec-matching.rs
 tests/ui/array-slice-vec/vec-repeat-with-cast.rs
 tests/ui/array-slice-vec/vec-tail-matching.rs
 tests/ui/array-slice-vec/vector-no-ann-2.rs
-tests/ui/artificial-block.rs
-tests/ui/as-precedence.rs
 tests/ui/asm/aarch64/const.rs
 tests/ui/asm/aarch64/may_unwind.rs
 tests/ui/asm/may_unwind.rs
@@ -102,8 +99,6 @@ tests/ui/asm/x86_64/goto.rs
 tests/ui/asm/x86_64/may_unwind.rs
 tests/ui/asm/x86_64/multiple-clobber-abi.rs
 tests/ui/asm/x86_64/sym.rs
-tests/ui/assign-assign.rs
-tests/ui/assoc-oddities-3.rs
 tests/ui/associated-consts/assoc-const.rs
 tests/ui/associated-consts/associated-const-const-eval.rs
 tests/ui/associated-consts/associated-const-in-global-const.rs
@@ -1243,7 +1238,6 @@ tests/ui/intrinsics/intrinsic-alignment.rs
 tests/ui/intrinsics/intrinsic-assume.rs
 tests/ui/intrinsics/intrinsic-atomics.rs
 tests/ui/intrinsics/intrinsic-fmuladd.rs
-tests/ui/intrinsics/intrinsic-nearby.rs
 tests/ui/intrinsics/intrinsic-raw_eq-const.rs
 tests/ui/intrinsics/intrinsic-unreachable.rs
 tests/ui/intrinsics/intrinsic-volatile.rs
@@ -1534,11 +1528,7 @@ tests/ui/issues/issue-39709.rs
 tests/ui/issues/issue-3979.rs
 tests/ui/issues/issue-39808.rs
 tests/ui/issues/issue-39827.rs
-tests/ui/issues/issue-40235.rs
-tests/ui/issues/issue-40408.rs
-tests/ui/issues/issue-40883.rs
 tests/ui/issues/issue-40951.rs
-tests/ui/issues/issue-41213.rs
 tests/ui/issues/issue-41479.rs
 tests/ui/issues/issue-41498.rs
 tests/ui/issues/issue-41604.rs
@@ -1760,7 +1750,6 @@ tests/ui/macros/macro-lifetime.rs
 tests/ui/macros/macro-literal.rs
 tests/ui/macros/macro-meta-items.rs
 tests/ui/macros/macro-metavar-expr-concat/allowed-operations.rs
-tests/ui/macros/macro-metavar-expr-concat/repetitions.rs
 tests/ui/macros/macro-metavar-expr-concat/unicode-expansion.rs
 tests/ui/macros/macro-method-issue-4621.rs
 tests/ui/macros/macro-multiple-items.rs
@@ -2127,15 +2116,12 @@ tests/ui/pattern/issue-6449.rs
 tests/ui/pattern/issue-8351-1.rs
 tests/ui/pattern/issue-8351-2.rs
 tests/ui/pattern/move-ref-patterns/move-ref-patterns-dynamic-semantics.rs
-tests/ui/pattern/no_ref_mut_behind_and.rs
 tests/ui/pattern/size-and-align.rs
 tests/ui/pattern/usefulness/integer-ranges/regression-switchint-sorting-with-ranges.rs
 tests/ui/pattern/usefulness/irrefutable-let-patterns.rs
 tests/ui/pattern/usefulness/irrefutable-unit.rs
 tests/ui/pattern/usefulness/issue-30240-rpass.rs
 tests/ui/pattern/usefulness/nested-exhaustive-match.rs
-tests/ui/polymorphization/promoted-function-3.rs
-tests/ui/polymorphization/promoted-function.rs
 tests/ui/precondition-checks/cfg-ub-checks-default.rs
 tests/ui/precondition-checks/cfg-ub-checks-no.rs
 tests/ui/precondition-checks/cfg-ub-checks-yes.rs
@@ -2286,7 +2272,6 @@ tests/ui/rfcs/rfc-2005-default-binding-mode/tuple.rs
 tests/ui/rfcs/rfc-2008-non-exhaustive/enum_same_crate.rs
 tests/ui/rfcs/rfc-2008-non-exhaustive/structs_same_crate.rs
 tests/ui/rfcs/rfc-2008-non-exhaustive/variants_same_crate.rs
-tests/ui/rfcs/rfc-2027-dyn-compatible-for-dispatch/manual-self-impl-for-unsafe-obj.rs
 tests/ui/rfcs/rfc-2091-track-caller/call-chain.rs
 tests/ui/rfcs/rfc-2091-track-caller/caller-location-fnptr-rt-ctfe-equiv.rs
 tests/ui/rfcs/rfc-2091-track-caller/caller-location-intrinsic.rs
