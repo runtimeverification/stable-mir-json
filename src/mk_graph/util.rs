@@ -4,8 +4,8 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use crate::compat::stable_mir;
 use stable_mir::mir::{
-    AggregateKind, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp, Operand,
-    Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
+    AggregateKind, Body, BorrowKind, ConstOperand, Mutability, NonDivergingIntrinsic, NullOp,
+    Operand, Place, ProjectionElem, Rvalue, Terminator, TerminatorKind, UnwindAction,
 };
 use stable_mir::ty::{IndexedVal, RigidTy};
 
@@ -196,10 +196,8 @@ pub fn short_name(function_name: &str) -> String {
 }
 
 /// Generate a consistent block name within a function
-pub fn block_name(function_name: &str, id: usize) -> String {
-    let mut h = DefaultHasher::new();
-    function_name.hash(&mut h);
-    format!("X{:x}_{}", h.finish(), id)
+pub fn block_name(function_id: &str, block_idx: usize) -> String {
+    format!("{}_{}", function_id, block_idx)
 }
 
 // =============================================================================
@@ -211,6 +209,13 @@ pub fn escape_d2(s: &str) -> String {
     s.replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('$', "\\$")
+}
+
+/// Escape special characters for DOT string labels
+pub fn escape_dot(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
 }
 
 // =============================================================================
@@ -279,4 +284,30 @@ pub fn terminator_targets(term: &Terminator) -> Vec<usize> {
             result
         }
     }
+}
+
+/// Generate a consistent short hash for a MIR body.
+/// Used to avoid fn_id collisions between monomorphizations.
+pub fn hash_body(body: &Body) -> u64 {
+    let mut h = DefaultHasher::new();
+
+    // Hash number of blocks
+    body.blocks.len().hash(&mut h);
+
+    for (idx, block) in body.blocks.iter().enumerate() {
+        idx.hash(&mut h);
+
+        // Hash terminator kind
+        std::mem::discriminant(&block.terminator.kind).hash(&mut h);
+
+        // Hash control-flow edges
+        for target in terminator_targets(&block.terminator) {
+            target.hash(&mut h);
+        }
+
+        // Statement count for entropy
+        block.statements.len().hash(&mut h);
+    }
+
+    h.finish()
 }

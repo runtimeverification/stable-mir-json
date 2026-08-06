@@ -14,6 +14,7 @@ use crate::printer::collect_smir;
 pub mod context;
 pub mod index;
 pub mod output;
+pub mod traverse;
 pub mod util;
 
 // Re-exports for convenience
@@ -27,7 +28,13 @@ pub use util::GraphLabelString;
 
 /// Entry point to write the DOT file
 pub fn emit_dotfile(tcx: TyCtxt<'_>) {
-    let smir_dot = collect_smir(tcx).to_dot_file();
+    let smir = collect_smir(tcx);
+
+    let smir_dot = if std::env::var("SMIR_DOT_NEW").is_ok() {
+        smir.to_dot_file_new()
+    } else {
+        smir.to_dot_file()
+    };
 
     match mir_output_path(tcx, "smir.dot") {
         OutputDest::Stdout => {
@@ -45,7 +52,9 @@ pub fn emit_dotfile(tcx: TyCtxt<'_>) {
 
 /// Entry point to write the D2 file
 pub fn emit_d2file(tcx: TyCtxt<'_>) {
-    let smir_d2 = collect_smir(tcx).to_d2_file();
+    let smir = collect_smir(tcx);
+
+    let smir_d2 = smir.to_d2_file();
 
     match mir_output_path(tcx, "smir.d2") {
         OutputDest::Stdout => {

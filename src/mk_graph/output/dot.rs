@@ -11,7 +11,12 @@ use crate::printer::SmirJson;
 use crate::MonoItemKind;
 
 use crate::mk_graph::context::GraphContext;
-use crate::mk_graph::util::{block_name, is_unqualified, name_lines, short_name, GraphLabelString};
+use crate::mk_graph::util::{
+    block_name, escape_dot, is_unqualified, name_lines, short_name, GraphLabelString,
+};
+
+use crate::mk_graph::traverse::render_graph;
+use crate::mk_graph::traverse::{GraphBuilder, RenderedFunction};
 
 impl SmirJson {
     /// Convert the MIR to DOT (Graphviz) format
@@ -304,5 +309,202 @@ impl SmirJson {
         }
 
         String::from_utf8(bytes).expect("Error converting dot file")
+    }
+}
+
+// =============================================================================
+// DOT Builder (new)
+// =============================================================================
+
+pub struct DOTBuilder {
+    buf: String,
+    /// Cross-cluster call edges deferred until finish():
+    /// (from_node_id, to_node_id, rendered_args)
+    deferred_call_edges: Vec<(String, String, String)>,
+}
+
+impl DOTBuilder {
+    pub fn new() -> Self {
+        Self {
+            buf: String::new(),
+            deferred_call_edges: Vec::new(),
+        }
+    }
+
+    fn line(&mut self, s: &str) {
+        self.buf.push_str(s);
+        self.buf.push('\n');
+    }
+}
+
+impl Default for DOTBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl GraphBuilder for DOTBuilder {
+    type Output = String;
+
+    fn begin_graph(&mut self, name: &str) {
+        self.line("digraph {");
+        self.line(&format!("  label=\"{}\";", escape_dot(name)));
+        self.line("  node [shape=rectangle];");
+    }
+
+    fn alloc_legend(&mut self, lines: &[String]) {
+        if lines.is_empty() {
+            return;
+        }
+        let mut all_lines = lines.to_vec();
+        all_lines.push(String::new());
+        let label = all_lines
+            .iter()
+            .map(|l| escape_dot(l))
+            .collect::<Vec<_>>()
+            .join("\\l");
+        self.line(&format!(
+            "  node_allocs [label=\"{}\", style=\"filled\", color=lightyellow];",
+            label
+        ));
+    }
+
+    fn type_legend(&mut self, lines: &[String]) {
+        // Only emit when there are entries beyond the header line.
+        if lines.len() <= 1 {
+            return;
+        }
+        let mut all_lines = lines.to_vec();
+        all_lines.push(String::new());
+        let label = all_lines
+            .iter()
+            .map(|l| escape_dot(l))
+            .collect::<Vec<_>>()
+            .join("\\l");
+        self.line(&format!(
+            "  node_types [label=\"{}\", style=\"filled\", color=lavender];",
+            label
+        ));
+    }
+
+    /// Emit a red external node for a callee that has no defined body.
+    /// `name` is the full resolved symbol name; block_name(name, 0) gives
+    /// the node ID, matching the target IDs used in deferred call edges.
+    fn external_function(&mut self, id: &str, name: &str) {
+        let node_id = block_name(id, 0);
+        let label = escape_dot(&name_lines(name));
+        self.line(&format!("  {} [label=\"{}\", color=red];", node_id, label));
+    }
+
+    fn render_function(&mut self, func: &RenderedFunction) {
+        let cluster_color = if func.is_unqualified {
+            "palegreen"
+        } else {
+            "lightgray"
+        };
+
+        self.line(&format!("  subgraph cluster_{} {{", &func.id));
+        self.line(&format!(
+            "    label=\"{}\";",
+            escape_dot(&func.display_name)
+        ));
+        self.line("    style=\"filled\";");
+        self.line(&format!("    color={};", cluster_color));
+
+        // LOCALS node
+        {
+            let mut lines = vec!["LOCALS".to_string()];
+            for (idx, ty) in &func.locals {
+                lines.push(format!("{} = {}", idx, ty));
+            }
+            lines.push(String::new());
+            let label = lines
+                .iter()
+                .map(|l| escape_dot(l))
+                .collect::<Vec<_>>()
+                .join("\\l");
+            self.line(&format!(
+                "    {}_locals [label=\"{}\", style=\"filled\", color=palegreen3];",
+                &func.id, label
+            ));
+        }
+
+        // Block nodes
+        for block in &func.blocks {
+            let node_id = block_name(&func.id, block.idx);
+            let mut parts: Vec<String> = block.stmts.clone();
+            parts.push(block.terminator.clone());
+            parts.push(String::new());
+            let label = parts
+                .iter()
+                .map(|l| escape_dot(l))
+                .collect::<Vec<_>>()
+                .join("\\l");
+            self.line(&format!("    {} [label=\"{}\"];", node_id, label));
+        }
+
+        // Intra-cluster CFG edges
+        for block in &func.blocks {
+            let from = block_name(&func.id, block.idx);
+            for (target, label_opt) in &block.cfg_edges {
+                let to = block_name(&func.id, *target);
+                match label_opt {
+                    Some(lbl) => self.line(&format!(
+                        "    {} -> {} [label=\"{}\"];",
+                        from,
+                        to,
+                        escape_dot(lbl)
+                    )),
+                    None => self.line(&format!("    {} -> {};", from, to)),
+                }
+            }
+        }
+
+        self.line("  }");
+
+        // Defer cross-cluster call edges - emitted after all clusters in finish().
+        // callee_name is the full symbol name so block_name(callee_name, 0)
+        // matches the node ID emitted by external_function or by another
+        // cluster's block 0.
+        for edge in &func.call_edges {
+            let from = block_name(&func.id, edge.block_idx);
+            let to = block_name(&edge.callee_id, 0);
+            self.deferred_call_edges
+                .push((from, to, edge.rendered_args.clone()));
+        }
+    }
+
+    fn static_item(&mut self, id: &str, name: &str) {
+        self.line(&format!("  {} [label=\"{}\"];", id, escape_dot(name)));
+    }
+
+    fn asm_item(&mut self, id: &str, content: &str) {
+        let text = content.lines().collect::<String>();
+        self.line(&format!("  {} [label=\"{}\"];", id, escape_dot(&text)));
+    }
+
+    fn finish(mut self) -> String {
+        // Emit all cross-cluster call edges after all subgraph clusters.
+        for (from, to, args) in &self.deferred_call_edges {
+            self.buf.push_str(&format!(
+                "  {} -> {} [label=\"{}\"];\n",
+                from,
+                to,
+                escape_dot(args)
+            ));
+        }
+        self.buf.push_str("}\n");
+        self.buf
+    }
+}
+
+// =============================================================================
+// Public entry points (new)
+// =============================================================================
+
+impl SmirJson {
+    /// Convert the MIR to DOT using GraphBuilder traversal
+    pub fn to_dot_file_new(&self) -> String {
+        render_graph(self, DOTBuilder::new())
     }
 }
